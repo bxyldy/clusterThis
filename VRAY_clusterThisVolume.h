@@ -120,7 +120,6 @@ public:
 
     }
 
-
     virtual void getWeightedBoxes(UT_RefArray<UT_BoundingBox> &boxes, UT_FloatArray &weights, fpreal radius, fpreal dbound) const;
     virtual void getAttributeBinding(UT_StringArray &names, UT_IntArray &sizes) const;
     virtual void evaluate(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const;
@@ -155,7 +154,7 @@ public:
         fpreal pscale;
         fpreal weight;
         UT_String material;
-    }myPointAttributes;
+    } myPointAttributes;
 
 
 };

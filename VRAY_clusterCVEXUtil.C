@@ -6,12 +6,12 @@
 *
 * Description :
 *
-* $Revision: 1.5 $
+* $Revision: 1.6 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterCVEXUtil.C,v $
 *
 * $Author: mstory $
-*
+*f
 *
 * See Change History at the end of the file.
 *
@@ -95,14 +95,12 @@ static void dumpValueList(const char *label, CVEX_ValueList &list)
     int      i;
     CVEX_Value *value;
     printf("%s:\n", label);
-    for (i = 0; i < list.entries(); i++)
-    {
+    for (i = 0; i < list.entries(); i++) {
         value = list.getValue(i);
         printf("\t%2d.", i+1);
         if (value->isExport())
             printf("export ");
-        switch (value->getType())
-        {
+        switch (value->getType()) {
         case CVEX_TYPE_INTEGER:
             printf("int");
             break;
@@ -138,6 +136,9 @@ static void dumpValueList(const char *label, CVEX_ValueList &list)
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterCVEXUtil.C,v $
+//  Revision 1.6  2012-09-05 23:02:39  mstory
+//  Modifications for H12.
+//
 //  Revision 1.5  2011-02-06 19:49:15  mstory
 //  Modified for Houdini version 11.
 //

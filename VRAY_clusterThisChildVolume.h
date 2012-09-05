@@ -135,7 +135,7 @@ public:
         fpreal pscale;
         fpreal weight;
         UT_String material;
-    }myPointAttributes;
+    } myPointAttributes;
 
 
 };

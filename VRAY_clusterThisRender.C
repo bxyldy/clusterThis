@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.11 $
+* $Revision: 1.15 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisRender.C,v $
 *
@@ -50,8 +50,8 @@ void VRAY_clusterThis::render()
 
     if (myVerbose > CLUSTER_MSG_QUIET) {
         std::cout << "VRAY_clusterThis::render() - Version: " << DCA_VERSION << std::endl;
-        std::cout << "VRAY_clusterThis::render() - Built for Houdini Version: " << HOUDINI_MAJOR_RELEASE
-                        << "." << HOUDINI_MINOR_RELEASE << "." << HOUDINI_BUILD_VERSION << std::endl;
+        std::cout << "VRAY_clusterThis::render() - Built for Houdini Version: " << UT_MAJOR_VERSION
+                  << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
         std::cout << "VRAY_clusterThis::render() - Instancing ..." <<  endl;
     }
 
@@ -72,19 +72,21 @@ void VRAY_clusterThis::render()
             gdp = allocateGeometry();
 
             if (myUseGeoFile) {
-              UT_Options myOptions;
+//                UT_Options myOptions;
+//                GA_Detail::IOStatus load_status;
 
-              // If the file failed to load, throw an exception
-              if (gdp->load((const char *)mySrcGeoFname, &myOptions))
-                  throw VRAY_clusterThis_Exception ("VRAY_clusterThis::render() - Failed to read source geometry file ", 1 );
+//IOStatus 	load (const char *filename, const UT_Options *opts=0, UT_StringArray *errors=0)
 
-              if (myVerbose > CLUSTER_MSG_INFO)
-                  cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
-            }
-            else { 
-              gdp->copy ( *queryGeometry ( handle, 0 ) );
-              if (myVerbose > CLUSTER_MSG_INFO)
-                  cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
+                // If the file failed to load, throw an exception
+                if (!(gdp->load((const char *)mySrcGeoFname).success()))
+                    throw VRAY_clusterThis_Exception ("VRAY_clusterThis::render() - Failed to read source geometry file ", 1 );
+
+                if (myVerbose > CLUSTER_MSG_INFO)
+                    cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
+            } else {
+                gdp->copy ( *queryGeometry ( handle, 0 ) );
+                if (myVerbose > CLUSTER_MSG_INFO)
+                    cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
             }
 
 
@@ -144,22 +146,12 @@ void VRAY_clusterThis::render()
             VRAY_clusterThis::getAttributeOffsets(gdp);
 
             // Check for required attributes
-#if HOUDINI_MAJOR_RELEASE==9
-            if ( ( myPointAttrOffsets.Cd == -1 ) ||
-                    ( myPointAttrOffsets.Alpha == -1 ) ||
-                    ( myPointAttrOffsets.v == -1 ) ||
-                    ( myPointAttrOffsets.N == -1 ) ||
-                    ( myPointAttrOffsets.pscale == -1 ) ||
-                    ( myPointAttrOffsets.id == -1 ) )
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
             if ( ( myPointAttrOffsets.Cd.isInvalid() ) ||
                     ( myPointAttrOffsets.Alpha.isInvalid() ) ||
                     ( myPointAttrOffsets.v.isInvalid() ) ||
                     ( myPointAttrOffsets.N.isInvalid() ) ||
                     ( myPointAttrOffsets.pscale.isInvalid() ) ||
                     ( myPointAttrOffsets.id.isInvalid() ) )
-#endif
 
             {
                 cout << "Incoming points must have Cd, Alpha, v, N, pscale and id attributes! Throwing exception ..." << endl;
@@ -167,12 +159,7 @@ void VRAY_clusterThis::render()
             }
 
             // Check for weight attribute if the user wants metaballs
-#if HOUDINI_MAJOR_RELEASE==9
-            if ( (myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrOffsets.weight == -1) ) {
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
             if ( (myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrOffsets.weight.isInvalid()) ) {
-#endif
 
                 cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << endl;
                 throw VRAY_clusterThis_Exception ( "VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1 );
@@ -187,8 +174,7 @@ void VRAY_clusterThis::render()
                     myFileGDP = file_gdp;
                     if (myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() Successfully loaded geometry file: " << myGeoFile << endl;
-                }
-                else {
+                } else {
                     throw VRAY_clusterThis_Exception ("VRAY_clusterThis::render() Failed to load geometry file ", 1 );
                 }
             }
@@ -210,14 +196,14 @@ void VRAY_clusterThis::render()
             myInstanceNum = 0;
 
             if (myCVEX_Exec_pre) {
-              if (myVerbose > CLUSTER_MSG_INFO)
-                  cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << endl;
-              VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+                if (myVerbose > CLUSTER_MSG_INFO)
+                    cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << endl;
+                VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
             }
 
 
             /// For each point of the incoming geometry
-            FOR_ALL_GPOINTS ( gdp, ppt ) {
+            GA_FOR_ALL_GPOINTS ( gdp, ppt ) {
                 point_num++;
                 myPointAttributes.myPos = ppt->getPos();
 
@@ -231,15 +217,15 @@ void VRAY_clusterThis::render()
 
 
 #ifdef DEBUG
-cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
+                cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
 #endif
 
                 uint seed = 23;
                 fpreal dice;
                 bool skip = false;
 
-                if ((myPrimType != CLUSTER_PRIM_CURVE) || 
-                    ((myMethod == CLUSTER_INSTANCE_DEFERRED && (myPrimType == CLUSTER_PRIM_CURVE)))) {
+                if ((myPrimType != CLUSTER_PRIM_CURVE) ||
+                        ((myMethod == CLUSTER_INSTANCE_DEFERRED && (myPrimType == CLUSTER_PRIM_CURVE)))) {
 
 
                     // For each point, make a number of copies of and recurse a number of times for each copy ...
@@ -259,14 +245,12 @@ cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
                             if (!skip) {
 
                                 // Instance an object ...
-                                switch (myMethod)
-                                {
+                                switch (myMethod) {
                                     // For the "create all geometry at once" method, instance the object now ...
                                 case CLUSTER_INSTANCE_NOW:
                                     // Create a primitive based upon user's selection
                                     // TODO: can later be driven by a point attribute
-                                    switch ( myPrimType )
-                                    {
+                                    switch ( myPrimType ) {
                                     case CLUSTER_POINT:
                                         VRAY_clusterThis::instancePoint(inst_gdp, mb_gdp);
                                         break;
@@ -288,9 +272,9 @@ cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
                                     case CLUSTER_PRIM_METABALL:
                                         VRAY_clusterThis::instanceMetaball(inst_gdp, mb_gdp);
                                         break;
-                                    case CLUSTER_PRIM_VOLUME:
-                                        VRAY_clusterThis::instanceVolume(inst_gdp);
-                                        break;
+//                                    case CLUSTER_PRIM_VOLUME:
+//                                        VRAY_clusterThis::instanceVolume(inst_gdp);
+//                                        break;
                                     case CLUSTER_FILE:
                                         VRAY_clusterThis::instanceFile(file_gdp, inst_gdp, mb_gdp);
                                         break;
@@ -303,17 +287,17 @@ cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
 
                                     // For the "deferred instance" method, add the procedural now ...
                                 case CLUSTER_INSTANCE_DEFERRED:
-                                      openProceduralObject();
-                                      addProcedural( new VRAY_clusterThisChild(this) );
-                                      closeObject();
-        
+//                                    openProceduralObject();
+//                                    addProcedural( new VRAY_clusterThisChild(this) );
+//                                    closeObject();
+
                                     break;
                                 }
 
-                              myInstanceNum++;
+                                myInstanceNum++;
 
 #ifdef DEBUG
-cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
+                                cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
 #endif
                             }
 
@@ -340,36 +324,38 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
                 if (myMethod == CLUSTER_INSTANCE_NOW)
                     if (myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                         cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                            (fpreal)(inst_gdp->getMemoryUsage() + mb_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
+                             (fpreal)(inst_gdp->getMemoryUsage() + mb_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
                     else
                         cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                            (fpreal)(inst_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
+                             (fpreal)(inst_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
 
             // If the "instance all the geo at once method" is used, add the the instanced geo for mantra to render ...
             switch (myMethod) {
-              case CLUSTER_INSTANCE_NOW:
+            case CLUSTER_INSTANCE_NOW:
 
-                  if (myCVEX_Exec_post) {
+                if (myCVEX_Exec_post) {
                     if (myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() Executing Post Process CVEX code" << endl;
                     VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname_post, CLUSTER_CVEX_POINT);
-                  }   
-                  openGeometryObject();
-                  addGeometry(inst_gdp, 0.0);
-  
-                  if (myDoMotionBlur == CLUSTER_MB_VELOCITY)
-                    addVelocityBlurGeometry (inst_gdp, myShutter);
-  
-                  if (myDoMotionBlur == CLUSTER_MB_DEFORMATION)
+                }
+                openGeometryObject();
+                addGeometry(inst_gdp, 0.0);
+
+                if (myDoMotionBlur == CLUSTER_MB_VELOCITY)
+                    addVelocityBlurGeometry (inst_gdp, myShutter, 1.0);
+
+// float 	addVelocityBlurGeometry (GU_Detail *gdp, fpreal pre_blur, fpreal post_blur, const char *velocity_attribute="v")
+
+                if (myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                     addGeometry(mb_gdp, myShutter);
-  
-                  setComputeN ( 1 );
-                  setSurface ( myMaterial );
-                  closeObject();
-  
-                  break;
-              case CLUSTER_INSTANCE_DEFERRED:
-                  break;
+
+                setComputeN ( 1 );
+                setSurface ( myMaterial );
+                closeObject();
+
+                break;
+            case CLUSTER_INSTANCE_DEFERRED:
+                break;
             }
 
             if (myVerbose > CLUSTER_MSG_QUIET && (myPrimType != CLUSTER_PRIM_CURVE))
@@ -385,7 +371,7 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
                 myGeoStream.flush();
                 myGeoStream.close();
                 if (myVerbose > CLUSTER_MSG_QUIET)
-                  cout << "VRAY_clusterThis::render() - Saved geometry to temp file: " << myTempFname << endl;
+                    cout << "VRAY_clusterThis::render() - Saved geometry to temp file: " << myTempFname << endl;
             }
 
             if (myPrimType == CLUSTER_FILE)
@@ -405,18 +391,20 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
             UT_Options myOptions;
 
             // If the file failed to load, throw an exception
-            if (!inst_gdp->load((const char *)myTempFname, &myOptions)) {
+            if ((inst_gdp->load((const char *)myTempFname).success())) {
                 if (myVerbose > CLUSTER_MSG_QUIET)
                     cout << "VRAY_clusterThis::render() - Successfully loaded temp geo file: " << myTempFname << endl;
-            }
-            else
+            } else
                 throw VRAY_clusterThis_Exception ("VRAY_clusterThis::render() - Failed to read temp geometry file ", 1 );
 
             openGeometryObject();
             addGeometry ( inst_gdp, 0 );
 
             if (myDoMotionBlur == CLUSTER_MB_VELOCITY)
-                addVelocityBlurGeometry (inst_gdp, myShutter);
+                addVelocityBlurGeometry (inst_gdp, myShutter, 1.0);
+
+// float 	addVelocityBlurGeometry (GU_Detail *gdp, fpreal pre_blur, fpreal post_blur, const char *velocity_attribute="v")
+
 
             //if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
             //   mb_gdp = allocateGeometry();
@@ -456,8 +444,7 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
     }
 
 
-    catch ( ... )
-    {
+    catch ( ... ) {
         cout << "VRAY_clusterThis::render() - Unknown exception encountered, freeing geometry and exiting" << endl << endl;
         freeGeometry ( gdp );
         freeGeometry ( inst_gdp );
@@ -467,8 +454,8 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
     }
 
 
-  if (myVerbose > CLUSTER_MSG_QUIET)
-      cout << "VRAY_clusterThis::render() - Leaving render() method" << endl;
+    if (myVerbose > CLUSTER_MSG_QUIET)
+        cout << "VRAY_clusterThis::render() - Leaving render() method" << endl;
 
     return;
 
@@ -481,6 +468,12 @@ cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisRender.C,v $
+//  Revision 1.15  2012-09-05 23:02:39  mstory
+//  Modifications for H12.
+//
+//  Revision 1.14  2012-09-04 03:25:28  mstory
+//  .
+//
 //  Revision 1.11  2011-02-15 00:59:15  mstory
 //  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
 //  Made remaining changes for H11 (and beyond) versions way of handiling attributes.

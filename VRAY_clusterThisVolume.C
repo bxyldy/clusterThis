@@ -65,8 +65,7 @@ void VRAY_clusterThisVolume::evaluate(const UT_Vector3 &pos, const UT_Filter &fi
 //    fpreal noise_bias = ( myNoise.turbulence ( myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten ) * myNoiseAmp ) + 1.0;
 
 
-    switch (idx)
-    {
+    switch (idx) {
 // case 0: data[0] = (pos.length2() < 1.0F) ? 1.0F : 0.0F; break;
 // case 1: data[0] = pos.length(); break;
 

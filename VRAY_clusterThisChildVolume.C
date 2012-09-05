@@ -62,8 +62,7 @@ void VRAY_clusterThisChildVolume::evaluate(const UT_Vector3 &pos, const UT_Filte
 
 // cout << "distance: " << distance3d(pos,myPointAttributes.myPos) << endl;
 
-    switch (idx)
-    {
+    switch (idx) {
 // case 0: data[0] = (pos.length2() < 1.0F) ? 1.0F : 0.0F; break;
 // case 1: data[0] = pos.length(); break;
 

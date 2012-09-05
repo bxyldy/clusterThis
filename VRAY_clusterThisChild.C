@@ -6,7 +6,7 @@
 *
 * Description : This class will instance geomtery or volumes from the addProcedural calls of it's "parent" class, VRAY_clusterThis
 *
-* $Revision: 1.19 $
+* $Revision: 1.23 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisChild.C,v $
 *
@@ -121,8 +121,7 @@ void VRAY_clusterThisChild::render()
 
     // // Create a primitive based upon user's selection
     // // TODO: can later be driven by a point attribute
-    switch ( myPrimType )
-    {
+    switch ( myPrimType ) {
     case CLUSTER_POINT:
         VRAY_clusterThisChild::instancePoint();
         break;
@@ -173,155 +172,64 @@ void VRAY_clusterThisChild::render()
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instancePoint() {
+int VRAY_clusterThisChild::instancePoint()
+{
 
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
 #endif
 
     GU_Detail *gdp, *mb_gdp;
-#if HOUDINI_MAJOR_RELEASE==9
-    UT_Vector3  *Cd, *vel, *N;
-    fpreal *pscale_ptr, *Alpha_ptr;
-    int *id_ptr, *inst_id_ptr;
-#endif
-
     GEO_Point *ppt;
+    GA_RWAttributeRef attrRef;
+    GA_RWHandleI attrIntHandle;
+    GA_RWHandleF attrFloatHandle;
+    GA_RWHandleV3 attrVector3Handle;
 
     gdp = allocateGeometry();
-
-    myInstanceNum++;
 
 // TODO:
 // TODO:  Why oh why ... do I have to create the attributes here ... INVESTIGATE!
 // TODO:
 
+    GA_RWAttributeRef pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_pscale = gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+    GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+    GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
-#if HOUDINI_MAJOR_RELEASE==9
-    int pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
-    int pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
-    int pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
-    int pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
-    int pt_pscale = gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-    int pt_id = gdp->addPointAttrib("id", sizeof(int), GB_ATTRIB_INT, 0);
-    int pt_inst_id = gdp->addPointAttrib("inst_id", sizeof(int), GB_ATTRIB_INT, 0);
-    int pt_material = gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-//    int pt_material = gdp->addPointAttrib ( "shop_vm_surface", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-#endif
+//    GA_RWAttributeRef pt_material = gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
+//    GA_RWAttributeRef pt_material = gdp->addPointAttrib ( "shop_vm_surface", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
 
-#if HOUDINI_MAJOR_RELEASE>=11
-    GB_AttributeRef pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_pscale = gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-    GB_AttributeRef pt_id = gdp->addPointAttrib("id", sizeof(GB_AttributeRef), GB_ATTRIB_INT, 0);
-    GB_AttributeRef pt_inst_id = gdp->addPointAttrib("inst_id", sizeof(GB_AttributeRef), GB_ATTRIB_INT, 0);
-    GB_AttributeRef pt_material = gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
-//    GB_AttributeRef pt_material = gdp->addPointAttrib ( "shop_vm_surface", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
-#endif
+    ppt = gdp->appendPointElement();
+    gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myNewPos[0],
+                                         (float)myPointAttributes.myNewPos[1],
+                                         (float)myPointAttributes.myNewPos[2], 1.0);
+    if (pt_Cd.isValid()) {
+        attrVector3Handle.bind(pt_Cd.getAttribute());
+        attrVector3Handle.set(gdp->pointOffset(myInstanceNum), (const UT_Vector3)(myPointAttributes.Cd));
+    }
 
 
-    ppt = gdp->appendPoint();
-    ppt->getPos().assign(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], 1);
-
-
-
-//     Cd = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointCd );
-//     Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );    
-//     Alpha_ptr = ppt->castAttribData<fpreal> ( myInstAttrOffsets.pointAlpha );
-//     *Alpha_ptr = myPointAttributes.Alpha;
-//     vel = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointV );
-//     vel->assign ( ( fpreal ) myPointAttributes.v.x(), ( fpreal ) myPointAttributes.v.y(), ( fpreal ) myPointAttributes.v.z() );
-//     N = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointN );
-//     N->assign ( ( fpreal ) myPointAttributes.N.x(), ( fpreal ) myPointAttributes.N.y(), ( fpreal ) myPointAttributes.N.z() );
-//     pscale_ptr = ppt->castAttribData<fpreal> ( myInstAttrOffsets.pointPscale );
-//     *pscale_ptr = myPointAttributes.pscale;
-//     id_ptr = ppt->castAttribData<int> ( myInstAttrOffsets.pointId );
-//     *id_ptr = myPointAttributes.id;
-//     inst_id_ptr = ppt->castAttribData<int> ( myInstAttrOffsets.pointInstId );
-//     *inst_id_ptr = myInstanceNum;
-
-
-
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = ppt->castAttribData<UT_Vector3> ( pt_Cd );
-    Cd->assign ( ( float ) myPointAttributes.Cd.x(), ( float ) myPointAttributes.Cd.y(), ( float ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Alpha_ptr = ppt->castAttribData<fpreal> ( pt_Alpha );
-    *Alpha_ptr = myPointAttributes.Alpha;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = ppt->castAttribData<UT_Vector3> ( pt_Cd );
-    Cd->assign ( ( float ) myPointAttributes.Cd.x(), ( float ) myPointAttributes.Cd.y(), ( float ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    vel = ppt->castAttribData<UT_Vector3> ( pt_vel );
-    vel->assign ( ( float ) myPointAttributes.v.x(), ( float ) myPointAttributes.v.y(), ( float ) myPointAttributes.v.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    N = ppt->castAttribData<UT_Vector3> ( pt_N );
-    N->assign ( ( float ) myPointAttributes.N.x(), ( float ) myPointAttributes.N.y(), ( float ) myPointAttributes.N.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    pscale_ptr = ppt->castAttribData<fpreal> ( pt_pscale );
-    *pscale_ptr = myPointAttributes.pscale;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    id_ptr = ppt->castAttribData<int> ( pt_id );
-    *id_ptr = myPointAttributes.id;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    inst_id_ptr = ppt->castAttribData<int> ( pt_inst_id );
-    *inst_id_ptr = myInstanceNum;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-#endif
 
-#if HOUDINI_MAJOR_RELEASE==9
-    UT_String* mat = ppt->castAttribData<UT_String> ( pt_material );
-    *mat = myPointAttributes.material;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-GEO_AttributeHandle matAttribHandle = gdp->getPointAttribute("shop_materialpath");
 
-if ( matAttribHandle.isAttributeValid() ) {
-    matAttribHandle.setElement(ppt);
-    matAttribHandle.setString(myPointAttributes.material);
-}
-#endif
+//    GEO_AttributeHandle matAttribHandle = gdp->getPointAttribute("shop_materialpath");
 
+//    if ( matAttribHandle.isAttributeValid() )
+//    {
+//        matAttribHandle.setElement(ppt);
+//        matAttribHandle.setString(myPointAttributes.material);
+//    }
 
 
     if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
@@ -331,108 +239,38 @@ if ( matAttribHandle.isAttributeValid() ) {
         pt_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
         pt_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
         pt_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-        pt_pscale = mb_gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-        pt_id = mb_gdp->addPointAttrib("id", sizeof(int), GB_ATTRIB_INT, 0);
-        pt_inst_id = mb_gdp->addPointAttrib("inst_id", sizeof(int), GB_ATTRIB_INT, 0);
-        
-#if HOUDINI_MAJOR_RELEASE==9
-        pt_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        pt_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
-#endif
-      
-        ppt = mb_gdp->appendPoint();
-        ppt->getPos().assign(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2], 1);
+        pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+        pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+        pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+
+//        pt_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
+
+        ppt = mb_gdp->appendPointElement();
+        mb_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myMBPos[0],
+                                                (float)myPointAttributes.myMBPos[1],
+                                                (float)myPointAttributes.myMBPos[2], 1.0);
 
 
-//     Cd = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointCd );
-//     Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );    
-//     Alpha_ptr = ppt->castAttribData<fpreal> ( myInstAttrOffsets.pointAlpha );
-//     *Alpha_ptr = myPointAttributes.Alpha;
-//     vel = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointV );
-//     vel->assign ( ( fpreal ) myPointAttributes.v.x(), ( fpreal ) myPointAttributes.v.y(), ( fpreal ) myPointAttributes.v.z() );
-//     N = ppt->castAttribData<UT_Vector3> ( myInstAttrOffsets.pointN );
-//     N->assign ( ( fpreal ) myPointAttributes.N.x(), ( fpreal ) myPointAttributes.N.y(), ( fpreal ) myPointAttributes.N.z() );
-//     pscale_ptr = ppt->castAttribData<fpreal> ( myInstAttrOffsets.pointPscale );
-//     *pscale_ptr = myPointAttributes.pscale;
-//     id_ptr = ppt->castAttribData<int> ( myInstAttrOffsets.pointId );
-//     *id_ptr = myPointAttributes.id;
-//     inst_id_ptr = ppt->castAttribData<int> ( myInstAttrOffsets.pointInstId );
-//     *inst_id_ptr = myInstanceNum;
-
-
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = ppt->castAttribData<UT_Vector3> ( pt_Cd );
-    Cd->assign ( ( float ) myPointAttributes.Cd.x(), ( float ) myPointAttributes.Cd.y(), ( float ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Alpha_ptr = ppt->castAttribData<fpreal> ( pt_Alpha );
-    *Alpha_ptr = myPointAttributes.Alpha;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    vel = ppt->castAttribData<UT_Vector3> ( pt_vel );
-    vel->assign ( ( float ) myPointAttributes.v.x(), ( float ) myPointAttributes.v.y(), ( float ) myPointAttributes.v.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    N = ppt->castAttribData<UT_Vector3> ( pt_N );
-    N->assign ( ( float ) myPointAttributes.N.x(), ( float ) myPointAttributes.N.y(), ( float ) myPointAttributes.N.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    pscale_ptr = ppt->castAttribData<fpreal> ( pt_pscale );
-    *pscale_ptr = myPointAttributes.pscale;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    id_ptr = ppt->castAttribData<int> ( pt_id );
-    *id_ptr = myPointAttributes.id;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    inst_id_ptr = ppt->castAttribData<int> ( pt_inst_id );
-    *inst_id_ptr = myInstanceNum;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-        mat = ppt->castAttribData<UT_String> ( pt_material );
-        *mat = myPointAttributes.material;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-matAttribHandle = gdp->getPointAttribute("shop_materialpath");
-
-        if ( matAttribHandle.isAttributeValid() ) {
-            matAttribHandle.setElement(ppt);
-            matAttribHandle.setString(myPointAttributes.material);
+        if (pt_Cd.isValid()) {
+            attrVector3Handle.bind(pt_Cd.getAttribute());
+            attrVector3Handle.set(mb_gdp->pointOffset(myInstanceNum), (const UT_Vector3)(myPointAttributes.Cd));
         }
-#endif
 
+        ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
 
+        ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+        ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
+        ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+        ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
+        ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
+        ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
+//        matAttribHandle = gdp->getPointAttribute("shop_materialpath");
+
+//        if ( matAttribHandle.isAttributeValid() )
+//        {
+//            matAttribHandle.setElement(ppt);
+//            matAttribHandle.setString(myPointAttributes.material);
+//        }
 
     }
 
@@ -446,6 +284,9 @@ matAttribHandle = gdp->getPointAttribute("shop_materialpath");
     setComputeN ( 1 );
     setSurface ( (const char *)myPointAttributes.material );
     closeObject();
+
+    myInstanceNum++;
+
 
 #ifdef DEBUG
     cout << "VRAY_clusterThisChild::instancePoint() Instanced a point " << endl;
@@ -467,7 +308,8 @@ matAttribHandle = gdp->getPointAttribute("shop_materialpath");
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceSphere() {
+int VRAY_clusterThisChild::instanceSphere()
+{
 
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceSphere()" << std::endl;
@@ -495,13 +337,8 @@ int VRAY_clusterThisChild::instanceSphere() {
 
     if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
         mb_gdp = allocateGeometry();
-                
-#if HOUDINI_MAJOR_RELEASE==9
-//        prim_material = mb_gdp->addPrimAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
+
 //        prim_material = mb_gdp->addPrimAttrib ( "shop_materialpath", sizeof ( int ), GB_ATTRIB_INDEX, 0 );
-#endif
 
         sphere_parms.gdp = mb_gdp;
         sphere_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
@@ -544,7 +381,8 @@ int VRAY_clusterThisChild::instanceSphere() {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceCube()  {
+int VRAY_clusterThisChild::instanceCube()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceCube()" << std::endl;
 #endif
@@ -559,11 +397,11 @@ int VRAY_clusterThisChild::instanceCube()  {
     GEO_Primitive *myCube;
 
     myCube = ( GEO_Primitive * ) gdp->cube ( myPointAttributes.myNewPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
-            myPointAttributes.myNewPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
-            myPointAttributes.myNewPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
-            myPointAttributes.myNewPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
-            myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
-            myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
+             myPointAttributes.myNewPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
+             myPointAttributes.myNewPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
+             myPointAttributes.myNewPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
+             myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
+             myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
     myCube->transform ( xform );
     myCube->computeNormal();
 
@@ -573,11 +411,11 @@ int VRAY_clusterThisChild::instanceCube()  {
         mb_gdp = allocateGeometry();
 
         myCube = ( GEO_Primitive * ) mb_gdp->cube ( myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
-                myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
-                myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
-                myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
-                myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
-                myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
+                 myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
+                 myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
+                 myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
+                 myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
+                 myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
         myCube->transform ( xform );
         myCube->computeNormal();
@@ -612,7 +450,8 @@ int VRAY_clusterThisChild::instanceCube()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceGrid()  {
+int VRAY_clusterThisChild::instanceGrid()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceGrid()" << std::endl;
 #endif
@@ -626,7 +465,7 @@ int VRAY_clusterThisChild::instanceGrid()  {
     myInstanceNum++;
 
     myGrid = ( GEO_Primitive * ) gdp->polyGrid ( 2, 2, mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale,
-            myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2] );
+             myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2] );
     myGrid->transform ( xform );
     myGrid->computeNormal();
 
@@ -636,7 +475,7 @@ int VRAY_clusterThisChild::instanceGrid()  {
         mb_gdp = allocateGeometry();
 
         myGrid = ( GEO_Primitive * ) mb_gdp->polyGrid ( 2, 2, mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale,
-                myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2] );
+                 myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2] );
         myGrid->transform ( xform );
         myGrid->computeNormal();
 
@@ -670,7 +509,8 @@ int VRAY_clusterThisChild::instanceGrid()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceTube()  {
+int VRAY_clusterThisChild::instanceTube()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceTube()" << std::endl;
 #endif
@@ -720,7 +560,7 @@ int VRAY_clusterThisChild::instanceTube()  {
 
 // TODO:  Investigate this function, it's not being used correctly ... ?
 //    tube->normal(1);
-        
+
     }
 
     openGeometryObject();
@@ -749,7 +589,8 @@ int VRAY_clusterThisChild::instanceTube()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceCircle()  {
+int VRAY_clusterThisChild::instanceCircle()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceCircle()" << std::endl;
 #endif
@@ -817,7 +658,8 @@ int VRAY_clusterThisChild::instanceCircle()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceCurve()  {
+int VRAY_clusterThisChild::instanceCurve()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceCurve()" << std::endl;
 #endif
@@ -831,50 +673,25 @@ int VRAY_clusterThisChild::instanceCurve()  {
     inst_gdp = allocateGeometry();
 
     GEO_Point *ppt;
-#if HOUDINI_MAJOR_RELEASE==9
-    UT_Vector3  *Cd, *vel, *N;
-//    fpreal *pscale_ptr, *Alpha_ptr;
-    fpreal *Alpha_ptr;
-    int *id_ptr;
-//    int *inst_id_ptr;
-#endif
+    GA_RWAttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_vel = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
+    GA_RWAttributeRef pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
 
-#if HOUDINI_MAJOR_RELEASE==9
-    int pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-    int pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-    int pt_vel = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-    int pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-//    int pt_pscale = inst_gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-    int pt_id = inst_gdp->addPointAttrib("id", sizeof(int), GB_ATTRIB_INT, 0);
-//    int pt_inst_id = inst_gdp->addPointAttrib("inst_id", sizeof(int), GB_ATTRIB_INT, 0);
-//    int pt_material = inst_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-    int pt_mb_Cd;
-    int pt_mb_Alpha;
-    int pt_mb_vel;
-    int pt_mb_N;
-    int pt_mb_pscale;
-    int pt_mb_id;
-    int pt_mb_inst_id;
-    int pt_mb_material;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    GB_AttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_vel = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-    GB_AttributeRef pt_pscale = inst_gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-    GB_AttributeRef pt_id = inst_gdp->addPointAttrib("id", sizeof(GB_AttributeRef), GB_ATTRIB_INT, 0);
-    GB_AttributeRef pt_inst_id = inst_gdp->addPointAttrib("inst_id", sizeof(GB_AttributeRef), GB_ATTRIB_INT, 0);
-    GB_AttributeRef pt_material = inst_gdp->addPointAttrib ( "shop_materialpath", sizeof ( int ), GB_ATTRIB_INDEX, 0 );
-    GB_AttributeRef pt_mb_Cd;
-    GB_AttributeRef pt_mb_Alpha;
-    GB_AttributeRef pt_mb_vel;
-    GB_AttributeRef pt_mb_N;
-    GB_AttributeRef pt_mb_pscale;
-    GB_AttributeRef pt_mb_id;
-    GB_AttributeRef pt_mb_inst_id;
-    GB_AttributeRef pt_mb_material;
-#endif
+    GA_RWAttributeRef pt_pscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+    GA_RWAttributeRef pt_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+    GA_RWAttributeRef pt_inst_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+
+//    GA_RWAttributeRef pt_material = inst_gdp->addPointAttrib ( "shop_materialpath", sizeof ( int ), GB_ATTRIB_INDEX, 0 );
+
+    GA_RWAttributeRef pt_mb_Cd;
+    GA_RWAttributeRef pt_mb_Alpha;
+    GA_RWAttributeRef pt_mb_vel;
+    GA_RWAttributeRef pt_mb_N;
+    GA_RWAttributeRef pt_mb_pscale;
+    GA_RWAttributeRef pt_mb_id;
+    GA_RWAttributeRef pt_mb_inst_id;
+    GA_RWAttributeRef pt_mb_material;
 
     // static GU_PrimNURBCurve *  build (GU_Detail *gudp, int nelems, int order=4, int closed=0, int interpEnds=1, int appendPoints=1)
     // myCurve = GU_PrimNURBCurve::build(gdp, num_divs, 4, 0, 1, 0);
@@ -892,54 +709,19 @@ int VRAY_clusterThisChild::instanceCurve()  {
 //   cout << "getOrder: "  << myCurve->getOrder () << endl;
 
 
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = myCurve->castAttribData<UT_Vector3> ( pt_Cd );
-    Cd->assign ( ( float ) myPointAttributes.Cd.x(), ( float ) myPointAttributes.Cd.y(), ( float ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-if(pt_Cd.isValid()) 
-    myCurve->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Alpha_ptr = myCurve->castAttribData<fpreal> ( pt_Alpha );
-    *Alpha_ptr = myPointAttributes.Alpha;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
+    if (pt_Cd.isValid())
+        myCurve->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
     myCurve->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    vel = myCurve->castAttribData<UT_Vector3> ( pt_vel );
-    vel->assign ( ( float ) myPointAttributes.v.x(), ( float ) myPointAttributes.v.y(), ( float ) myPointAttributes.v.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     myCurve->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    N = myCurve->castAttribData<UT_Vector3> ( pt_N );
-    N->assign ( ( float ) myPointAttributes.N.x(), ( float ) myPointAttributes.N.y(), ( float ) myPointAttributes.N.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
     myCurve->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-#endif
 
 // TODO:  Investigate this function, it's not being used correctly ... ?
 //    myCurve->normal(1);
-    
-#if HOUDINI_MAJOR_RELEASE==9
-    id_ptr = myCurve->castAttribData<int> ( pt_id );
-    *id_ptr = myPointAttributes.id;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myCurve->setValue<int>(pt_id, (const int)myPointAttributes.id);
-#endif
 
+    myCurve->setValue<int>(pt_id, (const int)myPointAttributes.id);
 
-//               UT_String* mat = myCurve->castAttribData<UT_String> ( myInstAttrOffsets.material );
+//               UT_String* mat = myCurve->castAttribData<UT_String> ( myInstAttrRefs.material );
 //               *mat = myPointAttributes.material;
-
 
     if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
         mb_gdp = allocateGeometry();
@@ -948,61 +730,22 @@ if(pt_Cd.isValid())
         pt_mb_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
         pt_mb_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
         pt_mb_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-        pt_mb_pscale = mb_gdp->addPointAttrib("pscale", sizeof(fpreal), GB_ATTRIB_FLOAT, 0);
-        pt_mb_id = mb_gdp->addPointAttrib("id", sizeof(int), GB_ATTRIB_INT, 0);
-        pt_mb_inst_id = mb_gdp->addPointAttrib("inst_id", sizeof(int), GB_ATTRIB_INT, 0);
+        pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+        pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+        pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
-#if HOUDINI_MAJOR_RELEASE==9                
-        pt_mb_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0);
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11               
-        pt_mb_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( int ), GB_ATTRIB_INDEX, 0);
-#endif
-      
+//        pt_mb_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( int ), GB_ATTRIB_INDEX, 0);
 
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = myCurve->castAttribData<UT_Vector3> ( pt_mb_Cd );
-    Cd->assign ( ( float ) myPointAttributes.Cd.x(), ( float ) myPointAttributes.Cd.y(), ( float ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    myCurve->setValue<UT_Vector3>(pt_mb_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Alpha_ptr = myCurve->castAttribData<fpreal> ( pt_mb_Alpha );
-    *Alpha_ptr = myPointAttributes.Alpha;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    myCurve->setValue<fpreal>(pt_mb_Alpha, (const fpreal)myPointAttributes.Alpha);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    vel = myCurve->castAttribData<UT_Vector3> ( pt_mb_vel );
-    vel->assign ( ( float ) myPointAttributes.v.x(), ( float ) myPointAttributes.v.y(), ( float ) myPointAttributes.v.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    myCurve->setValue<UT_Vector3>(pt_mb_vel, (const UT_Vector3)myPointAttributes.v);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    N = myCurve->castAttribData<UT_Vector3> ( pt_mb_N );
-    N->assign ( ( float ) myPointAttributes.N.x(), ( float ) myPointAttributes.N.y(), ( float ) myPointAttributes.N.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    myCurve->setValue<UT_Vector3>(pt_mb_N, (const UT_Vector3)myPointAttributes.N);
-#endif
+        myCurve->setValue<UT_Vector3>(pt_mb_Cd, (const UT_Vector3)myPointAttributes.Cd);
+        myCurve->setValue<fpreal>(pt_mb_Alpha, (const fpreal)myPointAttributes.Alpha);
+        myCurve->setValue<UT_Vector3>(pt_mb_vel, (const UT_Vector3)myPointAttributes.v);
+        myCurve->setValue<UT_Vector3>(pt_mb_N, (const UT_Vector3)myPointAttributes.N);
 
 // TODO:  Investigate this function, it's not being used correctly ... ?
 //    myCurve->normal(1);
-    
-#if HOUDINI_MAJOR_RELEASE==9
-    id_ptr = myCurve->castAttribData<int> ( pt_mb_id );
-    *id_ptr = myPointAttributes.id;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
+
         myCurve->setValue<int>(pt_mb_id, (const int)myPointAttributes.id);
-#endif
-        
+
 //        UT_String* mat = myMBCurve->castAttribData<UT_String> ( myInstMBAttrOffsets.material );
 //        *mat = myPointAttributes.material;
 
@@ -1029,7 +772,9 @@ if(pt_Cd.isValid())
 
                 myParent->calculateNewPosition(theta, copyNum, recursionNum);
                 ppt = myCurve->getVertex(myInstanceNum).getPt();
-                ppt->getPos().assign ( myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], 1 );
+                gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myNewPos[0],
+                                                     (float)myPointAttributes.myNewPos[1],
+                                                     (float)myPointAttributes.myNewPos[2], 1.0);
 
                 // Assign color to each point
 //              Cd = ppt->castAttribData<UT_Vector3> ( pt_Cd );
@@ -1113,7 +858,8 @@ if(pt_Cd.isValid())
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceMetaball() {
+int VRAY_clusterThisChild::instanceMetaball()
+{
 
 #ifdef DEBUG
     std::cout << "VRAY_clusterThis::instanceMetaball()" << std::endl;
@@ -1136,7 +882,7 @@ int VRAY_clusterThisChild::instanceMetaball() {
     metaball = ( GU_PrimMetaBall * ) GU_PrimMetaBall::build ( metaball_parms );
 
     VRAY_clusterThisChild::setInstanceAttributes(gdp, metaball);
-    
+
 // TODO:  Investigate this function, it's not being used correctly ... ?
 //    metaball->normal(1);
 
@@ -1151,7 +897,7 @@ int VRAY_clusterThisChild::instanceMetaball() {
         metaball = ( GU_PrimMetaBall * ) GU_PrimMetaBall::build ( metaball_parms );
 
         VRAY_clusterThisChild::setInstanceAttributes(mb_gdp, metaball);
-        
+
 // TODO:  Investigate this function, it's not being used correctly ... ?
 //        metaball->normal(1);
 
@@ -1184,7 +930,8 @@ int VRAY_clusterThisChild::instanceMetaball() {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceVolume()  {
+int VRAY_clusterThisChild::instanceVolume()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceVolume()" << std::endl;
 #endif
@@ -1228,7 +975,8 @@ int VRAY_clusterThisChild::instanceVolume()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThisChild::instanceFile()  {
+int VRAY_clusterThisChild::instanceFile()
+{
 #ifdef DEBUG
     std::cout << "VRAY_clusterThisChild::instanceFile()" << std::endl;
 #endif
@@ -1244,7 +992,7 @@ int VRAY_clusterThisChild::instanceFile()  {
     UT_Matrix4 xform(1.0);
     UT_Matrix3 rot_xform(1.0);
     UT_Vector3 myDir = myPointAttributes.N;
-  UT_Vector3 myUp = UT_Vector3(0,1,0);
+    UT_Vector3 myUp = UT_Vector3(0,1,0);
     myDir.normalize();
 //    myUp.normalize();
 
@@ -1269,9 +1017,9 @@ int VRAY_clusterThisChild::instanceFile()  {
         GU_Detail gdp(myFileGDP);
 
         xform.identity();
-      rot_xform.identity();
-      rot_xform.orient(myDir, myUp);
-      xform = rot_xform;
+        rot_xform.identity();
+        rot_xform.orient(myDir, myUp);
+        xform = rot_xform;
         xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 //        xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
@@ -1309,120 +1057,42 @@ int VRAY_clusterThisChild::instanceFile()  {
 *  Return Value : int
 *
 ***************************************************************************** */
-inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail *gdp, GEO_Primitive *myGeoPrim) {
+inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail *gdp, GEO_Primitive *myGeoPrim)
+{
 
 #ifdef DEBUG
     cout << "VRAY_clusterThisChild::setInstanceAttributes() " << endl;
 #endif
 
-#if HOUDINI_MAJOR_RELEASE==9
-    UT_Vector3  *Cd, *vel, *N;
-//    UT_Vector3  *orient;
-    fpreal *pscale_ptr, *Alpha_ptr;
-    int *id_ptr, *inst_id_ptr;
-#endif
+    GA_RWAttributeRef prim_Cd = gdp->addDiffuseAttribute ( GEO_PRIMITIVE_DICT );
+    GA_RWAttributeRef prim_Alpha = gdp->addAlphaAttribute ( GEO_PRIMITIVE_DICT );
+    GA_RWAttributeRef prim_velocity = gdp->addVelocityAttribute ( GEO_PRIMITIVE_DICT );
+    GA_RWAttributeRef prim_N = gdp->addNormalAttribute ( GEO_PRIMITIVE_DICT );
+    GA_RWAttributeRef prim_pscale = gdp->addPrimAttrib ( "pscale", sizeof ( fpreal ), GB_ATTRIB_FLOAT, 0 );
+    GA_RWAttributeRef prim_id = gdp->addPrimAttrib ( "id", sizeof ( GA_RWAttributeRef ), GB_ATTRIB_INT, 0 );
+    GA_RWAttributeRef prim_inst_id = gdp->addPrimAttrib ( "inst_id", sizeof ( GA_RWAttributeRef ), GB_ATTRIB_INT, 0 );
+//    GA_RWAttributeRef prim_material = gdp->addPrimAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
 
-
-#if HOUDINI_MAJOR_RELEASE==9
-    int prim_Cd = gdp->addDiffuseAttribute ( GEO_PRIMITIVE_DICT );
-    int prim_Alpha = gdp->addAlphaAttribute ( GEO_PRIMITIVE_DICT );
-    int prim_velocity = gdp->addVelocityAttribute ( GEO_PRIMITIVE_DICT );
-    int prim_N = gdp->addNormalAttribute ( GEO_PRIMITIVE_DICT );
-    int prim_pscale = gdp->addPrimAttrib ( "pscale", sizeof ( fpreal ), GB_ATTRIB_FLOAT, 0 );
-    int prim_id = gdp->addPrimAttrib ( "id", sizeof ( int ), GB_ATTRIB_INT, 0 );
-    int prim_inst_id = gdp->addPrimAttrib ( "inst_id", sizeof ( int ), GB_ATTRIB_INT, 0 );
-    int prim_material = gdp->addPrimAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_STRING, 0 );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-    GB_AttributeRef prim_Cd = gdp->addDiffuseAttribute ( GEO_PRIMITIVE_DICT );
-    GB_AttributeRef prim_Alpha = gdp->addAlphaAttribute ( GEO_PRIMITIVE_DICT );
-    GB_AttributeRef prim_velocity = gdp->addVelocityAttribute ( GEO_PRIMITIVE_DICT );
-    GB_AttributeRef prim_N = gdp->addNormalAttribute ( GEO_PRIMITIVE_DICT );
-    GB_AttributeRef prim_pscale = gdp->addPrimAttrib ( "pscale", sizeof ( fpreal ), GB_ATTRIB_FLOAT, 0 );
-    GB_AttributeRef prim_id = gdp->addPrimAttrib ( "id", sizeof ( GB_AttributeRef ), GB_ATTRIB_INT, 0 );
-    GB_AttributeRef prim_inst_id = gdp->addPrimAttrib ( "inst_id", sizeof ( GB_AttributeRef ), GB_ATTRIB_INT, 0 );
-//    GB_AttributeRef prim_material = gdp->addPrimAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
-#endif
-
-
-    
-#if HOUDINI_MAJOR_RELEASE==9
-    Cd = myGeoPrim->castAttribData<UT_Vector3> ( prim_Cd );
-    Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<UT_Vector3>(prim_Cd, (const UT_Vector3)myPointAttributes.Cd);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    Alpha_ptr = myGeoPrim->castAttribData<fpreal> ( prim_Alpha );
-    *Alpha_ptr = myPointAttributes.Alpha;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<fpreal>(prim_Alpha, (const fpreal)myPointAttributes.Alpha);
-#endif
-    
-#if HOUDINI_MAJOR_RELEASE==9
-    vel = myGeoPrim->castAttribData<UT_Vector3> ( prim_velocity );
-    vel->assign ( ( fpreal ) myPointAttributes.v.x(), ( fpreal ) myPointAttributes.v.y(), ( fpreal ) myPointAttributes.v.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<UT_Vector3>(prim_velocity, (const UT_Vector3)myPointAttributes.v);
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-    N = myGeoPrim->castAttribData<UT_Vector3> ( prim_N );
-    N->assign ( ( fpreal ) myPointAttributes.N.x(), ( fpreal ) myPointAttributes.N.y(), ( fpreal ) myPointAttributes.N.z() );
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<UT_Vector3>(prim_N, (const UT_Vector3)myPointAttributes.N);
-#endif
-
+    myGeoPrim->setValue<UT_Vector3>(prim_Cd, (const UT_Vector3)myPointAttributes.Cd);
+    myGeoPrim->setValue<fpreal>(prim_Alpha, (const fpreal)myPointAttributes.Alpha);
+    myGeoPrim->setValue<UT_Vector3>(prim_velocity, (const UT_Vector3)myPointAttributes.v);
+    myGeoPrim->setValue<UT_Vector3>(prim_N, (const UT_Vector3)myPointAttributes.N);
 
 //    orient = myGeoPrim->castAttribData<UT_Vector4> ( prim_orient );
 //    orient->assign ( ( fpreal ) myPointAttributes.orient.x(), ( fpreal ) myPointAttributes.orient.y(), ( fpreal ) myPointAttributes.orient.z() );
 
 
-#if HOUDINI_MAJOR_RELEASE==9
-    pscale_ptr = myGeoPrim->castAttribData<fpreal> ( prim_pscale );
-    *pscale_ptr = myPointAttributes.pscale;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<fpreal>(prim_pscale, (const fpreal)myPointAttributes.pscale);
-#endif
+    myGeoPrim->setValue<fpreal>(prim_pscale, (const fpreal)myPointAttributes.pscale);
+    myGeoPrim->setValue<int>(prim_id, (const int)myPointAttributes.id);
+    myGeoPrim->setValue<int>(prim_inst_id, (const int)myInstanceNum);
+    GEO_AttributeHandle matAttribHandle = gdp->getPointAttribute("shop_materialpath");
 
-#if HOUDINI_MAJOR_RELEASE==9
-    id_ptr = myGeoPrim->castAttribData<int> ( prim_id );
-    *id_ptr = myPointAttributes.id;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<int>(prim_id, (const int)myPointAttributes.id);
-#endif
+    if ( matAttribHandle.isAttributeValid() ) {
+        matAttribHandle.setElement(myGeoPrim);
+        matAttribHandle.setString(myPointAttributes.material);
+    }
 
 
-#if HOUDINI_MAJOR_RELEASE==9
-    inst_id_ptr = myGeoPrim->castAttribData<int> ( prim_inst_id );
-    *inst_id_ptr = myInstanceNum;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        myGeoPrim->setValue<int>(prim_inst_id, (const int)myInstanceNum);
-#endif
-
-
-#if HOUDINI_MAJOR_RELEASE==9
-    UT_String* mat = myGeoPrim->castAttribData<UT_String> ( prim_material );
-    *mat = myPointAttributes.material;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-GEO_AttributeHandle matAttribHandle = gdp->getPointAttribute("shop_materialpath");
-
-if ( matAttribHandle.isAttributeValid() ) {
-    matAttribHandle.setElement(myGeoPrim);
-    matAttribHandle.setString(myPointAttributes.material);
-}
-#endif
-
-    
 //    cout << "VRAY_clusterThisChild::setInstanceAttributes() " << endl;
 
 
@@ -1442,7 +1112,8 @@ if ( matAttribHandle.isAttributeValid() ) {
 *  Return Value : None
 *
 ***************************************************************************** */
-void VRAY_clusterThisChild::dumpParameters() {
+void VRAY_clusterThisChild::dumpParameters()
+{
 
     cout << "VRAY_clusterThisChild::dumpParameters() myPrimType: " << myPrimType << endl;
     cout << "VRAY_clusterThisChild::dumpParameters() myRadius: " << myRadius << endl;
@@ -1457,6 +1128,12 @@ void VRAY_clusterThisChild::dumpParameters() {
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisChild.C,v $
+//  Revision 1.23  2012-09-05 23:02:38  mstory
+//  Modifications for H12.
+//
+//  Revision 1.22  2012-09-04 03:25:28  mstory
+//  .
+//
 //  Revision 1.19  2011-02-15 00:59:15  mstory
 //  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
 //  Made remaining changes for H11 (and beyond) versions way of handiling attributes.

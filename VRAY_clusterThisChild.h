@@ -6,7 +6,7 @@
 *
 * Description : This class will instance geomtery or volumes from the addProcedural calls of it's "parent" class, VRAY_clusterThis
 *
-* $Revision: 1.17 $
+* $Revision: 1.21 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisChild.h,v $
 *
@@ -170,7 +170,7 @@ private:
         //fpreal pressure;
         //fpreal mass;
         //fpreal temperature;
-    }myPointAttributes;
+    } myPointAttributes;
 
 
 
@@ -178,36 +178,36 @@ private:
 
 #if HOUDINI_MAJOR_RELEASE>=11
         // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef pscale;
-        GB_AttributeRef weight;
-        GB_AttributeRef width;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef weight;
+        GA_RWAttributeRef width;
 
-        GB_AttributeRef pointCd;
-        GB_AttributeRef pointAlpha;
-        GB_AttributeRef pointV;
-        GB_AttributeRef pointN;
-        GB_AttributeRef pointMaterial;
-        GB_AttributeRef pointId;
-        GB_AttributeRef pointInstId;
-        GB_AttributeRef pointPscale;
+        GA_RWAttributeRef pointCd;
+        GA_RWAttributeRef pointAlpha;
+        GA_RWAttributeRef pointV;
+        GA_RWAttributeRef pointN;
+        GA_RWAttributeRef pointMaterial;
+        GA_RWAttributeRef pointId;
+        GA_RWAttributeRef pointInstId;
+        GA_RWAttributeRef pointPscale;
 
         // Optional attributes
-/*        GB_AttributeRef num_neighbors;
-        GB_AttributeRef force;
-        GB_AttributeRef vorticity;
-        GB_AttributeRef uv;
-        GB_AttributeRef age;
-        GB_AttributeRef viscosity;
-        GB_AttributeRef density;
-        GB_AttributeRef pressure;
-        GB_AttributeRef mass;
-        GB_AttributeRef temperature;*/
+        /*        GA_RWAttributeRef num_neighbors;
+                GA_RWAttributeRef force;
+                GA_RWAttributeRef vorticity;
+                GA_RWAttributeRef uv;
+                GA_RWAttributeRef age;
+                GA_RWAttributeRef viscosity;
+                GA_RWAttributeRef density;
+                GA_RWAttributeRef pressure;
+                GA_RWAttributeRef mass;
+                GA_RWAttributeRef temperature;*/
 #endif
 
 #if HOUDINI_MAJOR_RELEASE==9
@@ -232,53 +232,53 @@ private:
         int pointPscale;
 
         // Optional attributes
-/*        int num_neighbors;
-        int force;
-        int vorticity;
-        int uv;
-        int age;
-        int viscosity;
-        int density;
-        int pressure;
-        int mass;
-        int temperature;*/
+        /*        int num_neighbors;
+                int force;
+                int vorticity;
+                int uv;
+                int age;
+                int viscosity;
+                int density;
+                int pressure;
+                int mass;
+                int temperature;*/
 #endif
-    }myInstAttrOffsets;
+    } myInstAttrOffsets;
 
     struct inst_mb_attr_offset_struct {
 
 #if HOUDINI_MAJOR_RELEASE>=11
         // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef pscale;
-        GB_AttributeRef weight;
-        GB_AttributeRef width;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef weight;
+        GA_RWAttributeRef width;
 
-        GB_AttributeRef pointCd;
-        GB_AttributeRef pointAlpha;
-        GB_AttributeRef pointV;
-        GB_AttributeRef pointN;
-        GB_AttributeRef pointMaterial;
-        GB_AttributeRef pointId;
-        GB_AttributeRef pointInstId;
-        GB_AttributeRef pointPscale;
+        GA_RWAttributeRef pointCd;
+        GA_RWAttributeRef pointAlpha;
+        GA_RWAttributeRef pointV;
+        GA_RWAttributeRef pointN;
+        GA_RWAttributeRef pointMaterial;
+        GA_RWAttributeRef pointId;
+        GA_RWAttributeRef pointInstId;
+        GA_RWAttributeRef pointPscale;
 
         // Optional attributes
-/*        GB_AttributeRef num_neighbors;
-        GB_AttributeRef force;
-        GB_AttributeRef vorticity;
-        GB_AttributeRef uv;
-        GB_AttributeRef age;
-        GB_AttributeRef viscosity;
-        GB_AttributeRef density;
-        GB_AttributeRef pressure;
-        GB_AttributeRef mass;
-        GB_AttributeRef temperature;*/
+        /*        GA_RWAttributeRef num_neighbors;
+                GA_RWAttributeRef force;
+                GA_RWAttributeRef vorticity;
+                GA_RWAttributeRef uv;
+                GA_RWAttributeRef age;
+                GA_RWAttributeRef viscosity;
+                GA_RWAttributeRef density;
+                GA_RWAttributeRef pressure;
+                GA_RWAttributeRef mass;
+                GA_RWAttributeRef temperature;*/
 #endif
 
 #if HOUDINI_MAJOR_RELEASE==9
@@ -303,19 +303,19 @@ private:
         int pointPscale;
 
         // Optional attributes
-/*        int num_neighbors;
-        int force;
-        int vorticity;
-        int uv;
-        int age;
-        int viscosity;
-        int density;
-        int pressure;
-        int mass;
-        int temperature;*/
+        /*        int num_neighbors;
+                int force;
+                int vorticity;
+                int uv;
+                int age;
+                int viscosity;
+                int density;
+                int pressure;
+                int mass;
+                int temperature;*/
 #endif
 
-    }myInstMBAttrOffsets;
+    } myInstMBAttrOffsets;
 
 
     VRAY_clusterThis *myParent;

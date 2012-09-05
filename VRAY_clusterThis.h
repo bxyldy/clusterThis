@@ -6,7 +6,7 @@
 *
 * Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
 *
-* $Revision: 1.34 $
+* $Revision: 1.38 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThis.h,v $
 *
@@ -41,8 +41,7 @@
 *  Return Value : None
 *
 ***************************************************************************** */
-class VRAY_clusterThis_Exception
-{
+class VRAY_clusterThis_Exception {
     std::string e_msg;
     int e_code;
 
@@ -68,8 +67,7 @@ public:
 *  Return Value : None
 *
 ***************************************************************************** */
-class VRAY_clusterThis : public VRAY_Procedural
-{
+class VRAY_clusterThis : public VRAY_Procedural {
 public:
     VRAY_clusterThis();
     virtual ~VRAY_clusterThis();
@@ -87,302 +85,165 @@ public:
     struct exitData_struct {
         float exitTime;
         int exitCode;
-    }exitData;
+    } exitData;
+
+
+// New features
+
+// -Usage of an Up vector combined with N or an orient attribute or rot.
+// -Geometry file name per point
+// -More control on motion blur, i.e. centered, backward and forward motion blur.
 
 
 private:
 
     struct pt_attr_offset_struct {
 
-#if HOUDINI_MAJOR_RELEASE>=11
         // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef orient;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef pscale;
-        GB_AttributeRef weight;
-        GB_AttributeRef width;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef up;
+        GA_RWAttributeRef orient;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef weight;
+        GA_RWAttributeRef width;
+        GA_RWAttributeRef prim_type;
+        GA_RWAttributeRef geo_fname;
 
         // Optional attributes
-/*        GB_AttributeRef num_neighbors;
-        GB_AttributeRef force;
-        GB_AttributeRef vorticity;
-        GB_AttributeRef uv;
-        GB_AttributeRef age;
-        GB_AttributeRef viscosity;
-        GB_AttributeRef density;
-        GB_AttributeRef pressure;
-        GB_AttributeRef mass;
-        GB_AttributeRef temperature;*/
-#endif
+        /*        GA_RWAttributeRef num_neighbors;
+                GA_RWAttributeRef force;
+                GA_RWAttributeRef vorticity;
+                GA_RWAttributeRef uv;
+                GA_RWAttributeRef age;
+                GA_RWAttributeRef viscosity;
+                GA_RWAttributeRef density;
+                GA_RWAttributeRef pressure;
+                GA_RWAttributeRef mass;
+                GA_RWAttributeRef temperature;*/
 
-#if HOUDINI_MAJOR_RELEASE==9
-        // Required attributes
-        int Cd;
-        int Alpha;
-        int v;
-        int N;
-        int orient;
-        int material;
-        int id;
-        int pscale;
-        int weight;
-        int width;
-
-        // Optional attributes
-/*        int num_neighbors;
-        int force;
-        int vorticity;
-        int uv;
-        int age;
-        int viscosity;
-        int density;
-        int pressure;
-        int mass;
-        int temperature;*/
-#endif
-
-    }myPointAttrOffsets;
+    } myPointAttrOffsets;
 
 
     struct file_attr_offset_struct {
 
-#if HOUDINI_MAJOR_RELEASE>=11
         // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef orient;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef lod;
-        GB_AttributeRef pscale;
-        GB_AttributeRef up;
-        GB_AttributeRef angle;
-        GB_AttributeRef offset;
-        GB_AttributeRef amp;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef orient;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef lod;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef up;
+        GA_RWAttributeRef angle;
+        GA_RWAttributeRef offset;
+        GA_RWAttributeRef amp;
 
-        GB_AttributeRef low_bound;
-        GB_AttributeRef high_bound;
-        GB_AttributeRef deformspace;
-        GB_AttributeRef xformobj;
+        GA_RWAttributeRef low_bound;
+        GA_RWAttributeRef high_bound;
+        GA_RWAttributeRef deformspace;
+        GA_RWAttributeRef xformobj;
 
-        GB_AttributeRef pointCd;
-        GB_AttributeRef pointAlpha;
-        GB_AttributeRef pointV;
-        GB_AttributeRef pointN;
-        GB_AttributeRef pointMaterial;
-        GB_AttributeRef pointPscale;
-        GB_AttributeRef pointId;
-        GB_AttributeRef pointLOD;
-        GB_AttributeRef pointUp;
-        GB_AttributeRef pointAngle;
-        GB_AttributeRef pointOffset;
-        GB_AttributeRef pointAmp;
-#endif
+        GA_RWAttributeRef pointCd;
+        GA_RWAttributeRef pointAlpha;
+        GA_RWAttributeRef pointV;
+        GA_RWAttributeRef pointN;
+        GA_RWAttributeRef pointMaterial;
+        GA_RWAttributeRef pointPscale;
+        GA_RWAttributeRef pointId;
+        GA_RWAttributeRef pointLOD;
+        GA_RWAttributeRef pointUp;
+        GA_RWAttributeRef pointAngle;
+        GA_RWAttributeRef pointOffset;
+        GA_RWAttributeRef pointAmp;
 
-#if HOUDINI_MAJOR_RELEASE==9
-        // Required attributes
-        int Cd;
-        int Alpha;
-        int v;
-        int N;
-        int orient;
-        int material;
-        int id;
-        int lod;
-        int pscale;
-        int up;
-        int angle;
-        int offset;
-        int amp;
-
-        int low_bound;
-        int high_bound;
-        int deformspace;
-        int xformobj;
-
-        int pointCd;
-        int pointAlpha;
-        int pointV;
-        int pointN;
-        int pointMaterial;
-        int pointPscale;
-        int pointId;
-        int pointLOD;
-        int pointUp;
-        int pointAngle;
-        int pointOffset;
-        int pointAmp;
-#endif
-
-    }myFileAttrOffsets;
+    } myFileAttrOffsets;
 
 
     struct inst_attr_offset_struct {
-        
-#if HOUDINI_MAJOR_RELEASE>=11
-        // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef orient;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef inst_id;
-        GB_AttributeRef pscale;
-        GB_AttributeRef weight;
-        GB_AttributeRef width;
-
-        GB_AttributeRef pointCd;
-        GB_AttributeRef pointAlpha;
-        GB_AttributeRef pointV;
-        GB_AttributeRef pointN;
-        GB_AttributeRef pointMaterial;
-        GB_AttributeRef pointId;
-        GB_AttributeRef pointInstId;
-        GB_AttributeRef pointPscale;
-
-        // Optional attributes
-        //GB_AttributeRef num_neighbors;
-        //GB_AttributeRef force;
-        //GB_AttributeRef vorticity;
-        //GB_AttributeRef uv;
-        //GB_AttributeRef age;
-        //GB_AttributeRef viscosity;
-        //GB_AttributeRef density;
-        //GB_AttributeRef pressure;
-        //GB_AttributeRef mass;
-        //GB_AttributeRef temperature;
-
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
 
         // Required attributes
-        int Cd;
-        int Alpha;
-        int v;
-        int N;
-        int orient;
-        int material;
-        int id;
-        int inst_id;
-        int pscale;
-        int weight;
-        int width;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef orient;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef inst_id;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef weight;
+        GA_RWAttributeRef width;
 
-        int pointCd;
-        int pointAlpha;
-        int pointV;
-        int pointN;
-        int pointMaterial;
-        int pointId;
-        int pointInstId;
-        int pointPscale;
+        GA_RWAttributeRef pointCd;
+        GA_RWAttributeRef pointAlpha;
+        GA_RWAttributeRef pointV;
+        GA_RWAttributeRef pointN;
+        GA_RWAttributeRef pointMaterial;
+        GA_RWAttributeRef pointId;
+        GA_RWAttributeRef pointInstId;
+        GA_RWAttributeRef pointPscale;
 
         // Optional attributes
-        //int num_neighbors;
-        //int force;
-        //int vorticity;
-        //int uv;
-        //int age;
-        //int viscosity;
-        //int density;
-        //int pressure;
-        //int mass;
-        //int temperature;
-#endif
-        
-    }myInstAttrOffsets;
+        //GA_RWAttributeRef num_neighbors;
+        //GA_RWAttributeRef force;
+        //GA_RWAttributeRef vorticity;
+        //GA_RWAttributeRef uv;
+        //GA_RWAttributeRef age;
+        //GA_RWAttributeRef viscosity;
+        //GA_RWAttributeRef density;
+        //GA_RWAttributeRef pressure;
+        //GA_RWAttributeRef mass;
+        //GA_RWAttributeRef temperature;
+
+    } myInstAttrRefs;
 
 
 
     struct inst_mb_attr_offset_struct {
 
-#if HOUDINI_MAJOR_RELEASE>=11
-
         // Required attributes
-        GB_AttributeRef Cd;
-        GB_AttributeRef Alpha;
-        GB_AttributeRef v;
-        GB_AttributeRef N;
-        GB_AttributeRef orient;
-        GB_AttributeRef material;
-        GB_AttributeRef id;
-        GB_AttributeRef inst_id;
-        GB_AttributeRef pscale;
-        GB_AttributeRef weight;
-        GB_AttributeRef width;
+        GA_RWAttributeRef Cd;
+        GA_RWAttributeRef Alpha;
+        GA_RWAttributeRef v;
+        GA_RWAttributeRef N;
+        GA_RWAttributeRef orient;
+        GA_RWAttributeRef material;
+        GA_RWAttributeRef id;
+        GA_RWAttributeRef inst_id;
+        GA_RWAttributeRef pscale;
+        GA_RWAttributeRef weight;
+        GA_RWAttributeRef width;
 
-        GB_AttributeRef pointCd;
-        GB_AttributeRef pointAlpha;
-        GB_AttributeRef pointV;
-        GB_AttributeRef pointN;
-        GB_AttributeRef pointMaterial;
-        GB_AttributeRef pointId;
-        GB_AttributeRef pointInstId;
-        GB_AttributeRef pointPscale;
+        GA_RWAttributeRef pointCd;
+        GA_RWAttributeRef pointAlpha;
+        GA_RWAttributeRef pointV;
+        GA_RWAttributeRef pointN;
+        GA_RWAttributeRef pointMaterial;
+        GA_RWAttributeRef pointId;
+        GA_RWAttributeRef pointInstId;
+        GA_RWAttributeRef pointPscale;
 
         // Optional attributes
-        //GB_AttributeRef num_neighbors;
-        //GB_AttributeRef force;
-        //GB_AttributeRef vorticity;
-        //GB_AttributeRef uv;
-        //GB_AttributeRef age;
-        //GB_AttributeRef viscosity;
-        //GB_AttributeRef density;
-        //GB_AttributeRef pressure;
-        //GB_AttributeRef mass;
-        //GB_AttributeRef temperature;
+        //GA_RWAttributeRef num_neighbors;
+        //GA_RWAttributeRef force;
+        //GA_RWAttributeRef vorticity;
+        //GA_RWAttributeRef uv;
+        //GA_RWAttributeRef age;
+        //GA_RWAttributeRef viscosity;
+        //GA_RWAttributeRef density;
+        //GA_RWAttributeRef pressure;
+        //GA_RWAttributeRef mass;
+        //GA_RWAttributeRef temperature;
 
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-
-        // Required attributes
-        int Cd;
-        int Alpha;
-        int v;
-        int N;
-        int orient;
-        int material;
-        int id;
-        int inst_id;
-        int pscale;
-        int weight;
-        int width;
-
-        int pointCd;
-        int pointAlpha;
-        int pointV;
-        int pointN;
-        int pointMaterial;
-        int pointId;
-        int pointInstId;
-        int pointPscale;
-
-        // Optional attributes
-        //int num_neighbors;
-        //int force;
-        //int vorticity;
-        //int uv;
-        //int age;
-        //int viscosity;
-        //int density;
-        //int pressure;
-        //int mass;
-        //int temperature;
-
-#endif
-
-    }myInstMBAttrOffsets;
+    } myInstMBAttrOffsets;
 
 
     struct pt_attr_struct {
@@ -406,17 +267,17 @@ private:
 //         fpreal theta;
 
         // Optional attributes
-/*        uint32 num_neighbors;
-        UT_Vector3 force;
-        UT_Vector3 vorticity;
-        UT_Vector3 uv;
-        fpreal age;
-        fpreal viscosity;
-        fpreal density;
-        fpreal pressure;
-        fpreal mass;
-        fpreal temperature;*/
-    }myPointAttributes;
+        /*        uint32 num_neighbors;
+                UT_Vector3 force;
+                UT_Vector3 vorticity;
+                UT_Vector3 uv;
+                fpreal age;
+                fpreal viscosity;
+                fpreal density;
+                fpreal pressure;
+                fpreal mass;
+                fpreal temperature;*/
+    } myPointAttributes;
 
 
     void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
@@ -441,7 +302,7 @@ private:
     int instanceCircle(GU_Detail *inst_gdp, GU_Detail *mb_gdp);
     int instanceCurve(GU_Detail *inst_gdp, GU_Detail *mb_gdp, fpreal theta);
     int instanceMetaball(GU_Detail *inst_gdp, GU_Detail *mb_gdp);
-    int instanceVolume(GU_Detail *inst_gdp);
+//    int instanceVolume(GU_Detail *inst_gdp);
     int instanceFile(GU_Detail *file_gdp, GU_Detail *inst_gdp, GU_Detail *mb_gdp);
 
     UT_BoundingBox myBox;
@@ -493,34 +354,34 @@ private:
 
     // A struct to keep track os CVEX vars to pass to the CVEX code
     struct cvex_pt_vars_struct {
-      uint  cvex_Cd_pt:
+uint  cvex_Cd_pt:
         1;
-      uint  cvex_Alpha_pt:
+uint  cvex_Alpha_pt:
         1;
-      uint  cvex_v_pt:
+uint  cvex_v_pt:
         1;
-      uint  cvex_N_pt:
+uint  cvex_N_pt:
         1;
-      uint  cvex_pscale_pt:
+uint  cvex_pscale_pt:
         1;
-    }myCVEXPointVars;
+    } myCVEXPointVars;
 
     struct cvex_prim_vars_struct {
-      uint  cvex_Cd_prim:
+uint  cvex_Cd_prim:
         1;
-      uint  cvex_Alpha_prim:
+uint  cvex_Alpha_prim:
         1;
-      uint  cvex_v_prim:
+uint  cvex_v_prim:
         1;
-      uint  cvex_N_prim:
+uint  cvex_N_prim:
         1;
-      uint  cvex_pscale_prim:
+uint  cvex_pscale_prim:
         1;
-      uint  cvex_weight_prim:
+uint  cvex_weight_prim:
         1;
-      uint  cvex_width_prim:
+uint  cvex_width_prim:
         1;
-    }myCVEXPrimVars;
+    } myCVEXPrimVars;
 
     fpreal   myVelocityScale;
     long int myInstanceNum;
@@ -575,6 +436,12 @@ private:
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThis.h,v $
+//  Revision 1.38  2012-09-05 23:02:38  mstory
+//  Modifications for H12.
+//
+//  Revision 1.37  2012-09-04 03:25:28  mstory
+//  .
+//
 //  Revision 1.34  2011-02-15 00:59:15  mstory
 //  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
 //  Made remaining changes for H11 (and beyond) versions way of handiling attributes.

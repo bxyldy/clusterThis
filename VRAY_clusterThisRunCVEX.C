@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.9 $
+* $Revision: 1.10 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisRunCVEX.C,v $
 *
@@ -38,12 +38,13 @@
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String theCVEXFname, uint method)  {
+int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String theCVEXFname, uint method)
+{
 
     if (myVerbose > CLUSTER_MSG_INFO) {
         std::cout << "VRAY_clusterThis::runCVEX() - Processing CVEX arrays - points: " << inst_gdp->points().entries()
-                                                  << " primitives: " << inst_gdp->primitives().entries() << std::endl;
-  }
+                  << " primitives: " << inst_gdp->primitives().entries() << std::endl;
+    }
 
 
     UT_Vector3 *P = NULL, *POut = NULL, *N = NULL, *NOut = NULL, *v = NULL, *vOut = NULL, *Cd = NULL, *CdOut = NULL;
@@ -79,11 +80,10 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
             return;
         };
 
-    }memCleaner;
+    } memCleaner;
 
 
-    try
-    {
+    try {
         uint32         num_inst = 0, num_points = 0, num_prim = 0;
         long int       num = 0;
         GEO_Point      *ppt;
@@ -110,8 +110,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
 //            num_inst = inst_gdp->points().entries();
             num_points = inst_gdp->points().entries();
 //           std::cout << "VRAY_clusterThis::runCVEX() - num_inst: " << num_inst << std::endl;
-        }
-        else {
+        } else {
             num_inst = myInstanceNum;
             num_prim = inst_gdp->primitives().entries();
             num_points = inst_gdp->points().entries();
@@ -121,14 +120,9 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
 
 
         UT_Vector3 primAttr, ptAttr;
-#if HOUDINI_MAJOR_RELEASE==9        
-        int primN_off = 0, primV_off = 0, primCd_off = 0, primAlpha_off = 0, primPscale_off = 0, primId_off = 0, primWeight_off = 0;
-        int ptN_off = 0, ptV_off = 0, ptCd_off = 0, ptAlpha_off = 0, ptPscale_off = 0, ptId_off = 0, ptInstId_off = 0;
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-        GB_AttributeRef primN_off, primV_off, primCd_off, primAlpha_off, primPscale_off, primId_off, primWeight_off;
-        GB_AttributeRef ptN_off, ptV_off, ptCd_off, ptAlpha_off, ptPscale_off, ptId_off, ptInstId_off;
-#endif
+
+        GA_RWAttributeRef primN_ref, primV_ref, primCd_ref, primAlpha_ref, primPscale_ref, primId_ref, primWeight_ref;
+        GA_RWAttributeRef ptN_ref, ptV_ref, ptCd_ref, ptAlpha_ref, ptPscale_ref, ptId_ref, ptInstId_ref;
 
         if (myPrimType == CLUSTER_POINT) {
 
@@ -137,78 +131,77 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
             POut = new UT_Vector3[num_points];
 
             if (myCVEXPointVars.cvex_Cd_pt) {
-              Cd = new UT_Vector3[num_points];
-              CdOut = new UT_Vector3[num_points];
+                Cd = new UT_Vector3[num_points];
+                CdOut = new UT_Vector3[num_points];
             }
-      
+
             if (myCVEXPointVars.cvex_Alpha_pt) {
-              Alpha = new fpreal[num_points];
-              AlphaOut = new fpreal[num_points];
+                Alpha = new fpreal[num_points];
+                AlphaOut = new fpreal[num_points];
             }
-      
+
             if (myCVEXPointVars.cvex_N_pt) {
-              N = new UT_Vector3[num_points];
-              NOut = new UT_Vector3[num_points];
+                N = new UT_Vector3[num_points];
+                NOut = new UT_Vector3[num_points];
             }
-      
+
             if (myCVEXPointVars.cvex_v_pt) {
-              v = new UT_Vector3[num_points];
-              vOut = new UT_Vector3[num_points];
+                v = new UT_Vector3[num_points];
+                vOut = new UT_Vector3[num_points];
             }
-      
+
             if (myCVEXPointVars.cvex_pscale_pt) {
-              pscale = new fpreal[num_points];
-              pscaleOut = new fpreal[num_points];
+                pscale = new fpreal[num_points];
+                pscaleOut = new fpreal[num_points];
             }
-    
+
             id = new int[num_points];
             inst_id = new int[num_points];
 
-        }
-        else {
+        } else {
             // If we're processing the points of the prims, allocate the space
-            if(method == CLUSTER_CVEX_POINT) {
-              P = new UT_Vector3[num_points];
-              POut = new UT_Vector3[num_points];
-                  // Allocate space for the id and inst_id attr's
-              id = new int[num_points];
-              inst_id = new int[num_points];
+            if (method == CLUSTER_CVEX_POINT) {
+                P = new UT_Vector3[num_points];
+                POut = new UT_Vector3[num_points];
+                // Allocate space for the id and inst_id attr's
+                id = new int[num_points];
+                inst_id = new int[num_points];
             }
-            // Else we're working on primitives, so allocate sace for the attrs the user wants to CVEX! 
+            // Else we're working on primitives, so allocate sace for the attrs the user wants to CVEX!
             else {
 
-              if (myCVEXPrimVars.cvex_Cd_prim) {
+                if (myCVEXPrimVars.cvex_Cd_prim) {
                     Cd = new UT_Vector3[num_prim];
                     CdOut = new UT_Vector3[num_prim];
-              }
-        
-              if (myCVEXPrimVars.cvex_Alpha_prim) {
+                }
+
+                if (myCVEXPrimVars.cvex_Alpha_prim) {
                     Alpha = new fpreal[num_prim];
                     AlphaOut = new fpreal[num_prim];
-              }
-        
-              if (myCVEXPrimVars.cvex_N_prim) {
+                }
+
+                if (myCVEXPrimVars.cvex_N_prim) {
                     N = new UT_Vector3[num_prim];
                     NOut = new UT_Vector3[num_prim];
-              }
-        
-              if (myCVEXPrimVars.cvex_v_prim) {
+                }
+
+                if (myCVEXPrimVars.cvex_v_prim) {
                     v = new UT_Vector3[num_prim];
                     vOut = new UT_Vector3[num_prim];
-              }
-        
-              if (myCVEXPrimVars.cvex_pscale_prim) {
+                }
+
+                if (myCVEXPrimVars.cvex_pscale_prim) {
                     pscale = new fpreal[num_prim];
                     pscaleOut = new fpreal[num_prim];
-              }
-        
-              if (myPrimType == VRAY_clusterThis::CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
+                }
+
+                if (myPrimType == VRAY_clusterThis::CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
                     weight = new fpreal[num_prim];
                     weightOut = new fpreal[num_prim];
-              }
-                  // Allocate space for the id and inst_id attr's
-              id = new int[num_prim];
-              inst_id = new int[num_prim];
+                }
+                // Allocate space for the id and inst_id attr's
+                id = new int[num_prim];
+                inst_id = new int[num_prim];
 
             }
 
@@ -221,79 +214,77 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
 
             if (pass == 0) {
                 cvex_gdp = inst_gdp;
-                mb_pass = 0; 
-            }
-            else {
+                mb_pass = 0;
+            } else {
                 cvex_gdp = mb_gdp;
-                mb_pass = 1; 
+                mb_pass = 1;
             }
 
-        if (myPrimType == CLUSTER_POINT) {
+            if (myPrimType == CLUSTER_POINT) {
 
-            if (myCVEXPointVars.cvex_Cd_pt) {
-              ptCd_off = cvex_gdp->findDiffuseAttribute ( GEO_POINT_DICT );
-            }
-      
-            if (myCVEXPointVars.cvex_Alpha_pt) {
-              ptAlpha_off = cvex_gdp->pointAttribs().getOffset ( "Alpha", GB_ATTRIB_FLOAT );
-            }
-      
-            if (myCVEXPointVars.cvex_N_pt) {
-              ptN_off = cvex_gdp->findNormalAttribute ( GEO_POINT_DICT );
-            }
-      
-            if (myCVEXPointVars.cvex_v_pt) {
-              ptV_off = cvex_gdp->findVelocityAttribute ( GEO_POINT_DICT );
-            }
-      
-            if (myCVEXPointVars.cvex_pscale_pt) {
-              ptPscale_off = cvex_gdp->pointAttribs().getOffset ( "pscale", GB_ATTRIB_FLOAT );
-            }
-    
-            ptId_off = cvex_gdp->pointAttribs().getOffset ( "id", GB_ATTRIB_INT );
-            ptInstId_off = cvex_gdp->pointAttribs().getOffset ( "inst_id", GB_ATTRIB_INT );
+                if (myCVEXPointVars.cvex_Cd_pt) {
+                    ptCd_ref = cvex_gdp->findDiffuseAttribute ( GEO_POINT_DICT );
+                }
 
-        }
-        else {
-            // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
-            if(method != CLUSTER_CVEX_POINT) {
+                if (myCVEXPointVars.cvex_Alpha_pt) {
+                    ptAlpha_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "Alpha", 1);
+                }
 
-              if (myCVEXPrimVars.cvex_Cd_prim) {
-                    primCd_off = cvex_gdp->findDiffuseAttribute ( GEO_PRIMITIVE_DICT );
-              }
-        
-              if (myCVEXPrimVars.cvex_Alpha_prim) {
-                    primAlpha_off = cvex_gdp->primitiveAttribs().getOffset ( "Alpha", GB_ATTRIB_FLOAT );
-              }
-        
-              if (myCVEXPrimVars.cvex_N_prim) {
-                    primN_off = cvex_gdp->primitiveAttribs().getOffset ( "N", GB_ATTRIB_VECTOR );
-  //                  primN_off = cvex_gdp->findNormalAttribute ( GEO_PRIMITIVE_DICT );
-              }
-        
-              if (myCVEXPrimVars.cvex_v_prim) {
-                    primV_off = cvex_gdp->findVelocityAttribute ( GEO_PRIMITIVE_DICT );
-              }
-        
-              if (myCVEXPrimVars.cvex_pscale_prim) {
-                    primPscale_off = cvex_gdp->primitiveAttribs().getOffset ( "pscale", GB_ATTRIB_FLOAT );
-              }
-        
-              if (myPrimType == VRAY_clusterThis::CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
-                    primWeight_off = cvex_gdp->primitiveAttribs().getOffset ( "weight", GB_ATTRIB_FLOAT );
-              }
+                if (myCVEXPointVars.cvex_N_pt) {
+                    ptN_ref = cvex_gdp->findNormalAttribute ( GEO_POINT_DICT );
+                }
 
+                if (myCVEXPointVars.cvex_v_pt) {
+                    ptV_ref = cvex_gdp->findVelocityAttribute ( GEO_POINT_DICT );
+                }
+
+                if (myCVEXPointVars.cvex_pscale_pt) {
+                    ptPscale_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+                }
+
+                ptId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
+                ptInstId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+
+            } else {
+                // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
+                if (method != CLUSTER_CVEX_POINT) {
+
+                    if (myCVEXPrimVars.cvex_Cd_prim) {
+                        primCd_ref = cvex_gdp->findDiffuseAttribute ( GEO_PRIMITIVE_DICT );
+                    }
+
+                    if (myCVEXPrimVars.cvex_Alpha_prim) {
+                        primAlpha_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "Alpha", 1);
+                    }
+
+                    if (myCVEXPrimVars.cvex_N_prim) {
+                        primN_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "N", 3);
+                        //                  primN_ref = cvex_gdp->findNormalAttribute ( GEO_PRIMITIVE_DICT );
+                    }
+
+                    if (myCVEXPrimVars.cvex_v_prim) {
+                        primV_ref = cvex_gdp->findVelocityAttribute ( GEO_PRIMITIVE_DICT );
+                    }
+
+                    if (myCVEXPrimVars.cvex_pscale_prim) {
+                        ptPscale_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+                    }
+
+                    if (myPrimType == VRAY_clusterThis::CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
+                        primWeight_ref = cvex_gdp->findFloatTuple(GA_ATTRIB_POINT, "weight", 1);
+                    }
+
+                }
+
+                // Get the offset for id attr
+                ptId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
+                ptInstId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
             }
-
-            // Get the offset for id attr
-            primId_off = cvex_gdp->primitiveAttribs().getOffset ( "id", GB_ATTRIB_INT );
-            ptId_off = cvex_gdp->pointAttribs().getOffset ( "id", GB_ATTRIB_INT );
-        }
 
 
 
 #ifdef DEBUG
-std::cout << "VRAY_clusterThis::runCVEX() - Retrieved attribute offsets" << std::endl;
+            std::cout << "VRAY_clusterThis::runCVEX() - Retrieved attribute offsets" << std::endl;
 #endif
 
             // Set the values of the incoming arrays
@@ -301,203 +292,195 @@ std::cout << "VRAY_clusterThis::runCVEX() - Retrieved attribute offsets" << std:
             if (myPrimType == CLUSTER_POINT) {
 
                 num = 0;
-                FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
                     pos = ppt->getPos();
                     P[num][0] = pos.x();
                     P[num][1] = pos.y();
                     P[num][2] = pos.z();
 //                    P[num] = ppt->getPos();
-                    id[num] = *ppt->castAttribData<int> ( ptId_off );
+                    id[num] = static_cast<int>(ppt->getValue<int>( ptId_ref, 0) );
 
-#if HOUDINI_MAJOR_RELEASE==9
-                    if(ptInstId_off != -1) 
-#endif
-#if HOUDINI_MAJOR_RELEASE>=11
-                    if(ptInstId_off.isValid()) 
-#endif
-                      inst_id[num] = *ppt->castAttribData<int> ( ptInstId_off );
-                    else 
+                    if (ptInstId_ref.isValid())
+                        inst_id[num] = static_cast<int>(ppt->getValue<int>( ptInstId_ref, 0 ));
+                    else
                         inst_id[num] = id[num];
 
 //                    cout << "IN - id : " << id[num] << "\tinst_id " << inst_id[num] << "\tnum " << num << endl;
                     ++num;
-      }
-
-                if (myCVEXPointVars.cvex_Cd_pt) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
-                    ptAttr = *ppt->castAttribData<UT_Vector3> ( ptCd_off );
-                    Cd[num][0] = ptAttr.x();
-                    Cd[num][1] = ptAttr.y();
-                    Cd[num][2] = ptAttr.z();
-//                     cout << "IN - Cd: " << Cd[num] << endl;
-                    ++num;
-                  }
                 }
 
-              if (myCVEXPointVars.cvex_Alpha_pt) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt )
-                    Alpha[num++] = *ppt->castAttribData<fpreal> ( ptAlpha_off );
-              }
+                if (myCVEXPointVars.cvex_Cd_pt) {
+                    num = 0;
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                        ptAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptCd_ref, 0) );
+                        Cd[num][0] = ptAttr.x();
+                        Cd[num][1] = ptAttr.y();
+                        Cd[num][2] = ptAttr.z();
+//                     cout << "IN - Cd: " << Cd[num] << endl;
+                        ++num;
+                    }
+                }
 
-              if (myCVEXPointVars.cvex_N_pt) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
-                    ptAttr = *ppt->castAttribData<UT_Vector3> ( ptN_off );
-                    N[num][0] = ptAttr.x();
-                    N[num][1] = ptAttr.y();
-                    N[num][2] = ptAttr.z();
-                    ++num;
-                  }
-              }
+                if (myCVEXPointVars.cvex_Alpha_pt) {
+                    num = 0;
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt )
+                    Alpha[num++] = static_cast<fpreal>(ppt->getValue<fpreal>( ptAlpha_ref, 0) );
+                }
 
-              if (myCVEXPointVars.cvex_v_pt) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
-                    ptAttr = *ppt->castAttribData<UT_Vector3> ( ptV_off );
-                    v[num][0] = ptAttr.x();
-                    v[num][1] = ptAttr.y();
-                    v[num][2] = ptAttr.z();
-                    ++num;
-                  }
-              }
+                if (myCVEXPointVars.cvex_N_pt) {
+                    num = 0;
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                        ptAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptN_ref, 0) );
+                        N[num][0] = ptAttr.x();
+                        N[num][1] = ptAttr.y();
+                        N[num][2] = ptAttr.z();
+                        ++num;
+                    }
+                }
 
-              if (myCVEXPointVars.cvex_pscale_pt) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt )
-                        pscale[num++] = *ppt->castAttribData<fpreal> ( ptPscale_off );
-              }
+                if (myCVEXPointVars.cvex_v_pt) {
+                    num = 0;
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                        ptAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptV_ref, 0 ) );
+                        v[num][0] = ptAttr.x();
+                        v[num][1] = ptAttr.y();
+                        v[num][2] = ptAttr.z();
+                        ++num;
+                    }
+                }
+
+                if (myCVEXPointVars.cvex_pscale_pt) {
+                    num = 0;
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt )
+                    pscale[num++] = static_cast<fpreal>(ppt->getValue<fpreal>( ptPscale_ref, 0) );
+                }
 
 //                    cout << "IN - P: " << P[num] << "\tN: " << N[num]<< "\tCd: " << Cd[num] << "\tpscale: " << pscale[num] << endl;
 
-            }
-            else {
-              // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
-              if(method == CLUSTER_CVEX_POINT) {
-                  num = 0;
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
-                    pos = ppt->getPos();
-  //                    P[num] = ppt->getPos();
-                    P[num][0] = pos.x();
-                    P[num][1] = pos.y();
-                    P[num][2] = pos.z();
-                    // Set the id and instance id to match the points id
-                    id[num] = *ppt->castAttribData<int> ( ptId_off );
-                    inst_id[num] = num;
-  //                    cout << "IN - P: " << P[num] << " " << pos.x() << " " << pos.y() << " " << pos.z() << " " << num << endl;
-                    ++num;
-                  }
-              }  
-              // Else we're processing the primitives  attributes
-              else { 
-                  if (myCVEXPrimVars.cvex_Cd_prim) {
+            } else {
+                // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
+                if (method == CLUSTER_CVEX_POINT) {
                     num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
-                        primAttr = *prim->castAttribData<UT_Vector3> ( primCd_off );
-                        Cd[num][0] = primAttr.x();
-                        Cd[num][1] = primAttr.y();
-                        Cd[num][2] = primAttr.z();
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                        pos = ppt->getPos();
+                        //                    P[num] = ppt->getPos();
+                        P[num][0] = pos.x();
+                        P[num][1] = pos.y();
+                        P[num][2] = pos.z();
+                        // Set the id and instance id to match the points id
+                        id[num] = static_cast<int>(ppt->getValue<int>( ptId_ref, 0) );
+                        inst_id[num] = num;
+                        //                    cout << "IN - P: " << P[num] << " " << pos.x() << " " << pos.y() << " " << pos.z() << " " << num << endl;
                         ++num;
                     }
-                  }
-  
-                  if (myCVEXPrimVars.cvex_Alpha_prim) {
-                    num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim)
-                        Alpha[num++] = *prim->castAttribData<fpreal> ( primAlpha_off );
-                  }
+                }
+                // Else we're processing the primitives  attributes
+                else {
+                    if (myCVEXPrimVars.cvex_Cd_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
+                            primAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( primCd_ref, 0) );
+                            Cd[num][0] = primAttr.x();
+                            Cd[num][1] = primAttr.y();
+                            Cd[num][2] = primAttr.z();
+                            ++num;
+                        }
+                    }
 
-                  if (myCVEXPrimVars.cvex_N_prim) {
-                    num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
-                        primAttr = *prim->castAttribData<UT_Vector3> ( primN_off );
-                        N[num][0] = primAttr.x();
-                        N[num][1] = primAttr.y();
-                        N[num][2] = primAttr.z();
+                    if (myCVEXPrimVars.cvex_Alpha_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim)
+                        Alpha[num++] = static_cast<fpreal>(ppt->getValue<fpreal>( primAlpha_ref, 0) );
+                    }
+
+                    if (myCVEXPrimVars.cvex_N_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
+                            primAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( primN_ref, 0) );
+                            N[num][0] = primAttr.x();
+                            N[num][1] = primAttr.y();
+                            N[num][2] = primAttr.z();
+                            ++num;
+                        }
+                    }
+
+                    if (myCVEXPrimVars.cvex_v_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
+                            primAttr = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( primV_ref, 0) );
+                            v[num][0] = primAttr.x();
+                            v[num][1] = primAttr.y();
+                            v[num][2] = primAttr.z();
+                            ++num;
+                        }
+                    }
+
+                    if (myCVEXPrimVars.cvex_pscale_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim)
+                        pscale[num++] = static_cast<fpreal>(ppt->getValue<fpreal>( primPscale_ref, 0) );
+                    }
+
+                    if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
+                        num = 0;
+                        GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim)
+                        weight[num++] = static_cast<fpreal>(ppt->getValue<fpreal>( primWeight_ref, 0) );
+                    }
+
+                    GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
+                        num = 0;
+                        id[num] = static_cast<int>(ppt->getValue<int>( primId_ref, 0) );
+                        inst_id[num] = num;
                         ++num;
                     }
-                  }
 
-                  if (myCVEXPrimVars.cvex_v_prim) {
-                    num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
-                        primAttr = *prim->castAttribData<UT_Vector3> ( primV_off );
-                        v[num][0] = primAttr.x();
-                        v[num][1] = primAttr.y();
-                        v[num][2] = primAttr.z();
-                        ++num;
-                    }
-                  }
-
-                  if (myCVEXPrimVars.cvex_pscale_prim) {
-                    num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim)
-                        pscale[num++] = *prim->castAttribData<fpreal> ( primPscale_off );
-                  }
-  
-                  if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
-                    num = 0;
-                    FOR_ALL_PRIMITIVES(cvex_gdp, prim)
-                        weight[num++] = *prim->castAttribData<fpreal> ( primWeight_off );
-                  }
-
-                  FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
-                    num = 0;
-                    id[num] = *prim->castAttribData<int> ( primId_off );
-                    inst_id[num] = num;
-                    ++num;
-                  }
-
-              }
+                }
             }
 
 
 #ifdef DEBUG
-std::cout << "VRAY_clusterThis::runCVEX() - Finished storing attributes" << std::endl;
+            std::cout << "VRAY_clusterThis::runCVEX() - Finished storing attributes" << std::endl;
 #endif
 
             // Add the inputs to the VEX call
             if (myPrimType == CLUSTER_POINT) {
-              cvex.addInput("P", CVEX_TYPE_VECTOR3, P, num_points);
-              cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_points);
-              cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_points);
+                cvex.addInput("P", CVEX_TYPE_VECTOR3, P, num_points);
+                cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_points);
+                cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_points);
 
-              if (myCVEXPointVars.cvex_Cd_pt)
-                  cvex.addInput("Cd", CVEX_TYPE_VECTOR3, Cd, num_points);
-              if (myCVEXPointVars.cvex_Alpha_pt)
-                  cvex.addInput("Alpha", CVEX_TYPE_FLOAT, Alpha, num_points);
-              if (myCVEXPointVars.cvex_N_pt)
-                  cvex.addInput("N", CVEX_TYPE_VECTOR3, N, num_points);
-              if (myCVEXPointVars.cvex_v_pt)
-                  cvex.addInput("v", CVEX_TYPE_VECTOR3, v, num_points);
-              if (myCVEXPointVars.cvex_pscale_pt)
-                  cvex.addInput("pscale", CVEX_TYPE_FLOAT, pscale, num_points);
-            }
-            else {
-              if(method == CLUSTER_CVEX_POINT) {
-                  cvex.addInput("P", CVEX_TYPE_VECTOR3, P, num_points);
-                  cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_points);
-                  cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_points);
-              }
-              else {
-                  if (myCVEXPrimVars.cvex_Cd_prim)
-                    cvex.addInput("Cd", CVEX_TYPE_VECTOR3, Cd, num_prim);
-                  if (myCVEXPrimVars.cvex_Alpha_prim)
-                    cvex.addInput("Alpha", CVEX_TYPE_FLOAT, Alpha, num_prim);
-                  if (myCVEXPrimVars.cvex_N_prim)
-                    cvex.addInput("N", CVEX_TYPE_VECTOR3, N, num_prim);
-                  if (myCVEXPrimVars.cvex_v_prim)
-                    cvex.addInput("v", CVEX_TYPE_VECTOR3, v, num_prim);
-                  if (myCVEXPrimVars.cvex_pscale_prim)
-                    cvex.addInput("pscale", CVEX_TYPE_FLOAT, pscale, num_prim);
-  
-                  if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
-                    cvex.addInput("weight", CVEX_TYPE_FLOAT, weight, num_prim);
+                if (myCVEXPointVars.cvex_Cd_pt)
+                    cvex.addInput("Cd", CVEX_TYPE_VECTOR3, Cd, num_points);
+                if (myCVEXPointVars.cvex_Alpha_pt)
+                    cvex.addInput("Alpha", CVEX_TYPE_FLOAT, Alpha, num_points);
+                if (myCVEXPointVars.cvex_N_pt)
+                    cvex.addInput("N", CVEX_TYPE_VECTOR3, N, num_points);
+                if (myCVEXPointVars.cvex_v_pt)
+                    cvex.addInput("v", CVEX_TYPE_VECTOR3, v, num_points);
+                if (myCVEXPointVars.cvex_pscale_pt)
+                    cvex.addInput("pscale", CVEX_TYPE_FLOAT, pscale, num_points);
+            } else {
+                if (method == CLUSTER_CVEX_POINT) {
+                    cvex.addInput("P", CVEX_TYPE_VECTOR3, P, num_points);
+                    cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_points);
+                    cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_points);
+                } else {
+                    if (myCVEXPrimVars.cvex_Cd_prim)
+                        cvex.addInput("Cd", CVEX_TYPE_VECTOR3, Cd, num_prim);
+                    if (myCVEXPrimVars.cvex_Alpha_prim)
+                        cvex.addInput("Alpha", CVEX_TYPE_FLOAT, Alpha, num_prim);
+                    if (myCVEXPrimVars.cvex_N_prim)
+                        cvex.addInput("N", CVEX_TYPE_VECTOR3, N, num_prim);
+                    if (myCVEXPrimVars.cvex_v_prim)
+                        cvex.addInput("v", CVEX_TYPE_VECTOR3, v, num_prim);
+                    if (myCVEXPrimVars.cvex_pscale_prim)
+                        cvex.addInput("pscale", CVEX_TYPE_FLOAT, pscale, num_prim);
 
-                  cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_prim);
-                  cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_prim);   
-              }
+                    if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
+                        cvex.addInput("weight", CVEX_TYPE_FLOAT, weight, num_prim);
+
+                    cvex.addInput("id", CVEX_TYPE_INTEGER, id, num_prim);
+                    cvex.addInput("inst_id", CVEX_TYPE_INTEGER, inst_id, num_prim);
+                }
 
             }
 
@@ -507,7 +490,7 @@ std::cout << "VRAY_clusterThis::runCVEX() - Finished storing attributes" << std:
             cvex.addInput("time", CVEX_TYPE_FLOAT, &time, 1);
 
 #ifdef DEBUG
-std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
+            std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
 #endif
 
 
@@ -516,58 +499,56 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
 //            cvexArgs[0] = myCVEXFname;
             cvexArgs[0] = theCVEXFname;
             if (!cvex.load(1, cvexArgs)) {
-              std::cerr << "VRAY_clusterThis::runCVEX() - Unable to load cvex function:" << std::endl << cvexArgs[0] << std::endl;
-              throw VRAY_clusterThis_Exception("VRAY_clusterThis::runCVEX() - Unable to load cvex function, exiting VRAY_clusterThis::runCVEX() ...",1);
+                std::cerr << "VRAY_clusterThis::runCVEX() - Unable to load cvex function:" << std::endl << cvexArgs[0] << std::endl;
+                throw VRAY_clusterThis_Exception("VRAY_clusterThis::runCVEX() - Unable to load cvex function, exiting VRAY_clusterThis::runCVEX() ...",1);
             }
 
 
             if (myVerbose > CLUSTER_MSG_INFO)
                 std::cout << "VRAY_clusterThis::runCVEX() - Loaded VEX Function" << std::endl;
 
-            CVEX_Value *P_val = NULL, *N_val = NULL, *v_val = NULL, *Cd_val = NULL, *Alpha_val = NULL, 
-                        *pscale_val = NULL, *id_val = NULL, *inst_id_val = NULL, *weight_val = NULL;
+            CVEX_Value *P_val = NULL, *N_val = NULL, *v_val = NULL, *Cd_val = NULL, *Alpha_val = NULL,
+                                               *pscale_val = NULL, *id_val = NULL, *inst_id_val = NULL, *weight_val = NULL;
 
 
             // Find the inputs of the loaded VEX function
             if (myPrimType == CLUSTER_POINT) {
 
-              P_val = cvex.findInput("P", CVEX_TYPE_VECTOR3);
+                P_val = cvex.findInput("P", CVEX_TYPE_VECTOR3);
 
-              if (myCVEXPointVars.cvex_Cd_pt)
-                  Cd_val = cvex.findInput("Cd", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_Alpha_pt)
-                  Alpha_val = cvex.findInput("Alpha", CVEX_TYPE_FLOAT);
-              if (myCVEXPointVars.cvex_N_pt)
-                  N_val = cvex.findInput("N", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_v_pt)
-                  v_val = cvex.findInput("v", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_pscale_pt)
-                  pscale_val = cvex.findInput("pscale", CVEX_TYPE_FLOAT);   
-            }
-            else {
-              if(method == CLUSTER_CVEX_POINT) {
-                  P_val = cvex.findInput("P", CVEX_TYPE_VECTOR3);
-              }
-              else {
-                  if (myCVEXPrimVars.cvex_Cd_prim)
+                if (myCVEXPointVars.cvex_Cd_pt)
                     Cd_val = cvex.findInput("Cd", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_Alpha_prim)
+                if (myCVEXPointVars.cvex_Alpha_pt)
                     Alpha_val = cvex.findInput("Alpha", CVEX_TYPE_FLOAT);
-                  if (myCVEXPrimVars.cvex_N_prim)
+                if (myCVEXPointVars.cvex_N_pt)
                     N_val = cvex.findInput("N", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_v_prim)
+                if (myCVEXPointVars.cvex_v_pt)
                     v_val = cvex.findInput("v", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_pscale_prim)
+                if (myCVEXPointVars.cvex_pscale_pt)
                     pscale_val = cvex.findInput("pscale", CVEX_TYPE_FLOAT);
-  
-                  if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
-                    weight_val = cvex.findInput("weight", CVEX_TYPE_FLOAT);
-              }
+            } else {
+                if (method == CLUSTER_CVEX_POINT) {
+                    P_val = cvex.findInput("P", CVEX_TYPE_VECTOR3);
+                } else {
+                    if (myCVEXPrimVars.cvex_Cd_prim)
+                        Cd_val = cvex.findInput("Cd", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_Alpha_prim)
+                        Alpha_val = cvex.findInput("Alpha", CVEX_TYPE_FLOAT);
+                    if (myCVEXPrimVars.cvex_N_prim)
+                        N_val = cvex.findInput("N", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_v_prim)
+                        v_val = cvex.findInput("v", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_pscale_prim)
+                        pscale_val = cvex.findInput("pscale", CVEX_TYPE_FLOAT);
+
+                    if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
+                        weight_val = cvex.findInput("weight", CVEX_TYPE_FLOAT);
+                }
 
             }
 
-          id_val = cvex.findInput("id", CVEX_TYPE_INTEGER);
-          inst_id_val = cvex.findInput("inst_id", CVEX_TYPE_INTEGER);
+            id_val = cvex.findInput("id", CVEX_TYPE_INTEGER);
+            inst_id_val = cvex.findInput("inst_id", CVEX_TYPE_INTEGER);
 
 
             if (myVerbose > CLUSTER_MSG_INFO) {
@@ -591,40 +572,38 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
             // Now find the outputs of the loaded VEX function
             if (myPrimType == CLUSTER_POINT) {
 
-              P_out = cvex.findOutput("POut", CVEX_TYPE_VECTOR3);
-  
-              if (myCVEXPointVars.cvex_Cd_pt)
-                  Cd_out = cvex.findOutput("CdOut", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_Alpha_pt)
-                  Alpha_out = cvex.findOutput("AlphaOut", CVEX_TYPE_FLOAT);
-              if (myCVEXPointVars.cvex_N_pt)
-                  N_out = cvex.findOutput("NOut", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_v_pt)
-                  v_out = cvex.findOutput("vOut", CVEX_TYPE_VECTOR3);
-              if (myCVEXPointVars.cvex_pscale_pt)
-                  pscale_out = cvex.findOutput("pscaleOut", CVEX_TYPE_FLOAT);
-            }
-            else {
-              if(method == CLUSTER_CVEX_POINT) {
-                  P_out = cvex.findOutput("POut", CVEX_TYPE_VECTOR3);
-              }
-              else {
+                P_out = cvex.findOutput("POut", CVEX_TYPE_VECTOR3);
 
-                  if (myCVEXPrimVars.cvex_Cd_prim)
+                if (myCVEXPointVars.cvex_Cd_pt)
                     Cd_out = cvex.findOutput("CdOut", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_Alpha_prim)
+                if (myCVEXPointVars.cvex_Alpha_pt)
                     Alpha_out = cvex.findOutput("AlphaOut", CVEX_TYPE_FLOAT);
-                  if (myCVEXPrimVars.cvex_N_prim)
+                if (myCVEXPointVars.cvex_N_pt)
                     N_out = cvex.findOutput("NOut", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_v_prim)
+                if (myCVEXPointVars.cvex_v_pt)
                     v_out = cvex.findOutput("vOut", CVEX_TYPE_VECTOR3);
-                  if (myCVEXPrimVars.cvex_pscale_prim)
+                if (myCVEXPointVars.cvex_pscale_pt)
                     pscale_out = cvex.findOutput("pscaleOut", CVEX_TYPE_FLOAT);
-  
-                  if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
-                    weight_out = cvex.findOutput("weightOut", CVEX_TYPE_FLOAT);
+            } else {
+                if (method == CLUSTER_CVEX_POINT) {
+                    P_out = cvex.findOutput("POut", CVEX_TYPE_VECTOR3);
+                } else {
 
-              }
+                    if (myCVEXPrimVars.cvex_Cd_prim)
+                        Cd_out = cvex.findOutput("CdOut", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_Alpha_prim)
+                        Alpha_out = cvex.findOutput("AlphaOut", CVEX_TYPE_FLOAT);
+                    if (myCVEXPrimVars.cvex_N_prim)
+                        N_out = cvex.findOutput("NOut", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_v_prim)
+                        v_out = cvex.findOutput("vOut", CVEX_TYPE_VECTOR3);
+                    if (myCVEXPrimVars.cvex_pscale_prim)
+                        pscale_out = cvex.findOutput("pscaleOut", CVEX_TYPE_FLOAT);
+
+                    if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim)
+                        weight_out = cvex.findOutput("weightOut", CVEX_TYPE_FLOAT);
+
+                }
             }
 
 
@@ -633,32 +612,30 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
 
             // Setup the output arrays to prepare to recevve the processed VEX data
             if (myPrimType == CLUSTER_POINT) {
-              if (P_out) P_out->setData(POut, num_points);
-              if (Cd_out) Cd_out->setData(CdOut, num_points);
-              if (Alpha_out) Alpha_out->setData(AlphaOut, num_points);
-              if (N_out) N_out->setData(NOut, num_points);
-              if (v_out) v_out->setData(vOut, num_points);
-              if (pscale_out) pscale_out->setData(pscaleOut, num_points);
-            }
-            else {
-        
-              if(method == CLUSTER_CVEX_POINT) {
+                if (P_out) P_out->setData(POut, num_points);
+                if (Cd_out) Cd_out->setData(CdOut, num_points);
+                if (Alpha_out) Alpha_out->setData(AlphaOut, num_points);
+                if (N_out) N_out->setData(NOut, num_points);
+                if (v_out) v_out->setData(vOut, num_points);
+                if (pscale_out) pscale_out->setData(pscaleOut, num_points);
+            } else {
 
-                  if (P_out) {
-                    P_out->setData(POut, num_points);
-  //                   std::cout << "VRAY_clusterThis::runCVEX() - Set POut successfully  num_points: " << num_points << std::endl;
-                  }
-              }
-              else {
+                if (method == CLUSTER_CVEX_POINT) {
 
-                  if (Cd_out) Cd_out->setData(CdOut, num_prim);
-                  if (Alpha_out) Alpha_out->setData(AlphaOut, num_prim);
-                  if (N_out) N_out->setData(NOut, num_prim);
-                  if (v_out) v_out->setData(vOut, num_prim);
-                  if (pscale_out) pscale_out->setData(pscaleOut, num_prim);
-                  if (weight_out && myPrimType == CLUSTER_PRIM_METABALL)
+                    if (P_out) {
+                        P_out->setData(POut, num_points);
+                        //                   std::cout << "VRAY_clusterThis::runCVEX() - Set POut successfully  num_points: " << num_points << std::endl;
+                    }
+                } else {
+
+                    if (Cd_out) Cd_out->setData(CdOut, num_prim);
+                    if (Alpha_out) Alpha_out->setData(AlphaOut, num_prim);
+                    if (N_out) N_out->setData(NOut, num_prim);
+                    if (v_out) v_out->setData(vOut, num_prim);
+                    if (pscale_out) pscale_out->setData(pscaleOut, num_prim);
+                    if (weight_out && myPrimType == CLUSTER_PRIM_METABALL)
                         weight_out->setData(weightOut, num_prim);
-              }
+                }
 
             }
 
@@ -670,25 +647,24 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
 
             // Run the CVEX code
             if (myPrimType == CLUSTER_POINT) {
-              if (!cvex.run(num_points, false)) {
-                  std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
-                  return 1;
-              }
+                if (!cvex.run(num_points, false)) {
+                    std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
+                    return 1;
+                }
             }
 
             else {
-              if(method == CLUSTER_CVEX_POINT) {
-                  if (!cvex.run(num_points, false)) {
-                    std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
-                    return 1;
-                  }
-              }
-              else {
-                  if (!cvex.run(num_prim, false)) {
-                    std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
-                    return 1;
-                  }
-              }
+                if (method == CLUSTER_CVEX_POINT) {
+                    if (!cvex.run(num_points, false)) {
+                        std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
+                        return 1;
+                    }
+                } else {
+                    if (!cvex.run(num_prim, false)) {
+                        std::cerr << "VRAY_clusterThis::runCVEX() - VEX function call failed!" << std::endl;
+                        return 1;
+                    }
+                }
 
             }
 
@@ -700,23 +676,21 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
                 dumpValueList("VRAY_clusterThis::runCVEX() - Output Parameters", cvex.getOutputList());
             }
 
-/*
-                dumpValue(P_out);
-                dumpValue(N_out);
-                dumpValue(v_out);
-                dumpValue(Cd_out);
-                dumpValue(Alpha_out);
-                dumpValue(pscale_out);
-                dumpValue(weightOut);
-*/
+            /*
+                            dumpValue(P_out);
+                            dumpValue(N_out);
+                            dumpValue(v_out);
+                            dumpValue(Cd_out);
+                            dumpValue(Alpha_out);
+                            dumpValue(pscale_out);
+                            dumpValue(weightOut);
+            */
 
-            UT_Vector3 *newAttr;
-            fpreal *newPscale, *newAlpha, *newWeight;
             num = 0;
 
             if (myPrimType == CLUSTER_POINT) {
 
-                FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+                GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
 
                     pos.x() = POut[num][0];
                     pos.y() = POut[num][1];
@@ -726,28 +700,28 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
                     ppt->setPos(pos);
 
                     if (myCVEXPointVars.cvex_Cd_pt) {
-                        newAttr = ppt->castAttribData<UT_Vector3> ( ptCd_off );
-                        newAttr->assign( CdOut[num][0], CdOut[num][1], CdOut[num][2] );
+                        CdOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptCd_ref, 0) );
+//                              newAttr->assign( CdOut[num][0], CdOut[num][1], CdOut[num][2] );
                     }
 
                     if (myCVEXPointVars.cvex_Alpha_pt) {
-                        newAlpha = ppt->castAttribData<fpreal> ( ptAlpha_off );
-                        *newAlpha = AlphaOut[num];
+                        AlphaOut[num] = static_cast<fpreal>(ppt->getValue<fpreal>( ptAlpha_ref, 0) );
+//                              *newAlpha = AlphaOut[num];
                     }
 
                     if (myCVEXPointVars.cvex_N_pt) {
-                        newAttr = ppt->castAttribData<UT_Vector3> ( ptN_off );
-                        newAttr->assign( NOut[num][0], NOut[num][1], NOut[num][2] );
+                        NOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptN_ref, 0) );
+//                              newAttr->assign( NOut[num][0], NOut[num][1], NOut[num][2] );
                     }
 
                     if (myCVEXPointVars.cvex_v_pt) {
-                        newAttr = ppt->castAttribData<UT_Vector3> ( ptV_off );
-                        newAttr->assign( vOut[num][0], vOut[num][1], vOut[num][2] );
+                        vOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>( ptV_ref, 0) );
+//                              newAttr->assign( vOut[num][0], vOut[num][1], vOut[num][2] );
                     }
 
                     if (myCVEXPointVars.cvex_pscale_pt) {
-                        newPscale = ppt->castAttribData<fpreal> ( ptPscale_off );
-                        *newPscale = pscaleOut[num];
+                        pscaleOut[num] = static_cast<fpreal>(ppt->getValue<fpreal>( ptPscale_ref, 0) );
+//                              *newPscale = pscaleOut[num];
                     }
 
 //                    cout << "OUT - POut: " << POut[num] << "\tNOut: " << NOut[num] << "\tCdOut: " << CdOut[num] << "\tnewPscale: " << *newPscale << endl;
@@ -758,67 +732,58 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
             else {
 
 
-              if(method == CLUSTER_CVEX_POINT) {
+                if (method == CLUSTER_CVEX_POINT) {
 
-                  num = 0;
-  
-                  FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
-  
-                    pos.x() = POut[num][0];
-                    pos.y() = POut[num][1];
-                    pos.z() = POut[num][2];
-  //                    pos = POut[num];
-                    pos.w() = 1.0;
-                    ppt->setPos(pos);
+                    num = 0;
+
+                    GA_FOR_ALL_GPOINTS ( cvex_gdp, ppt ) {
+
+                        pos.x() = POut[num][0];
+                        pos.y() = POut[num][1];
+                        pos.z() = POut[num][2];
+                        //                    pos = POut[num];
+                        pos.w() = 1.0;
+                        ppt->setPos(pos);
 //                       cout << "OUT - P: " << POut[num] << " " << pos.x() << " " << pos.y() << " " << pos.z() << " " << num << endl;
-                    num++;
-                  }
+                        num++;
+                    }
 
 //                                cout << "OUT - POut: " << POut[num] << "\tNOut: " << NOut[num] << "\tCdOut: " << CdOut[num]
 //                                       << "\tnewAlpha: " << *newAlpha << "\tnewPscale: " << *newPscale << endl;
 
-              }
-              else { 
+                } else {
 
-                  num = 0;
-  
-                  FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
-  
-                    if (myCVEXPrimVars.cvex_N_prim) {
-                          newAttr = prim->castAttribData<UT_Vector3> ( primN_off );
-                          newAttr->assign( NOut[num][0], NOut[num][1], NOut[num][2] );
+                    num = 0;
+
+                    GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
+
+                        if (myCVEXPrimVars.cvex_N_prim) {
+                            NOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>( primN_ref, 0));
+                        }
+
+                        if (myCVEXPrimVars.cvex_v_prim) {
+                            vOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>( primV_ref, 0));
+                        }
+
+                        if (myCVEXPrimVars.cvex_Cd_prim) {
+                            CdOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>( primCd_ref, 0));
+                        }
+
+                        if (myCVEXPrimVars.cvex_Alpha_prim) {
+                            AlphaOut[num] = static_cast<float>(prim->getValue<float>( primAlpha_ref, 0));
+                        }
+
+                        if (myCVEXPrimVars.cvex_pscale_prim) {
+                            pscaleOut[num] = static_cast<float>(prim->getValue<float>( primPscale_ref, 0));
+                        }
+
+                        if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
+                            weightOut[num] = static_cast<float>(prim->getValue<float>( primWeight_ref, 0));
+                        }
+
+                        num++;
                     }
-  
-                    if (myCVEXPrimVars.cvex_v_prim) {
-                          newAttr = prim->castAttribData<UT_Vector3> ( primV_off );
-                          newAttr->assign( vOut[num][0], vOut[num][1], vOut[num][2] );
-                    }
-  
-                    if (myCVEXPrimVars.cvex_Cd_prim) {
-                          newAttr = prim->castAttribData<UT_Vector3> ( primCd_off );
-                          newAttr->assign( CdOut[num][0], CdOut[num][1], CdOut[num][2] );
-                    }
-  
-                    if (myCVEXPrimVars.cvex_Alpha_prim) {
-                          newAlpha = prim->castAttribData<fpreal> ( primAlpha_off );
-                          *newAlpha = AlphaOut[num];
-                    }
-  
-                    if (myCVEXPrimVars.cvex_pscale_prim) {
-                          newPscale = prim->castAttribData<fpreal> ( primPscale_off );
-                          *newPscale = pscaleOut[num];
-                    }
-  
-                    if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
-                          newWeight = prim->castAttribData<fpreal> ( primWeight_off );
-                          *newWeight = weightOut[num];
-                    }
-  
-                    //            cout << "OUT - POut: " << POut[num] << "\tNOut: " << NOut[num] << "\tCdOut: " << CdOut[num]
-                    //                   << "\tnewAlpha: " << *newAlpha << "\tnewPscale: " << *newPscale << endl;
-                    num++;
-                  }
-              }
+                }
 
             }
 
@@ -837,7 +802,7 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
         return 1;
     }
 
-    catch (bad_alloc) {
+    catch (std::bad_alloc) {
         cout << "VRAY_clusterThis::runCVEX() - Failed memory allocation, freeing geometry and exiting" << endl << endl;
         memCleaner.cleanUp(P, POut, N, NOut, v, vOut, Cd, CdOut, weight, weightOut, Alpha, AlphaOut, pscale, pscaleOut, id,  inst_id);
 
@@ -863,6 +828,9 @@ std::cout << "VRAY_clusterThis::runCVEX() - Added inputs" << std::endl;
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisRunCVEX.C,v $
+//  Revision 1.10  2012-09-05 23:02:39  mstory
+//  Modifications for H12.
+//
 //  Revision 1.9  2011-02-15 00:59:15  mstory
 //  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
 //  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
