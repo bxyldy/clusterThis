@@ -1,9 +1,9 @@
-/***************************************************************************** 
+/*****************************************************************************
 * $RCSfile: README.txt,v $
 *
 * Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
 *
-* $Revision: 1.11 $
+* $Revision: 1.12 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/README.txt,v $
 *
@@ -22,11 +22,20 @@
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+// New features
+
+// -Usage of an Up vector combined with N or an orient attribute or rot.
+// -Geometry file name per point
+// -More control on motion blur, i.e. centered, backward and forward motion blur.
+
+
+
+
 ***BETA CODE - NO WARRANTY***
 
 The current set of parameters are:
 (Those marked with a * are either not yet implemented or are enabled in the pro version)
-Setup Tab: 	 
+Setup Tab:
 Min/Max Bounds 	The bounding box of the objects/volume being instanced
 Type 	The type of geometry to instance
 Num. Copies 	Number of copies of the geometry to instance per point of input geometry
@@ -42,57 +51,39 @@ geometry will be instanced at one time
 Motion Blur 	Motion blur type: None, Velocity or Deformation
 Shutter 	The shutter value for motion blur
 Messages 	The verbosity of the messages sent to the console during rendering
-  	 
-Attributes Tab: 	 
+
+Attributes Tab:
 Copy Attributes * 	Copy attributes from source points to instanced primitives
 Blend Attributes * 	Interpolate and filter attributes from source points to instanced primitives
-  	 
-Noise Tab: 	 
+
+Noise Tab:
 Type 	Simple noise generator noise types Perlin, Sparse, Alligator
 Amplitude 	Amplitude of noise applied to the position of the instanced geometry Noise Roughness: The "roughness" of the noise function
 Roughness 	Roughness of the generated noise
 Fractal Depth 	Depth of recursion for the noise generator
 Attenuation 	Amount of attenuation applied to the noise generator
 Seed 	Seed for the noise generator
-  	 
-Deformation Tab: * 	 
-Speed Stretching 	Amount of deformation applied from velocity, force, pressure, etc.
-  	 
-Filter Tab: * 	 
-Type 	Filter applied to attribute and position interpolation
-Amplitude 	Amplitude of the filter
-  	 
-CVEX Tab: 	 
+
+CVEX Tab:
 CVEX Shader 	The file name of the .vex shader to be used
 Execute VEX Code 	Execute the VEX code on the instanced objects
 CVEX Vars (point) 	The point attributes sent to the CVEX code for processing
 CVEX Vars (primitive) 	The primitive attributes sent to the CVEX code for processing
-  	 
-Misc Tab: 	 
-Volume Data 1-3 * 	Volume data file to be used by the CVEX shader code.
+
+Misc Tab:
 Temp File Path 	Temporary file for the instanced geometry
-Use temp geo cache file 	
+Use temp geo cache file
 Save the geometry in a temp cache file (for optimization)
 Save temp cache file: 	Do not delete cache file (to save the temp geometry cache file for later use)
-
 
 Example HIP file:
 VRAY_clusterThis_dev_v.1.4.7.hip
 
 
-Features coming soon:
-
-* More sophisticated noise/filter functions (fBm, gaussian, bezel, impulse, butterworth, sinc)
-* Proper primitive/point attribute blending/processing 
-* Read volumetric data files and use for modulation of instanced geometry and attribute processing (DT grids).
-* Velocity/Force stretching the prims and blending/interpolating the attributes
-* Instance type selection from point attribute (prim_type)
-
-
 INSTALLATION:
-To install the "clusterThis" mantra procedural DSO/DLL, there are 3 components that need to be installed: 
+To install the "clusterThis" mantra procedural DSO, there are 3 components that need to be installed:
 
-1) The "executable" that runs when mantra calls the clusterThis functions 
+1) The "executable" that runs when mantra calls the clusterThis functions
 2) The VRAYprocedural configuration file to tell mantra where to find the clusterThis DSO or DLL
 3) The OTL, which is the interface to the mantra geometry procedural allowing the user to control it's behaviour
 
@@ -100,12 +91,11 @@ To install the "clusterThis" mantra procedural DSO/DLL, there are 3 components t
 Step 1:
 * The "executables":
 VRAY_clusterThis.so
-VRAY_clusterThis.dll
 VRAY_clusterThis.dylib
 
 Place one of these (depending on operating system) in a typical mantra DSO/DLL location, e.g.:
-$HOME/houdini9.5/dso/mantra/ 
-$JOB/houdini9.5/dso/mantra/
+$HOME/houdiniX.XX/dso/mantra/
+$JOB/houdiniX.XX/dso/mantra/
 
 
 Step 2:
@@ -113,8 +103,8 @@ Step 2:
 VRAYprocedural
 
 Place this file (or append the contents to your current VRAYprocedural file) in a location searched by Houdini:
-$HOME/houdini9.5/
-$JOB/houdini9.5/
+$HOME/houdiniX.XX/
+$JOB/houdiniX.XX/
 
 
 Step 3:
@@ -122,8 +112,8 @@ Step 3:
 VM_GEO_clusterThis.otl
 
 Place this file in a location searched by Houdini:
-$HOME/houdini9.5/otls/
-$JOB/houdini9.5/otls/
+$HOME/houdiniX.XX/otls/
+$JOB/houdiniX.XX/otls/
 
 
 NOTES:
@@ -136,9 +126,6 @@ DEBUG TIPS:
 
 earth:~> mantra -V4
 Registering procedural 'clusterThis'
-Registering procedural 'demobox'
-Registering procedural 'demofile'
-Registering procedural 'demovolume'
 Registering procedural 'sprite'
 Registering procedural 'image3d'
 Registering procedural 'metapoly'
@@ -150,7 +137,8 @@ Registering procedural 'image3dvolume'
 mantra Version 9.5.169 (Compiled on 07/17/08)
 
 
-The verbosity level of 4 or greater for mantra will report which mantra procedural DSO/DLL's are available. If clusterThis is not in this list, the DSO/DLL is not in the right location, or the VRAYprocedural file isn't correct.
+The verbosity level of 4 or greater for mantra will report which mantra procedural DSO's are available.
+If clusterThis is not in this list, the DSO is not in the right location, or the VRAYprocedural file isn't correct.
 
 
 

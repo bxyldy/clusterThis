@@ -69,16 +69,12 @@
 #define DCA_VERSION "2.0.0"
 
 #include "VRAY_clusterThis.h"
-//#include "VRAY_clusterThisVolume.h"
-//#include "VRAY_clusterThisVolume.C"
-#include "VRAY_clusterThisInstance.C"
 #include "VRAY_clusterThisRender.C"
+#include "VRAY_clusterThisInstance.C"
 #include "VRAY_clusterThisAttributeUtils.C"
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
 //#include "VRAY_clusterThisChild.h"
-//#include "VRAY_clusterThisChildVolume.h"
-//#include "VRAY_clusterThisChildVolume.C"
 //#include "VRAY_clusterThisChild.C"
 
 

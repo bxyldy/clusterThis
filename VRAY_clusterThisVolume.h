@@ -42,44 +42,44 @@
 class VRAY_clusterThisVolume : public VRAY_Volume {
 public:
 
-    VRAY_clusterThisVolume(const VRAY_clusterThis *theClusterObj)
-            :
-            myRadius(theClusterObj->myRadius),
-            myDoMotionBlur(theClusterObj->myDoMotionBlur),
-            myShutter(theClusterObj->myShutter)
+     VRAY_clusterThisVolume(const VRAY_clusterThis *theClusterObj)
+          :
+          myRadius(theClusterObj->myRadius),
+          myDoMotionBlur(theClusterObj->myDoMotionBlur),
+          myShutter(theClusterObj->myShutter)
 
-    {
+     {
 #ifdef DEBUG
-        std::cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() - Constructor" << std::endl;
+          std::cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() - Constructor" << std::endl;
 #endif
 
-        myBox     = theClusterObj->myBox;
-        bb_x1     = theClusterObj->bb_x1;
-        bb_x2     = theClusterObj->bb_x2;
-        bb_y1     = theClusterObj->bb_y1;
-        bb_y2     = theClusterObj->bb_y2;
-        bb_z1     = theClusterObj->bb_z1;
-        bb_z2     = theClusterObj->bb_z2;
+          myBox     = theClusterObj->myBox;
+          bb_x1     = theClusterObj->bb_x1;
+          bb_x2     = theClusterObj->bb_x2;
+          bb_y1     = theClusterObj->bb_y1;
+          bb_y2     = theClusterObj->bb_y2;
+          bb_z1     = theClusterObj->bb_z1;
+          bb_z2     = theClusterObj->bb_z2;
 
-        mySize[0] = theClusterObj->mySize[0];
-        mySize[1] = theClusterObj->mySize[1];
-        mySize[2] = theClusterObj->mySize[2];
+          mySize[0] = theClusterObj->mySize[0];
+          mySize[1] = theClusterObj->mySize[1];
+          mySize[2] = theClusterObj->mySize[2];
 
 //    myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
-        myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
+          myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
 
-        myPointAttributes.Cd = theClusterObj->myPointAttributes.Cd;
-        myPointAttributes.Alpha = theClusterObj->myPointAttributes.Alpha;
-        myPointAttributes.v = theClusterObj->myPointAttributes.v;
-        myPointAttributes.N = theClusterObj->myPointAttributes.N;
-        myPointAttributes.id = theClusterObj->myPointAttributes.id;
-        myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
-        myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
-        myPointAttributes.material = theClusterObj->myPointAttributes.material;
+          myPointAttributes.Cd = theClusterObj->myPointAttributes.Cd;
+          myPointAttributes.Alpha = theClusterObj->myPointAttributes.Alpha;
+          myPointAttributes.v = theClusterObj->myPointAttributes.v;
+          myPointAttributes.N = theClusterObj->myPointAttributes.N;
+          myPointAttributes.id = theClusterObj->myPointAttributes.id;
+          myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
+          myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
+          myPointAttributes.material = theClusterObj->myPointAttributes.material;
 
-        myNoiseType = static_cast<UT_Noise::UT_NoiseType> ( 0 );
-        myNoise.initialize ( 7, myNoiseType );
-        myNoise.setSeed(myPointAttributes.id);
+          myNoiseType = static_cast<UT_Noise::UT_NoiseType> ( 0 );
+          myNoise.initialize ( 7, myNoiseType );
+          myNoise.setSeed(myPointAttributes.id);
 
 //   UT_FloatArray *weights;
 //   UT_RefArray< UT_BoundingBox > boxes;
@@ -111,50 +111,59 @@ public:
 
 
 #ifdef DEBUG
-        cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.myNewPos: " << myPointAttributes.myNewPos << endl;
-        cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.material: " << myPointAttributes.material << endl;
-        cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.id: " << myPointAttributes.id << endl;
-        cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
-        cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() mySize: " << mySize << endl;
+          cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.myNewPos: " << myPointAttributes.myNewPos << endl;
+          cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.material: " << myPointAttributes.material << endl;
+          cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.id: " << myPointAttributes.id << endl;
+          cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
+          cout << "VRAY_clusterThisVolume::VRAY_clusterThisVolume() mySize: " << mySize << endl;
 #endif
 
-    }
+     }
 
-    virtual void getWeightedBoxes(UT_RefArray<UT_BoundingBox> &boxes, UT_FloatArray &weights, fpreal radius, fpreal dbound) const;
-    virtual void getAttributeBinding(UT_StringArray &names, UT_IntArray &sizes) const;
-    virtual void evaluate(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const;
-    virtual UT_Vector3 gradient(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx) const;
 
-    UT_BoundingBox myBox;
-    fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
+     void 	getBoxes (UT_RefArray< UT_BoundingBox > &boxes, float radius, float dbound, float zerothreshold) const;
+//     void 	evaluateMulti (const UT_Vector3 *pos, const UT_Filter &filter, float radius, const float *time, int idx, float *data, int size, int stride) ;
+//     bool 	evaluateInterval (const UT_BoundingBox &box, const UT_Filter &filter, float radius, float time, int idx, float *minval, float *maxval) ;
+//     float 	getGradientDelta () ;
+//     int 	getNormalAttribute () ;
+//     float 	getVoxelSize () ;
 
-    fpreal  myRadius;
-    fpreal  mySize[3];
-    fpreal  myShutter;
-    int     myDoMotionBlur;
 
-    UT_Noise::UT_NoiseType  myNoiseType;
-    fpreal  myRough;
-    fpreal  myNoiseAmp;
-    fpreal  myNoiseAtten;
+     void getWeightedBoxes(UT_RefArray<UT_BoundingBox> &boxes, UT_FloatArray &weights, fpreal radius, fpreal dbound) const;
+     void getAttributeBinding(UT_StringArray &names, UT_IntArray &sizes) const;
+     void evaluate(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const;
+     UT_Vector3 gradient(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx) const;
 
-    UT_Noise myNoise;
+     UT_BoundingBox myBox;
+     fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
 
-    // Point attribute structure
-    struct attribute_struct {
-        // Required attributes
+     fpreal  myRadius;
+     fpreal  mySize[3];
+     fpreal  myShutter;
+     int     myDoMotionBlur;
+
+     UT_Noise::UT_NoiseType  myNoiseType;
+     fpreal  myRough;
+     fpreal  myNoiseAmp;
+     fpreal  myNoiseAtten;
+
+     UT_Noise myNoise;
+
+     // Point attribute structure
+     struct attribute_struct {
+          // Required attributes
 //      UT_Vector4 myPos;
-        UT_Vector4 myNewPos;
-        UT_Vector4 myMBPos;
-        UT_Vector3 Cd;
-        fpreal Alpha;
-        UT_Vector3 v;
-        UT_Vector3 N;
-        int id;
-        fpreal pscale;
-        fpreal weight;
-        UT_String material;
-    } myPointAttributes;
+          UT_Vector4 myNewPos;
+          UT_Vector4 myMBPos;
+          UT_Vector3 Cd;
+          fpreal Alpha;
+          UT_Vector3 v;
+          UT_Vector3 N;
+          int id;
+          fpreal pscale;
+          fpreal weight;
+          UT_String material;
+     } myPointAttributes;
 
 
 };

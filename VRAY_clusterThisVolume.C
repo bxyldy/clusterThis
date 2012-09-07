@@ -36,28 +36,33 @@ void VRAY_clusterThisVolume::getWeightedBoxes(UT_RefArray<UT_BoundingBox> &boxes
 {
 // std::cout << "VRAY_clusterThisVolume::getWeightedBoxes() - dbound: " << dbound << std::endl;
 
-    UT_BoundingBox aBox;
-    aBox.initBounds ( bb_x1, bb_y1, bb_z1);
-    aBox.enlargeBounds ( bb_x2, bb_y2, bb_z2);
-    boxes.append(aBox);
+     UT_BoundingBox aBox;
+     aBox.initBounds ( bb_x1, bb_y1, bb_z1);
+     aBox.enlargeBounds ( bb_x2, bb_y2, bb_z2);
+     boxes.append(aBox);
 
-    weights.append(1.0F);
+     weights.append(1.0F);
+
+}
+
+
+void VRAY_clusterThisVolume::getBoxes(UT_RefArray< UT_BoundingBox > &boxes, float radius, float dbound, float zerothreshold) const
+{
+ std::cout << "VRAY_clusterThisVolume::getBoxes() - dbound: " << dbound << std::endl;
 
 }
 
 void VRAY_clusterThisVolume::getAttributeBinding(UT_StringArray &names, UT_IntArray &sizes) const
 {
-    names.append(UT_String("density"));
-    sizes.append(1);
-    names.append(UT_String("radius"));
-    sizes.append(1);
+     names.append(UT_String("density"));
+     sizes.append(1);
+     names.append(UT_String("radius"));
+     sizes.append(1);
 }
 
 
-// virtual void   evaluate (const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const =0
-
-
 void VRAY_clusterThisVolume::evaluate(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const
+//void VRAY_clusterThisVolume::evaluate(const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx, fpreal *data) const
 {
 
 // cout << "VRAY_clusterThisVolume::evaluate() myPointAttributes.myNewPos: " << myPointAttributes.myNewPos << endl;
@@ -65,28 +70,28 @@ void VRAY_clusterThisVolume::evaluate(const UT_Vector3 &pos, const UT_Filter &fi
 //    fpreal noise_bias = ( myNoise.turbulence ( myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten ) * myNoiseAmp ) + 1.0;
 
 
-    switch (idx) {
+     switch (idx) {
 // case 0: data[0] = (pos.length2() < 1.0F) ? 1.0F : 0.0F; break;
 // case 1: data[0] = pos.length(); break;
 
 //    case 0: data[0] = (distance3d(pos, myPointAttributes.myNewPos) < (mySize[0] / 2) * noise_bias) ? 1.0F : 0.0F; break;
-    case 0:
-        data[0] = (distance3d(pos, myPointAttributes.myNewPos) < mySize[0]) ? 1.0F : 0.0F;
-        break;
+     case 0:
+          data[0] = (distance3d(pos, myPointAttributes.myNewPos) < mySize[0]) ? 1.0F : 0.0F;
+          break;
 
-    case 1:
-        data[0] = mySize[0];
-        break;
+     case 1:
+          data[0] = mySize[0];
+          break;
 
-    default:
-        UT_ASSERT(0 && "Invalid attribute evaluation");
-    }
+     default:
+          UT_ASSERT(0 && "Invalid attribute evaluation");
+     }
 }
 
 // virtual UT_Vector3   gradient (const UT_Vector3 &pos, const UT_Filter &filter, fpreal radius, fpreal time, int idx) const
 UT_Vector3 VRAY_clusterThisVolume::gradient(const UT_Vector3 &pos, const UT_Filter &, fpreal, fpreal, int) const
 {
-    return UT_Vector3(myPointAttributes.myNewPos - pos);
+     return UT_Vector3(myPointAttributes.myNewPos - pos);
 //    return UT_Vector3(0, 0, 0);
 }
 
