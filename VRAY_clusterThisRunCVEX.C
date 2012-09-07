@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.10 $
+* $Revision: 1.11 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisRunCVEX.C,v $
 *
@@ -823,6 +823,13 @@ int VRAY_clusterThis::runCVEX(GU_Detail *inst_gdp, GU_Detail *mb_gdp, UT_String 
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisRunCVEX.C,v $
+//  Revision 1.11  2012-09-07 15:39:23  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.10  2012-09-05 23:02:39  mstory
 //  Modifications for H12.
 //

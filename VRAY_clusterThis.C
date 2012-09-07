@@ -6,7 +6,7 @@
 *
 * Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
 *
-* $Revision: 1.58 $
+* $Revision: 1.59 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThis.C,v $
 *
@@ -876,6 +876,13 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail *file_gdp)
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThis.C,v $
+//  Revision 1.59  2012-09-07 15:39:23  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.58  2012-09-05 23:02:38  mstory
 //  Modifications for H12.
 //

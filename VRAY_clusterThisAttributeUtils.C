@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.11 $
+* $Revision: 1.12 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisAttributeUtils.C,v $
 *
@@ -368,6 +368,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail *inst_gdp, GEO_Pri
 #ifdef DEBUG
      cout << "VRAY_clusterThis::setInstanceAttributes() " << endl;
 #endif
+     GEO_Point *ppt;
 
      myGeoPrim->setValue<UT_Vector3>(myInstAttrRefs.Cd, (const UT_Vector3)myPointAttributes.Cd);
      myGeoPrim->setValue<fpreal>(myInstAttrRefs.Alpha, (const fpreal)myPointAttributes.Alpha);
@@ -377,10 +378,37 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail *inst_gdp, GEO_Pri
      myGeoPrim->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
      myGeoPrim->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
      myGeoPrim->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
+     myGeoPrim->setValue<fpreal>(myInstAttrRefs.weight, (const fpreal)myPointAttributes.weight);
+     myGeoPrim->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
+
+//     std::cout << "VRAY_clusterThis::setInstanceAttributes: myPointAttributes.Alpha: "  << myPointAttributes.Alpha << std::endl;
+//
+//     GEO_AttributeHandle alphaAttribHandle = inst_gdp->getPrimAttribute("Alpha");
+//
+//     if ( alphaAttribHandle.isAttributeValid() ) {
+//          alphaAttribHandle.setElement(myGeoPrim);
+//          cout << "VRAY_clusterThis::setInstanceAttributes: Primitive Instance Alpha: " << alphaAttribHandle.getF() << endl;
+//     }
+
+     // apply attribues to each vertex
+     for (int i=0; i < myGeoPrim->getVertexCount (); i++) {
+          ppt = myGeoPrim->getVertexElement(i).getPt();
+          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+          ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
+          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+          ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
+          ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+          ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+          ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+
+
+//          cout << "VRAY_clusterThis::setInstanceAttributes: Point Instance Alpha: " << ppt->getValue<float>(myInstAttrRefs.pointAlpha) << endl;
+     }
 
 
 //     if (myInstAttrRefs.material.isValid()) {
-          myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
+     myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
 //          std::cout << "prim material set: "  << myPointAttributes.material << std::endl;
 //     }
 
@@ -392,7 +420,6 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail *inst_gdp, GEO_Pri
 //          matAttribHandle.getString(mat_str);
 //          cout << "shop_materialpath: " << mat_str << endl;
 //     }
-
 
 }
 
@@ -507,6 +534,13 @@ inline int VRAY_clusterThis::setFileAttributes(GU_Detail *inst_gdp)
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisAttributeUtils.C,v $
+//  Revision 1.12  2012-09-07 15:39:22  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.11  2012-09-05 23:02:38  mstory
 //  Modifications for H12.
 //

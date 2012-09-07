@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.15 $
+* $Revision: 1.16 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisRender.C,v $
 *
@@ -460,6 +460,13 @@ void VRAY_clusterThis::render()
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisRender.C,v $
+//  Revision 1.16  2012-09-07 15:39:23  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.15  2012-09-05 23:02:39  mstory
 //  Modifications for H12.
 //

@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.6 $
+* $Revision: 1.7 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterCVEXUtil.C,v $
 *
@@ -136,6 +136,13 @@ static void dumpValueList(const char *label, CVEX_ValueList &list)
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterCVEXUtil.C,v $
+//  Revision 1.7  2012-09-07 15:39:23  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.6  2012-09-05 23:02:39  mstory
 //  Modifications for H12.
 //

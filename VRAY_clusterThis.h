@@ -6,7 +6,7 @@
 *
 * Description : This DSO  will instance geomtery during the render of mantra IFD's
 *
-* $Revision: 1.38 $
+* $Revision: 1.39 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThis.h,v $
 *
@@ -424,6 +424,13 @@ uint  cvex_width_prim:
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThis.h,v $
+//  Revision 1.39  2012-09-07 15:39:22  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.38  2012-09-05 23:02:38  mstory
 //  Modifications for H12.
 //

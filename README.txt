@@ -3,7 +3,7 @@
 *
 * Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
 *
-* $Revision: 1.12 $
+* $Revision: 1.13 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/README.txt,v $
 *

@@ -6,7 +6,7 @@
 *
 * Description : This class will instance geomtery from the addProcedural calls of it's "parent" class, VRAY_clusterThis
 *
-* $Revision: 1.23 $
+* $Revision: 1.24 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisChild.C,v $
 *
@@ -1082,6 +1082,13 @@ void VRAY_clusterThisChild::dumpParameters()
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisChild.C,v $
+//  Revision 1.24  2012-09-07 15:39:22  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.23  2012-09-05 23:02:38  mstory
 //  Modifications for H12.
 //

@@ -6,7 +6,7 @@
 *
 * Description : This class will instance geomtery from the addProcedural calls of it's "parent" class, VRAY_clusterThis
 *
-* $Revision: 1.21 $
+* $Revision: 1.22 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisChild.h,v $
 *

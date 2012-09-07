@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.18 $
+* $Revision: 1.19 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisInstance.C,v $
 *
@@ -98,7 +98,6 @@ int VRAY_clusterThis::instanceSphere(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      UT_Matrix4 xform ( 1.0 );
      GU_PrimSphere *sphere;
      GU_PrimSphereParms sphere_parms;
-     GEO_Point *ppt;
 //    UT_String* mat;
      GA_RWHandleV3 attrVector3Handle;
 
@@ -107,9 +106,6 @@ int VRAY_clusterThis::instanceSphere(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      sphere_parms.xform.scale (mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
      sphere_parms.xform.translate ( myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2] );
      sphere = ( GU_PrimSphere * ) GU_PrimSphere::build ( sphere_parms );
-
-     ppt = sphere->getVertexElement (0).getPt();
-     ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
 
 //GEO_Primitive *myGeoPrim;
 //    myGeoPrim = sphere;
@@ -164,7 +160,6 @@ int VRAY_clusterThis::instanceCube(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
 
      UT_Matrix4 xform ( 1.0 );
      GEO_Primitive *myCube;
-     GEO_Point *ppt;
 
      GA_RWHandleV3 attrVector3Handle;
 
@@ -178,14 +173,8 @@ int VRAY_clusterThis::instanceCube(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
 
 //   cout << "cube num vertices: " << cube->getVertexCount () << endl;
 
-     for (int i=0; i < myCube->getVertexCount (); i++) {
-          ppt = myCube->getVertexElement(i).getPt();
-          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
-     }
-
      myCube->transform ( xform );
      myCube->computeNormal();
-
      VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCube);
 
      if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
@@ -199,9 +188,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
 
           myCube->transform ( xform );
           myCube->computeNormal();
-
           VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
-
      }
 
 #ifdef DEBUG
@@ -234,17 +221,10 @@ int VRAY_clusterThis::instanceGrid(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
 
      GEO_Primitive *myGrid;
      UT_Matrix4 xform ( 1.0 );
-     GEO_Point *ppt;
      GA_RWHandleV3 attrVector3Handle;
 
      myGrid = ( GEO_Primitive * ) inst_gdp->polyGrid ( 2, 2, mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale,
                myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2] );
-
-//   cout << "grid num vertices: " << myGrid->getVertexCount () << endl;;
-     for (int i=0; i < myGrid->getVertexCount (); i++) {
-          ppt = myGrid->getVertexElement(i).getPt();
-          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
-     }
 
      myGrid->transform ( xform );
      myGrid->computeNormal();
@@ -293,7 +273,6 @@ int VRAY_clusterThis::instanceTube(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      GU_PrimTubeParms tube_parms;
      GU_CapOptions tube_cap_options;
      UT_Matrix4 xform ( 1.0 );
-     GEO_Point *ppt;
      GA_RWHandleV3 attrVector3Handle;
 
      tube_parms.gdp = inst_gdp;
@@ -308,9 +287,6 @@ int VRAY_clusterThis::instanceTube(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      tube = ( GU_PrimTube * ) GU_PrimTube::build ( tube_parms, tube_cap_options );
 
 //   cout << "tube num vertices: " << tube->getVertexCount () << endl;;
-
-     ppt = tube->getVertexElement(0).getPt();
-     ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
 
      VRAY_clusterThis::setInstanceAttributes(inst_gdp, tube);
 
@@ -362,7 +338,6 @@ int VRAY_clusterThis::instanceCircle(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      UT_Matrix4 xform ( 1.0 );
      GU_PrimCircle *circle;
      GU_PrimCircleParms circle_parms;
-     GEO_Point *ppt;
      GA_RWHandleV3 attrVector3Handle;
 
      circle_parms.gdp = inst_gdp;
@@ -372,9 +347,6 @@ int VRAY_clusterThis::instanceCircle(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      circle = ( GU_PrimCircle * ) GU_PrimCircle::build ( circle_parms );
 
 //   cout << "circle num vertices: " << circle->getVertexCount () << endl;;
-
-     ppt = circle->getVertexElement(0).getPt();
-     ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
 
      VRAY_clusterThis::setInstanceAttributes(inst_gdp, circle);
 
@@ -622,7 +594,6 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      UT_Matrix4 xform ( 1.0 );
      GU_PrimMetaBall *metaball;
      GU_PrimMetaBallParms metaball_parms;
-     GEO_Point *ppt;
      GA_RWHandleV3 attrVector3Handle;
 
      metaball_parms.gdp = inst_gdp;
@@ -633,9 +604,6 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail *inst_gdp, GU_Detail *mb_gdp)
      metaball = ( GU_PrimMetaBall * ) GU_PrimMetaBall::build ( metaball_parms );
 
 //   cout << "metaball num vertices: " << metaball->getVertexCount () << endl;;
-
-     ppt = metaball->getVertexElement(0).getPt();
-     ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
 
      VRAY_clusterThis::setInstanceAttributes(inst_gdp, metaball);
 
@@ -752,6 +720,13 @@ int VRAY_clusterThis::instanceFile(GU_Detail *file_gdp, GU_Detail *inst_gdp, GU_
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterThisInstance.C,v $
+//  Revision 1.19  2012-09-07 15:39:23  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
 //  Revision 1.18  2012-09-05 23:02:38  mstory
 //  Modifications for H12.
 //
