@@ -42,16 +42,16 @@
 class VRAY_clusterThisChild : public VRAY_Procedural {
 public:
    VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj)
-      :
-      myPrimType(theClusterObj->myPrimType),
-      myRadius(theClusterObj->myRadius),
-      myNumCopies(theClusterObj->myNumCopies),
-      myRecursion(theClusterObj->myRecursion),
-      myBirthProb(theClusterObj->myBirthProb),
-      myDoMotionBlur(theClusterObj->myDoMotionBlur),
-      myShutter(theClusterObj->myShutter),
-      myInstanceNum(theClusterObj->myInstanceNum),
-      myParent(theClusterObj)
+         :
+         myPrimType(theClusterObj->myPrimType),
+         myRadius(theClusterObj->myRadius),
+         myNumCopies(theClusterObj->myNumCopies),
+         myRecursion(theClusterObj->myRecursion),
+         myBirthProb(theClusterObj->myBirthProb),
+         myDoMotionBlur(theClusterObj->myDoMotionBlur),
+         myShutter(theClusterObj->myShutter),
+         myInstanceNum(theClusterObj->myInstanceNum),
+         myParent(theClusterObj)
 
    {
 #ifdef DEBUG

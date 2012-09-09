@@ -95,39 +95,39 @@ static void dumpValueList(const char * label, CVEX_ValueList & list)
    int      i;
    CVEX_Value * value;
    printf("%s:\n", label);
-   for(i = 0; i < list.entries(); i++) {
-         value = list.getValue(i);
-         printf("\t%2d.", i+1);
-         if(value->isExport())
-            printf("export ");
-         switch(value->getType()) {
-               case CVEX_TYPE_INTEGER:
-                  printf("int");
-                  break;
-               case CVEX_TYPE_FLOAT:
-                  printf("float");
-                  break;
-               case CVEX_TYPE_VECTOR3:
-                  printf("vector");
-                  break;
-               case CVEX_TYPE_VECTOR4:
-                  printf("vector4");
-                  break;
-               case CVEX_TYPE_MATRIX3:
-                  printf("matrix3");
-                  break;
-               case CVEX_TYPE_MATRIX4:
-                  printf("matrix");
-                  break;
-               case CVEX_TYPE_STRING:
-                  printf("string");
-                  break;
-               default:
-                  printf("unknown");
-                  break;
-            }
-         printf(" %s[%d]\n", value->getName(), value->getArraySize());
+   for (i = 0; i < list.entries(); i++) {
+      value = list.getValue(i);
+      printf("\t%2d.", i+1);
+      if (value->isExport())
+         printf("export ");
+      switch (value->getType()) {
+      case CVEX_TYPE_INTEGER:
+         printf("int");
+         break;
+      case CVEX_TYPE_FLOAT:
+         printf("float");
+         break;
+      case CVEX_TYPE_VECTOR3:
+         printf("vector");
+         break;
+      case CVEX_TYPE_VECTOR4:
+         printf("vector4");
+         break;
+      case CVEX_TYPE_MATRIX3:
+         printf("matrix3");
+         break;
+      case CVEX_TYPE_MATRIX4:
+         printf("matrix");
+         break;
+      case CVEX_TYPE_STRING:
+         printf("string");
+         break;
+      default:
+         printf("unknown");
+         break;
       }
+      printf(" %s[%d]\n", value->getName(), value->getArraySize());
+   }
 }
 
 

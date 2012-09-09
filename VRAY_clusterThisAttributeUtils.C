@@ -48,80 +48,80 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
 // TODO: Check all these references with *.isValid() and throw exeception if it fails !!!
 
 
-   if((myPrimType != CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
+   if ((myPrimType != CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
 
 #ifdef DEBUG
-         cout << "VRAY_clusterThis::createAttributeOffsets() Creating primitive attributes" << endl;
+      cout << "VRAY_clusterThis::createAttributeOffsets() Creating primitive attributes" << endl;
 #endif
 
-         myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
-         myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
-         myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
-         myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
-         myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
-         myInstAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
-         myInstAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
-         myInstAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
+      myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+      myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+      myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+      myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+      myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+      myInstAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+      myInstAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+      myInstAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
 
-         myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointAlpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-         myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-         myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-         myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+      myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointAlpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+      myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+      myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+      myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
-         if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-               myInstMBAttrOffsets.Cd = mb_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
-               myInstMBAttrOffsets.Alpha = mb_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
-               myInstMBAttrOffsets.v = mb_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
-               myInstMBAttrOffsets.N = mb_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
-               myInstMBAttrOffsets.pscale = mb_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
-               myInstMBAttrOffsets.id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
-               myInstMBAttrOffsets.inst_id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
-               myInstMBAttrOffsets.material = mb_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
+      if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         myInstMBAttrOffsets.Cd = mb_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrOffsets.Alpha = mb_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrOffsets.v = mb_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrOffsets.N = mb_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrOffsets.pscale = mb_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+         myInstMBAttrOffsets.id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+         myInstMBAttrOffsets.inst_id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+         myInstMBAttrOffsets.material = mb_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
 
-               myInstMBAttrOffsets.pointCd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointAlpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointV = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointN = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointPscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-               myInstMBAttrOffsets.pointId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-               myInstMBAttrOffsets.pointInstId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-               myInstMBAttrOffsets.pointMaterial = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
-            }
+         myInstMBAttrOffsets.pointCd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointAlpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointV = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointN = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointPscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+         myInstMBAttrOffsets.pointId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+         myInstMBAttrOffsets.pointInstId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+         myInstMBAttrOffsets.pointMaterial = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
       }
+   }
 
 
 
    // Do the point attribute creation
 
-   if((myPrimType == CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
+   if ((myPrimType == CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
 #ifdef DEBUG
-         cout << "VRAY_clusterThis::createAttributeOffsets() Creating Point attributes" << endl;
+      cout << "VRAY_clusterThis::createAttributeOffsets() Creating Point attributes" << endl;
 #endif
 
-         myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointAlpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-         myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-         myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-         myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-         myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+      myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointAlpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
+      myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+      myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+      myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+      myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
-         if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-               myInstMBAttrOffsets.pointCd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointAlpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointV = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointN = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-               myInstMBAttrOffsets.pointPscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-               myInstMBAttrOffsets.pointId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-               myInstMBAttrOffsets.pointInstId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-               myInstMBAttrOffsets.pointMaterial = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
-            }
+      if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         myInstMBAttrOffsets.pointCd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointAlpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointV = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointN = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
+         myInstMBAttrOffsets.pointPscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+         myInstMBAttrOffsets.pointId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+         myInstMBAttrOffsets.pointInstId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+         myInstMBAttrOffsets.pointMaterial = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
       }
+   }
 }
 
 
@@ -145,39 +145,39 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
 
    try {
 
-         myPointAttrOffsets.Cd = inst_gdp->findDiffuseAttribute(GEO_POINT_DICT);
-         myPointAttrOffsets.Alpha = inst_gdp->findAlphaAttribute(GEO_POINT_DICT);
+      myPointAttrOffsets.Cd = inst_gdp->findDiffuseAttribute(GEO_POINT_DICT);
+      myPointAttrOffsets.Alpha = inst_gdp->findAlphaAttribute(GEO_POINT_DICT);
 
-         myPointAttrOffsets.v = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "v", 3);
-         myPointAttrOffsets.N = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "N", 3);
-         myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
-         myPointAttrOffsets.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-         myPointAttrOffsets.id = inst_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
+      myPointAttrOffsets.v = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "v", 3);
+      myPointAttrOffsets.N = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "N", 3);
+      myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
+      myPointAttrOffsets.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+      myPointAttrOffsets.id = inst_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
 
-         if(myPrimType == CLUSTER_PRIM_METABALL)
-            myPointAttrOffsets.weight = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "weight", 1);
+      if (myPrimType == CLUSTER_PRIM_METABALL)
+         myPointAttrOffsets.weight = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "weight", 1);
 
-         myPointAttrOffsets.material = inst_gdp->findStringTuple(GA_ATTRIB_POINT, "shop_materialpath");
+      myPointAttrOffsets.material = inst_gdp->findStringTuple(GA_ATTRIB_POINT, "shop_materialpath");
 
 
-         /*    myPointAttrOffsets.uv = inst_gdp->findTextureAttribute ( GEO_POINT_DICT );
-             myPointAttrOffsets.force = inst_gdp->pointAttribs().getOffset ( "force", GB_ATTRIB_VECTOR );
-             myPointAttrOffsets.vorticity = inst_gdp->pointAttribs().getOffset ( "vorticity", GB_ATTRIB_VECTOR );
-             myPointAttrOffsets.age = inst_gdp->pointAttribs().getOffset ( "age", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.viscosity = inst_gdp->pointAttribs().getOffset ( "viscosity", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.pressure = inst_gdp->pointAttribs().getOffset ( "pressure", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.density = inst_gdp->pointAttribs().getOffset ( "density", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.mass = inst_gdp->pointAttribs().getOffset ( "mass", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.temperature = inst_gdp->pointAttribs().getOffset ( "temperature", GB_ATTRIB_FLOAT );
-             myPointAttrOffsets.num_neighbors = inst_gdp->pointAttribs().getOffset ( "num_neighbors", GB_ATTRIB_INT );*/
+      /*    myPointAttrOffsets.uv = inst_gdp->findTextureAttribute ( GEO_POINT_DICT );
+          myPointAttrOffsets.force = inst_gdp->pointAttribs().getOffset ( "force", GB_ATTRIB_VECTOR );
+          myPointAttrOffsets.vorticity = inst_gdp->pointAttribs().getOffset ( "vorticity", GB_ATTRIB_VECTOR );
+          myPointAttrOffsets.age = inst_gdp->pointAttribs().getOffset ( "age", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.viscosity = inst_gdp->pointAttribs().getOffset ( "viscosity", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.pressure = inst_gdp->pointAttribs().getOffset ( "pressure", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.density = inst_gdp->pointAttribs().getOffset ( "density", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.mass = inst_gdp->pointAttribs().getOffset ( "mass", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.temperature = inst_gdp->pointAttribs().getOffset ( "temperature", GB_ATTRIB_FLOAT );
+          myPointAttrOffsets.num_neighbors = inst_gdp->pointAttribs().getOffset ( "num_neighbors", GB_ATTRIB_INT );*/
 
-      }
+   }
    // Process exceptions ...
-   catch(VRAY_clusterThis_Exception e) {
-         e.what();
-         cout << "VRAY_clusterThis::getAttributeOffsets() - Exception encountered, exiting" << endl << endl;
-         return 1;
-      }
+   catch (VRAY_clusterThis_Exception e) {
+      e.what();
+      cout << "VRAY_clusterThis::getAttributeOffsets() - Exception encountered, exiting" << endl << endl;
+      return 1;
+   }
 
 
 #ifdef DEBUG
@@ -236,7 +236,7 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.pscale, 0));
    myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myPointAttrOffsets.id, 0));
 
-   if(myPrimType == CLUSTER_PRIM_METABALL)
+   if (myPrimType == CLUSTER_PRIM_METABALL)
       myPointAttributes.weight = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.weight, 0));
 
    myPointAttributes.material = ppt->getString(myPointAttrOffsets.material) ;
@@ -391,20 +391,20 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail * inst_gdp, GEO_Pr
 //     }
 
    // apply attribues to each vertex
-   for(int i=0; i < myGeoPrim->getVertexCount(); i++) {
-         ppt = myGeoPrim->getVertexElement(i).getPt();
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
-         ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
-         ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
-         ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
-         ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
-         ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+   for (int i=0; i < myGeoPrim->getVertexCount(); i++) {
+      ppt = myGeoPrim->getVertexElement(i).getPt();
+      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+      ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
+      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+      ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
+      ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+      ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+      ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
 
 
 //          cout << "VRAY_clusterThis::setInstanceAttributes: Point Instance Alpha: " << ppt->getValue<float>(myInstAttrRefs.pointAlpha) << endl;
-      }
+   }
 
 
 //     if (myInstAttrRefs.material.isValid()) {
@@ -514,10 +514,10 @@ inline int VRAY_clusterThis::setFileAttributes(GU_Detail * inst_gdp)
       prim->setValue<int>(myFileAttrOffsets.id, (const int)myPointAttributes.id);
       GEO_AttributeHandle matAttribHandle = inst_gdp->getPrimAttribute("shop_materialpath");
 
-      if(matAttribHandle.isAttributeValid()) {
-            matAttribHandle.setElement(prim);
-            matAttribHandle.setString(myPointAttributes.material);
-         }
+      if (matAttribHandle.isAttributeValid()) {
+         matAttribHandle.setElement(prim);
+         matAttribHandle.setString(myPointAttributes.material);
+      }
 
 
    }
