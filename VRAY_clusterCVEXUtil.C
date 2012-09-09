@@ -6,7 +6,7 @@
 *
 * Description :
 *
-* $Revision: 1.7 $
+* $Revision: 1.8 $
 *
 * $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterCVEXUtil.C,v $
 *
@@ -90,44 +90,44 @@ static void dumpValue(CVEX_Value *value)
 
 
 
-static void dumpValueList(const char *label, CVEX_ValueList &list)
+static void dumpValueList(const char * label, CVEX_ValueList & list)
 {
-     int      i;
-     CVEX_Value *value;
-     printf("%s:\n", label);
-     for (i = 0; i < list.entries(); i++) {
-          value = list.getValue(i);
-          printf("\t%2d.", i+1);
-          if (value->isExport())
-               printf("export ");
-          switch (value->getType()) {
-          case CVEX_TYPE_INTEGER:
-               printf("int");
-               break;
-          case CVEX_TYPE_FLOAT:
-               printf("float");
-               break;
-          case CVEX_TYPE_VECTOR3:
-               printf("vector");
-               break;
-          case CVEX_TYPE_VECTOR4:
-               printf("vector4");
-               break;
-          case CVEX_TYPE_MATRIX3:
-               printf("matrix3");
-               break;
-          case CVEX_TYPE_MATRIX4:
-               printf("matrix");
-               break;
-          case CVEX_TYPE_STRING:
-               printf("string");
-               break;
-          default:
-               printf("unknown");
-               break;
-          }
-          printf(" %s[%d]\n", value->getName(), value->getArraySize());
-     }
+   int      i;
+   CVEX_Value * value;
+   printf("%s:\n", label);
+   for(i = 0; i < list.entries(); i++) {
+         value = list.getValue(i);
+         printf("\t%2d.", i+1);
+         if(value->isExport())
+            printf("export ");
+         switch(value->getType()) {
+               case CVEX_TYPE_INTEGER:
+                  printf("int");
+                  break;
+               case CVEX_TYPE_FLOAT:
+                  printf("float");
+                  break;
+               case CVEX_TYPE_VECTOR3:
+                  printf("vector");
+                  break;
+               case CVEX_TYPE_VECTOR4:
+                  printf("vector4");
+                  break;
+               case CVEX_TYPE_MATRIX3:
+                  printf("matrix3");
+                  break;
+               case CVEX_TYPE_MATRIX4:
+                  printf("matrix");
+                  break;
+               case CVEX_TYPE_STRING:
+                  printf("string");
+                  break;
+               default:
+                  printf("unknown");
+                  break;
+            }
+         printf(" %s[%d]\n", value->getName(), value->getArraySize());
+      }
 }
 
 
@@ -136,6 +136,9 @@ static void dumpValueList(const char *label, CVEX_ValueList &list)
 
 /**********************************************************************************/
 //  $Log: VRAY_clusterCVEXUtil.C,v $
+//  Revision 1.8  2012-09-09 05:00:55  mstory
+//  More cleanup and testing.
+//
 //  Revision 1.7  2012-09-07 15:39:23  mstory
 //   Removed all volume instancing (used in different project) and continu… …
 //
