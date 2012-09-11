@@ -86,14 +86,14 @@ public:
 
 //    myPointAttributes.theta = theClusterObj->myPointAttributes.theta;
 
-      myInstAttrOffsets.Cd = theClusterObj->myInstAttrOffsets.Cd;
-      myInstAttrOffsets.Alpha = theClusterObj->myInstAttrOffsets.Alpha;
-      myInstAttrOffsets.v = theClusterObj->myInstAttrOffsets.v;
-      myInstAttrOffsets.N = theClusterObj->myInstAttrOffsets.N;
-      myInstAttrOffsets.pscale = theClusterObj->myInstAttrOffsets.pscale;
-      myInstAttrOffsets.id = theClusterObj->myInstAttrOffsets.id;
-      myInstAttrOffsets.weight = theClusterObj->myInstAttrOffsets.weight;
-      myInstAttrOffsets.material = theClusterObj->myInstAttrOffsets.material;
+      myInstAttrRefs.Cd = theClusterObj->myInstAttrRefs.Cd;
+      myInstAttrRefs.Alpha = theClusterObj->myInstAttrRefs.Alpha;
+      myInstAttrRefs.v = theClusterObj->myInstAttrRefs.v;
+      myInstAttrRefs.N = theClusterObj->myInstAttrRefs.N;
+      myInstAttrRefs.pscale = theClusterObj->myInstAttrRefs.pscale;
+      myInstAttrRefs.id = theClusterObj->myInstAttrRefs.id;
+      myInstAttrRefs.weight = theClusterObj->myInstAttrRefs.weight;
+      myInstAttrRefs.material = theClusterObj->myInstAttrRefs.material;
 
       myInstMBAttrOffsets.Cd = theClusterObj->myInstMBAttrOffsets.Cd;
       myInstMBAttrOffsets.Alpha = theClusterObj->myInstMBAttrOffsets.Alpha;
@@ -175,7 +175,6 @@ private:
 
    struct inst_attr_offset_struct {
 
-#if HOUDINI_MAJOR_RELEASE>=11
       // Required attributes
       GA_RWAttributeRef Cd;
       GA_RWAttributeRef Alpha;
@@ -207,46 +206,11 @@ private:
               GA_RWAttributeRef pressure;
               GA_RWAttributeRef mass;
               GA_RWAttributeRef temperature;*/
-#endif
 
-#if HOUDINI_MAJOR_RELEASE==9
-      // Required attributes
-      int Cd;
-      int Alpha;
-      int v;
-      int N;
-      int material;
-      int id;
-      int pscale;
-      int weight;
-      int width;
-
-      int pointCd;
-      int pointAlpha;
-      int pointV;
-      int pointN;
-      int pointMaterial;
-      int pointId;
-      int pointInstId;
-      int pointPscale;
-
-      // Optional attributes
-      /*        int num_neighbors;
-              int force;
-              int vorticity;
-              int uv;
-              int age;
-              int viscosity;
-              int density;
-              int pressure;
-              int mass;
-              int temperature;*/
-#endif
-   } myInstAttrOffsets;
+   } myInstAttrRefs;
 
    struct inst_mb_attr_offset_struct {
 
-#if HOUDINI_MAJOR_RELEASE>=11
       // Required attributes
       GA_RWAttributeRef Cd;
       GA_RWAttributeRef Alpha;
@@ -278,41 +242,6 @@ private:
               GA_RWAttributeRef pressure;
               GA_RWAttributeRef mass;
               GA_RWAttributeRef temperature;*/
-#endif
-
-#if HOUDINI_MAJOR_RELEASE==9
-      // Required attributes
-      int Cd;
-      int Alpha;
-      int v;
-      int N;
-      int material;
-      int id;
-      int pscale;
-      int weight;
-      int width;
-
-      int pointCd;
-      int pointAlpha;
-      int pointV;
-      int pointN;
-      int pointMaterial;
-      int pointId;
-      int pointInstId;
-      int pointPscale;
-
-      // Optional attributes
-      /*        int num_neighbors;
-              int force;
-              int vorticity;
-              int uv;
-              int age;
-              int viscosity;
-              int density;
-              int pressure;
-              int mass;
-              int temperature;*/
-#endif
 
    } myInstMBAttrOffsets;
 
