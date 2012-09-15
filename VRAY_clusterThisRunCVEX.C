@@ -41,7 +41,7 @@
 int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method)
 {
 
-   if (myVerbose > CLUSTER_MSG_INFO) {
+   if (myVerbose == CLUSTER_MSG_DEBUG) {
       std::cout << "VRAY_clusterThis::runCVEX() - Processing CVEX arrays - points: " << inst_gdp->points().entries()
                 << " primitives: " << inst_gdp->primitives().entries() << std::endl;
    }
@@ -499,7 +499,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
          }
 
 
-         if (myVerbose > CLUSTER_MSG_INFO)
+         if (myVerbose == CLUSTER_MSG_DEBUG)
             std::cout << "VRAY_clusterThis::runCVEX() - Loaded VEX Function" << std::endl;
 
          CVEX_Value * P_val = NULL, *N_val = NULL, *v_val = NULL, *Cd_val = NULL, *Alpha_val = NULL,
@@ -546,7 +546,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
          inst_id_val = cvex.findInput("inst_id", CVEX_TYPE_INTEGER);
 
 
-         if (myVerbose > CLUSTER_MSG_INFO) {
+         if (myVerbose == CLUSTER_MSG_DEBUG) {
             dumpValueList("VRAY_clusterThis::runCVEX() - Input Parameters", cvex.getInputList());
          }
 
@@ -636,7 +636,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 
 
 
-         if (myVerbose > CLUSTER_MSG_INFO)
+         if (myVerbose == CLUSTER_MSG_DEBUG)
             std::cout << "VRAY_clusterThis::runCVEX() - Calling VEX code in .vex file: " << theCVEXFname << std::endl;
 
 
@@ -664,10 +664,10 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
          }
 
 
-         if (myVerbose > CLUSTER_MSG_INFO)
+         if (myVerbose == CLUSTER_MSG_DEBUG)
             std::cout << "VRAY_clusterThis::runCVEX() - Finished running VEX code" << std::endl;
 
-         if (myVerbose > CLUSTER_MSG_INFO) {
+         if (myVerbose == CLUSTER_MSG_DEBUG) {
             dumpValueList("VRAY_clusterThis::runCVEX() - Output Parameters", cvex.getOutputList());
          }
 

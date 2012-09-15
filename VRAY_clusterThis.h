@@ -26,7 +26,6 @@
 #ifndef __VRAY_clusterThis_h__
 #define __VRAY_clusterThis_h__
 
-
 //#define DEBUG
 
 
@@ -129,20 +128,21 @@ private:
       GA_RWAttributeRef Alpha;
       GA_RWAttributeRef v;
       GA_RWAttributeRef N;
-      GA_RWAttributeRef orient;
+//      GA_RWAttributeRef orient;
       GA_RWAttributeRef material;
       GA_RWAttributeRef id;
-      GA_RWAttributeRef lod;
+      GA_RWAttributeRef inst_id;
+//      GA_RWAttributeRef lod;
       GA_RWAttributeRef pscale;
-      GA_RWAttributeRef up;
-      GA_RWAttributeRef angle;
-      GA_RWAttributeRef offset;
-      GA_RWAttributeRef amp;
+//      GA_RWAttributeRef up;
+//      GA_RWAttributeRef angle;
+//      GA_RWAttributeRef offset;
+//      GA_RWAttributeRef amp;
 
-      GA_RWAttributeRef low_bound;
-      GA_RWAttributeRef high_bound;
-      GA_RWAttributeRef deformspace;
-      GA_RWAttributeRef xformobj;
+//      GA_RWAttributeRef low_bound;
+//      GA_RWAttributeRef high_bound;
+//      GA_RWAttributeRef deformspace;
+//      GA_RWAttributeRef xformobj;
 
       GA_RWAttributeRef pointCd;
       GA_RWAttributeRef pointAlpha;
@@ -151,11 +151,12 @@ private:
       GA_RWAttributeRef pointMaterial;
       GA_RWAttributeRef pointPscale;
       GA_RWAttributeRef pointId;
-      GA_RWAttributeRef pointLOD;
-      GA_RWAttributeRef pointUp;
-      GA_RWAttributeRef pointAngle;
-      GA_RWAttributeRef pointOffset;
-      GA_RWAttributeRef pointAmp;
+      GA_RWAttributeRef pointInstId;
+//      GA_RWAttributeRef pointLOD;
+//      GA_RWAttributeRef pointUp;
+//      GA_RWAttributeRef pointAngle;
+//      GA_RWAttributeRef pointOffset;
+//      GA_RWAttributeRef pointAmp;
 
    } myFileAttrOffsets;
 
@@ -278,6 +279,7 @@ private:
    void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
    int getAttributeOffsets(GU_Detail * gdp);
    int getAttributes(GEO_Point * ppt, GU_Detail * gdp);
+   void checkRequiredAttributes();
    int addFileAttributeOffsets(GU_Detail * gdp);
    void setInstanceAttributes(GU_Detail * gdp, GEO_Primitive * myGeoPrim);
    void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
@@ -345,32 +347,32 @@ private:
 
    // A struct to keep track os CVEX vars to pass to the CVEX code
    struct cvex_pt_vars_struct {
-   uint  cvex_Cd_pt:
+uint  cvex_Cd_pt:
       1;
-   uint  cvex_Alpha_pt:
+uint  cvex_Alpha_pt:
       1;
-   uint  cvex_v_pt:
+uint  cvex_v_pt:
       1;
-   uint  cvex_N_pt:
+uint  cvex_N_pt:
       1;
-   uint  cvex_pscale_pt:
+uint  cvex_pscale_pt:
       1;
    } myCVEXPointVars;
 
    struct cvex_prim_vars_struct {
-   uint  cvex_Cd_prim:
+uint  cvex_Cd_prim:
       1;
-   uint  cvex_Alpha_prim:
+uint  cvex_Alpha_prim:
       1;
-   uint  cvex_v_prim:
+uint  cvex_v_prim:
       1;
-   uint  cvex_N_prim:
+uint  cvex_N_prim:
       1;
-   uint  cvex_pscale_prim:
+uint  cvex_pscale_prim:
       1;
-   uint  cvex_weight_prim:
+uint  cvex_weight_prim:
       1;
-   uint  cvex_width_prim:
+uint  cvex_width_prim:
       1;
    } myCVEXPrimVars;
 
@@ -402,7 +404,8 @@ private:
    enum clusterVerboseTypeEnum {
       CLUSTER_MSG_QUIET = 0,
       CLUSTER_MSG_INFO,
-      CLUSTER_MSG_VERBOSE
+      CLUSTER_MSG_VERBOSE,
+      CLUSTER_MSG_DEBUG
    };
 
    enum clusterInstanceMethod {

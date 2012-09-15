@@ -141,17 +141,7 @@ void VRAY_clusterThis::render()
          VRAY_clusterThis::getAttributeOffsets(gdp);
 
          // Check for required attributes
-         if ((myPointAttrOffsets.Cd.isInvalid()) ||
-               (myPointAttrOffsets.Alpha.isInvalid()) ||
-               (myPointAttrOffsets.v.isInvalid()) ||
-               (myPointAttrOffsets.N.isInvalid()) ||
-               (myPointAttrOffsets.pscale.isInvalid()) ||
-               (myPointAttrOffsets.id.isInvalid()))
-
-         {
-            cout << "Incoming points must have Cd, Alpha, v, N, pscale and id attributes! Throwing exception ..." << endl;
-            throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd, Alpha, v, N, pscale and id attributes! ", 1);
-         }
+         VRAY_clusterThis::checkRequiredAttributes();
 
          // Check for weight attribute if the user wants metaballs
          if ((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrOffsets.weight.isInvalid())) {
@@ -278,9 +268,10 @@ void VRAY_clusterThis::render()
 
                            // For the "deferred instance" method, add the procedural now ...
                         case CLUSTER_INSTANCE_DEFERRED:
-//                                    openProceduralObject();
-//                                    addProcedural( new VRAY_clusterThisChild::VRAY_clusterThisChild(this) );
-//                                    closeObject();
+//                                                   openProceduralObject();
+//                                                   addProcedural(new VRAY_clusterThisChild::VRAY_clusterThisChild(this));
+//                                                   closeObject();
+                           throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() deferred instaning not supported yet, exiting ...", 1);
 
                            break;
                         }
@@ -341,7 +332,7 @@ void VRAY_clusterThis::render()
                addGeometry(mb_gdp, myShutter);
 
             setComputeN(1);
-            setSurface(myMaterial);
+//                        setSurface(myMaterial);
             closeObject();
 
             break;

@@ -30,10 +30,11 @@
 #define __VRAY_clusterThis_C__
 
 #include <GU/GU_Detail.h>
-
+#include <GEO/GEO_Primitive.h>
 #include <GU/GU_PrimCircle.h>
 #include <GU/GU_PrimSphere.h>
 #include <GU/GU_PrimTube.h>
+#include <GU/GU_Grid.h>
 #include <GU/GU_PrimNURBCurve.h>
 #include <GEO/GEO_PrimSphere.h>
 #include <GU/GU_PrimMetaBall.h>
@@ -688,6 +689,51 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 }
 
 
+/* ******************************************************************************
+*  Function Name : getBoundingBox
+*
+*  Description :  Get the bounding box for this VRAY_clusterThis object
+*
+*  Input Arguments : None
+*
+*  Return Value : None
+*
+***************************************************************************** */
+void VRAY_clusterThis::checkRequiredAttributes()
+{
+//   std::cout << "VRAY_clusterThis::checkRequiredAttributes()" << std::endl;
+   // Check for required attributes
+   if (myPointAttrOffsets.Cd.isInvalid()) {
+      cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
+   }
+
+   if (myPointAttrOffsets.Alpha.isInvalid()) {
+      cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
+   }
+
+   if (myPointAttrOffsets.v.isInvalid()) {
+      cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
+   }
+
+   if (myPointAttrOffsets.N.isInvalid()) {
+      cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
+   }
+
+   if (myPointAttrOffsets.pscale.isInvalid()) {
+      cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
+   }
+
+   if (myPointAttrOffsets.id.isInvalid()) {
+      cout << "Incoming points must have id attribute Throwing exception ..." << endl;
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
+   }
+
+}
 
 
 /* ******************************************************************************
