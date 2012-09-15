@@ -13,7 +13,6 @@ CFLAGS := $(CFLAGS) ${TAGINFO} -ftree-vectorize -ftree-vectorizer-verbose=2
 DSONAME = VRAY_clusterThis.so
 
 all: clusterThis
-
 Debug: clusterThis install
 Release: clusterThis install
 
