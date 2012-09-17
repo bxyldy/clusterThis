@@ -54,16 +54,16 @@ int VRAY_clusterThis::instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setPointInstanceAttributes(inst_gdp, ppt);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      ppt = mb_gdp->appendPointElement();
-      mb_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myMBPos[0],
-                                              (float)myPointAttributes.myMBPos[1],
-                                              (float)myPointAttributes.myMBPos[2], 1.0);
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         ppt = mb_gdp->appendPointElement();
+         mb_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myMBPos[0],
+                                                 (float)myPointAttributes.myMBPos[1],
+                                                 (float)myPointAttributes.myMBPos[2], 1.0);
 
-      VRAY_clusterThis::setPointInstanceAttributes(mb_gdp, ppt);
-   }
+         VRAY_clusterThis::setPointInstanceAttributes(mb_gdp, ppt);
+      }
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
 #ifdef DEBUG
@@ -107,24 +107,24 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, sphere);
 
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      sphere_parms.gdp = mb_gdp;
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         sphere_parms.gdp = mb_gdp;
 //         sphere_parms.xform = xform;
-      sphere_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-      sphere_parms.xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
-      sphere_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-      sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
+         sphere_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         sphere_parms.xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
+         sphere_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+         sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
 
-      // Add some attributes to the primitives to be used for attribute procesing and by the prim's material
+         // Add some attributes to the primitives to be used for attribute procesing and by the prim's material
 
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, sphere);
-   }
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, sphere);
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceSphere() Instanced a sphere " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -166,24 +166,24 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    myCube->transform(xform);
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCube);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
-      myCube = (GEO_Primitive *) mb_gdp->cube(myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
-                                              myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
-                                              myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
-                                              myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
-                                              myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
-                                              myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
+         myCube = (GEO_Primitive *) mb_gdp->cube(myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
+                                                 myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
+                                                 myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
+                                                 myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
+                                                 myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
+                                                 myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-      myCube->transform(xform);
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
-   }
+         myCube->transform(xform);
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceCube() Instanced a cube " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -240,19 +240,19 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, myGrid);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
-      myGrid = (GEO_Primitive *) mb_gdp->polyGrid(2, 2, mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale,
-               myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-      myGrid->transform(xform);
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myGrid);
-   }
+         myGrid = (GEO_Primitive *) mb_gdp->polyGrid(2, 2, mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale,
+                  myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         myGrid->transform(xform);
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myGrid);
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceGrid() Instanced a grid " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -296,26 +296,26 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, tube);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      tube_parms.gdp = mb_gdp;
-      tube_cap_options.firstUCap = GU_CAP_ROUNDED;
-      tube_cap_options.firstVCap = GU_CAP_ROUNDED;
-      tube_cap_options.lastUCap = GU_CAP_ROUNDED;
-      tube_cap_options.lastVCap = GU_CAP_ROUNDED;
-      tube_parms.xform = xform;
-      tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-      tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-      tube_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-      tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         tube_parms.gdp = mb_gdp;
+         tube_cap_options.firstUCap = GU_CAP_ROUNDED;
+         tube_cap_options.firstVCap = GU_CAP_ROUNDED;
+         tube_cap_options.lastUCap = GU_CAP_ROUNDED;
+         tube_cap_options.lastVCap = GU_CAP_ROUNDED;
+         tube_parms.xform = xform;
+         tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+         tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         tube_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, tube);
-   }
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, tube);
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceTube() Instanced a tube " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -354,21 +354,21 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, circle);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      circle_parms.gdp = mb_gdp;
-      circle_parms.xform = xform;
-      circle_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-      circle_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-      circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         circle_parms.gdp = mb_gdp;
+         circle_parms.xform = xform;
+         circle_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         circle_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
 
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, circle);
-   }
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, circle);
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceCircle() Instanced a circle " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -386,172 +386,160 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta)
+int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num)
 {
 #ifdef DEBUG
    std::cout << "VRAY_clusterThis::instanceCurve()" << std::endl;
 #endif
 
+   std::cout << "VRAY_clusterThis::instanceCurve() - point_num: " << point_num << std::endl;
+
    GEO_Point * ppt;
+   GU_PrimNURBCurve * myCurve, * myMBCurve;
+   uint32 num_vtx;
+   int myCurvePointNum = 0;
+   UT_Vector4 pt_pos;
 
-//    GA_RWAttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_vel = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_pscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-   GA_RWAttributeRef pt_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-   GA_RWAttributeRef pt_inst_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-//    GA_RWAttributeRef pt_material = inst_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
+   num_vtx = ((myNumCopies * myRecursion) > 4)?(myNumCopies * myRecursion):4;
+   myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)inst_gdp, num_vtx, 4, 0, 1, 1);
 
-   GA_RWAttributeRef pt_mb_Cd;
-   GA_RWAttributeRef pt_mb_Alpha;
-   GA_RWAttributeRef pt_mb_vel;
-   GA_RWAttributeRef pt_mb_N;
-   GA_RWAttributeRef pt_mb_pscale;
-   GA_RWAttributeRef pt_mb_id;
-   GA_RWAttributeRef pt_mb_inst_id;
-   GA_RWAttributeRef pt_mb_material;
+//   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCurve);
 
-
-   // static GU_PrimNURBCurve *  build (GU_Detail *gudp, int nelems, int order=4, int closed=0, int interpEnds=1, int appendPoints=1)
-   // myCurve = GU_PrimNURBCurve::build(gdp, num_divs, 4, 0, 1, 0);
-   // virtual int  appendVertex (GEO_Point *ppt=0)
-
-   uint32 num_vtx = ((myNumCopies * myRecursion) > 4)?(myNumCopies * myRecursion):4;
-   GU_PrimNURBCurve * myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)inst_gdp, num_vtx, 4, 0, 1, 1);
-
-   GU_PrimNURBCurve * myMBCurve;
-
-//   cout << "VRAY_clusterThis::instanceCurve() - num vertices: " << myCurve->getVertexCount () << endl;;
-//   cout << "id: "  << myCurve->getPrimitiveId() << endl;
-//   cout << "breakCount: "  << myCurve->breakCount () << endl;
-//   myCurve->raiseOrder (4);
-//   cout << "getOrder: "  << myCurve->getOrder () << endl;
-
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCurve);
-
-
-   // Assign color to the curve prim
-   /*    Cd = myCurve->castAttribData<UT_Vector3> ( myInstAttrRefs.Cd );
-       Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );
-       Alpha_ptr = myCurve->castAttribData<fpreal> ( myInstAttrRefs.Alpha );
-       *Alpha_ptr = myPointAttributes.Alpha;
-       vel = myCurve->castAttribData<UT_Vector3> ( myInstAttrRefs.v );
-       vel->assign ( ( fpreal ) myPointAttributes.v.x(), ( fpreal ) myPointAttributes.v.y(), ( fpreal ) myPointAttributes.v.z() );
-       N = myCurve->castAttribData<UT_Vector3> ( myInstAttrRefs.N );
-       N->assign ( ( fpreal ) myPointAttributes.N.x(), ( fpreal ) myPointAttributes.N.y(), ( fpreal ) myPointAttributes.N.z() );*/
-
-
-//     id_ptr = myCurve->castAttribData<int> ( myInstAttrRefs.id );
-//     *id_ptr = myPointAttributes.id;
-
-//               UT_String* mat = myCurve->castAttribData<UT_String> ( myInstAttrRefs.material );
-//               *mat = myPointAttributes.material;
-
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)mb_gdp, num_vtx, 4, 0, 1, 1);
-      pt_mb_Cd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-      pt_mb_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
-      pt_mb_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
-      pt_mb_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-      pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-      pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-      pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-
-//        pt_mb_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
-
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCurve);
-
-      // Assign color to the curve prim
-      /*        Cd = myMBCurve->castAttribData<UT_Vector3> ( myInstMBAttrOffsets.Cd );
-              Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );
-              Alpha_ptr = myMBCurve->castAttribData<fpreal> ( myInstMBAttrOffsets.Alpha );
-              *Alpha_ptr = myPointAttributes.Alpha;
-              vel = myMBCurve->castAttribData<UT_Vector3> ( myInstMBAttrOffsets.v );
-              vel->assign ( ( fpreal ) myPointAttributes.v.x(), ( fpreal ) myPointAttributes.v.y(), ( fpreal ) myPointAttributes.v.z() );
-              N = myMBCurve->castAttribData<UT_Vector3> ( myInstMBAttrOffsets.N );
-              N->assign ( ( fpreal ) myPointAttributes.N.x(), ( fpreal ) myPointAttributes.N.y(), ( fpreal ) myPointAttributes.N.z() );*/
-
-
-      /*        id_ptr = myMBCurve->castAttribData<int> ( myInstMBAttrOffsets.id );
-              *id_ptr = myPointAttributes.id;*/
-//        UT_String* mat = myMBCurve->castAttribData<UT_String> ( myInstMBAttrOffsets.material );
-//        *mat = myPointAttributes.material;
+   if(!inst_gdp) {
+      GA_RWAttributeRef Cd_ref = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+   myCurve->setValue<UT_Vector3>(Cd_ref, (const UT_Vector3)myPointAttributes.Cd);
 
    }
 
 
-   uint seed = 23;
+//      myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+//      myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+//      myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+//      myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "weight", 1);
+//      myInstAttrRefs.weight = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+//      myInstAttrRefs.width = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "width", 1);
+//      myInstAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+//      myInstAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+//      myInstAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
+//
+
+//   myCurve->setValue<UT_Vector3>(Cd_ref, (const UT_Vector3)myPointAttributes.Cd);
+
+//   myCurve->setValue<fpreal>(myInstAttrRefs.Alpha, (const fpreal)myPointAttributes.Alpha);
+//   myCurve->setValue<UT_Vector3>(myInstAttrRefs.v, (const UT_Vector3)myPointAttributes.v);
+//   myCurve->setValue<UT_Vector3>(myInstAttrRefs.N, (const UT_Vector3)myPointAttributes.N);
+////    myCurve->setValue<UT_Vector4>(myInstAttrRefs.orient (const UT_Vector4)myPointAttributes.orient);
+//   myCurve->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
+//   myCurve->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
+//   myCurve->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
+//   myCurve->setValue<fpreal>(myInstAttrRefs.weight, (const fpreal)myPointAttributes.weight);
+//   myCurve->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
+//   myCurve->setString(myInstAttrRefs.material, myPointAttributes.material);
+
+
+   cout << "VRAY_clusterThis::instanceCurve() - num vertices: " << myCurve->getVertexCount() << endl;;
+
+//   cout << "id: "  << myCurve->getPrimitiveId() << endl;
+//   cout << "breakCount: "  << myCurve->breakCount() << endl;
+//   myCurve->raiseOrder (4);
+//   cout << "getOrder: "  << myCurve->getOrder () << endl;
+
+
+   for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
+      for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
+
+                  calculateNewPosition(theta, copyNum, recursionNum);
+                  ppt = myCurve->getVertexElement(myCurvePointNum).getPt();
+                  ppt->setPos((float)myPointAttributes.myNewPos[0],
+                              (float)myPointAttributes.myNewPos[1],
+                              (float)myPointAttributes.myNewPos[2], 1.0);
+
+                  pt_pos = ppt->getPos();
+                  std::cout << "VRAY_clusterThis::instanceCurve() pos: " << pt_pos.x() << " " << pt_pos.y() << " " << pt_pos.z() << std::endl;
+//                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+//                  ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+//                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+//                  ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)myPointAttributes.pscale);
+//                  ppt->setValue<fpreal>(myInstAttrRefs.pointWidth, (const fpreal)myPointAttributes.width);
+//                  ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+//                  ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+//                  ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+
+            }
+
+
+return 0;
+
+
+
+
+
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)mb_gdp, num_vtx, 4, 0, 1, 1);
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myMBCurve);
+         cout << "VRAY_clusterThis::instanceCurve() - MB num vertices: " << myMBCurve->getVertexCount() << endl;;
+      }
+
+   uint seed = 37;
    fpreal dice;
    bool skip = false;
 
-   myInstanceNum = 0;
+   for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
+      for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
-   for (int copyNum = 0; copyNum < myNumCopies; copyNum++)
-      for (int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
-         // insert random number to determine to instance or not
+            dice = SYSfastRandom(seed);
+            (dice > myBirthProb)?skip = true:skip = false;
+            seed = uint(dice * 100);
 
-         dice = SYSfastRandom(seed);
-         (dice > myBirthProb)?skip = true:skip = false;
-//                  cout << dice << " " << skip << endl;
-         seed = uint(dice * 100);
+            if(!skip) {
+                  calculateNewPosition(theta, copyNum, recursionNum);
+                  ppt = myCurve->getVertexElement(myCurvePointNum).getPt();
+                  ppt->setPos((float)myPointAttributes.myNewPos[0],
+                              (float)myPointAttributes.myNewPos[1],
+                              (float)myPointAttributes.myNewPos[2], 1.0);
 
-//            if(!skip) {
-         if (true) {
+                  pt_pos = ppt->getPos();
+                  std::cout << "VRAY_clusterThis::instanceCurve() pos: " << pt_pos.x() << " " << pt_pos.y() << " " << pt_pos.z() << std::endl;
 
-            calculateNewPosition(theta, copyNum, recursionNum);
-            ppt = myCurve->getVertexElement(myInstanceNum).getPt();
-            inst_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myNewPos[0],
-                  (float)myPointAttributes.myNewPos[1],
-                  (float)myPointAttributes.myNewPos[2], 1.0);
+                  // Assign attributes to each point
+                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+                  ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+                  ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+                  ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)myPointAttributes.pscale);
+                  ppt->setValue<fpreal>(myInstAttrRefs.pointWidth, (const fpreal)myPointAttributes.width);
+                  ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+                  ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+                  ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
 
-            // Assign color to each point
-//              Cd = ppt->castAttribData<UT_Vector3> ( pt_Cd );
-//              Cd->assign ( ( fpreal ) myPointAttributes.Cd.x(), ( fpreal ) myPointAttributes.Cd.y(), ( fpreal ) myPointAttributes.Cd.z() );
+//                  VRAY_clusterThis::setPointInstanceAttributes(inst_gdp, ppt);
 
-//                ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-            ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-            ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-            ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-            ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
-            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-            ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-//                GEO_AttributeHandle matAttribHandle = inst_gdp->getPointAttribute("shop_materialpath");
+                  if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+                        ppt = myMBCurve->getVertexElement(myCurvePointNum).getPt();
+                        ppt->setPos((float)myPointAttributes.myNewPos[0],
+                                    (float)myPointAttributes.myMBPos[1],
+                                    (float)myPointAttributes.myMBPos[2], 1.0);
 
-//                if ( matAttribHandle.isAttributeValid() )
-//                {
-//                    matAttribHandle.setElement(ppt);
-//                    matAttribHandle.setString(myPointAttributes.material);
-//                }
+                        // Assign attributes to each point
+                        ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+                        ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+                        ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//   ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+//                        ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)myPointAttributes.pscale);
+                        ppt->setValue<fpreal>(myInstAttrRefs.pointWidth, (const fpreal)myPointAttributes.width);
+                        ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+                        ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+                        ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
 
-            if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-               ppt = myMBCurve->getVertexElement(myInstanceNum).getPt();
-               mb_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myMBPos[0],
-                                                       (float)myPointAttributes.myMBPos[1],
-                                                       (float)myPointAttributes.myMBPos[2], 1.0);
+//                        VRAY_clusterThis::setPointInstanceAttributes(mb_gdp, ppt);
+                     }
 
-//                  ppt->setValue<UT_Vector3>(pt_mb_Cd, (const UT_Vector3)myPointAttributes.Cd);
-               ppt->setValue<fpreal>(pt_mb_Alpha, (const fpreal)myPointAttributes.Alpha);
-               ppt->setValue<UT_Vector3>(pt_mb_vel, (const UT_Vector3)myPointAttributes.v);
-               ppt->setValue<UT_Vector3>(pt_mb_N, (const UT_Vector3)myPointAttributes.N);
-               ppt->setValue<fpreal>(pt_mb_pscale, (const fpreal)myPointAttributes.pscale);
-               ppt->setValue<int>(pt_mb_id, (const int)myPointAttributes.id);
-               ppt->setValue<int>(pt_mb_inst_id, (const int)myInstanceNum);
+                  std::cout << "VRAY_clusterThis::instanceCurve() myCurvePointNum: " << myCurvePointNum << std::endl;
 
-//                    GEO_AttributeHandle matAttribHandle = inst_gdp->getPointAttribute("shop_materialpath");
-//
-//                    if ( matAttribHandle.isAttributeValid() )
-//                    {
-//                        matAttribHandle.setElement(ppt);
-//                        matAttribHandle.setString(myPointAttributes.material);
-//                    }
-//
-            }
-
-            myInstanceNum++;
-
+                  myCurvePointNum++;
+               }
          }
-      }
 
 //   myCurve->close ();
 //   myMBCurve->close ();
@@ -562,7 +550,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 #endif
 
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
 
@@ -604,24 +592,24 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, metaball);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
-      metaball_parms.gdp = mb_gdp;
-      metaball_parms.xform = xform;
-      metaball_parms.weight = myPointAttributes.weight;
-      metaball_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-      metaball_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-      metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
+         metaball_parms.gdp = mb_gdp;
+         metaball_parms.xform = xform;
+         metaball_parms.weight = myPointAttributes.weight;
+         metaball_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         metaball_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
 
-      VRAY_clusterThis::setInstanceAttributes(mb_gdp, metaball);
+         VRAY_clusterThis::setInstanceAttributes(mb_gdp, metaball);
 
-   }
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceMetaball() Instanced a metaball " << endl;
 #endif
 
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -677,39 +665,39 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    setFileAttributes(&temp_gdp);
 
    // Run CVEX function on this instance
-   if (myCVEX_Exec)
+   if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
-   if (myCVEX_Exec_prim)
+   if(myCVEX_Exec_prim)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
    inst_gdp->merge(temp_gdp);
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      GU_Detail temp_gdp(file_gdp);
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         GU_Detail temp_gdp(file_gdp);
 
-      xform.identity();
-      rot_xform.identity();
-      rot_xform.orient(myDir, myUp);
-      xform = rot_xform;
+         xform.identity();
+         rot_xform.identity();
+         rot_xform.orient(myDir, myUp);
+         xform = rot_xform;
 
-      xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 //        xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-      xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-      //   xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
-      //               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
-      //               mySize[0], mySize[1], mySize[2]);
+         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         //   xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+         //               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
+         //               mySize[0], mySize[1], mySize[2]);
 
-      // Run CVEX function on this instance
-      if (myCVEX_Exec)
-         VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
+         // Run CVEX function on this instance
+         if(myCVEX_Exec)
+            VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
-      if (myCVEX_Exec_prim)
-         VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
+         if(myCVEX_Exec_prim)
+            VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
-      temp_gdp.transform(xform);
-      mb_gdp->merge(temp_gdp);
-   }
+         temp_gdp.transform(xform);
+         mb_gdp->merge(temp_gdp);
+      }
 
 
 #ifdef DEBUG
@@ -872,6 +860,9 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 //  Lots of changes!!!
 //
 /**********************************************************************************/
+
+
+
 
 
 

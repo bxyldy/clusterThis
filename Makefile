@@ -1,6 +1,6 @@
 SRC_VER = 2.0.0
 SHELL=/bin/csh
-#DBG=-g
+DBG=-g
 src_files = VRAY_clusterThis.C VRAY_clusterThis.h \
 VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
 VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \

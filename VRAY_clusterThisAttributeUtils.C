@@ -56,7 +56,9 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
       myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
       myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
       myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
-      myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+      myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "weight", 1);
+      myInstAttrRefs.weight = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+      myInstAttrRefs.width = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "width", 1);
       myInstAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
       myInstAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
       myInstAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
@@ -66,6 +68,8 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
       myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
       myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
       myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+      myInstAttrRefs.pointWeight = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "weight", 1);
+      myInstAttrRefs.pointWidth = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
       myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
       myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
       myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
@@ -361,15 +365,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail * inst_gdp, GEO_Pr
    myGeoPrim->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.weight, (const fpreal)myPointAttributes.weight);
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
-
-//     std::cout << "VRAY_clusterThis::setInstanceAttributes: myPointAttributes.Alpha: "  << myPointAttributes.Alpha << std::endl;
-//
-//     GEO_AttributeHandle alphaAttribHandle = inst_gdp->getPrimAttribute("Alpha");
-//
-//     if ( alphaAttribHandle.isAttributeValid() ) {
-//          alphaAttribHandle.setElement(myGeoPrim);
-//          cout << "VRAY_clusterThis::setInstanceAttributes: Primitive Instance Alpha: " << alphaAttribHandle.getF() << endl;
-//     }
+   myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
 
    // apply attribues to each vertex
    for (int i=0; i < myGeoPrim->getVertexCount(); i++) {
@@ -383,23 +379,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail * inst_gdp, GEO_Pr
       ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
       ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
 
-//          cout << "VRAY_clusterThis::setInstanceAttributes: Point Instance Alpha: " << ppt->getValue<float>(myInstAttrRefs.pointAlpha) << endl;
    }
-
-
-//     if (myInstAttrRefs.material.isValid()) {
-   myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
-//          std::cout << "prim material set: "  << myPointAttributes.material << std::endl;
-//     }
-
-//     UT_String mat_str;
-//     GEO_AttributeHandle matAttribHandle = inst_gdp->getPrimAttribute("shop_materialpath");
-//
-//     if ( matAttribHandle.isAttributeValid() ) {
-//          matAttribHandle.setElement(myGeoPrim);
-//          matAttribHandle.getString(mat_str);
-//          cout << "shop_materialpath: " << mat_str << endl;
-//     }
 
 }
 

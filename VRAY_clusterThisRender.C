@@ -188,23 +188,16 @@ void VRAY_clusterThis::render()
 
          /// For each point of the incoming geometry
          GA_FOR_ALL_GPOINTS(gdp, ppt) {
-            point_num++;
             myPointAttributes.myPos = ppt->getPos();
-
-            //   cout << "pt. num: " << pt_num++ << " X: " << pos->x() << " Y: " << pos->y() << " Z: " << pos->z() << endl;
-            //   ppt_pos.push_back(pos->x());
-            //   ppt_pos.push_back(pos->y());
-            //   ppt_pos.push_back(pos->z());
 
             // get the point's attributes
             VRAY_clusterThis::getAttributes(ppt, gdp);
-
 
 #ifdef DEBUG
             cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
 #endif
 
-            uint seed = 23;
+            uint seed = 37;
             fpreal dice;
             bool skip = false;
 
@@ -288,18 +281,19 @@ void VRAY_clusterThis::render()
 
             }
 
+            // User wants a curve instanced on this point
+            if ((myPrimType == CLUSTER_PRIM_CURVE) && (myMethod == CLUSTER_INSTANCE_NOW) && (!skip))
+               VRAY_clusterThis::instanceCurve(inst_gdp, mb_gdp, theta, point_num);
+
+            // Increment our point counter
+            point_num++;
+
             // Print out stats to the console
             if (myVerbose > CLUSTER_MSG_INFO && (myPrimType != CLUSTER_PRIM_CURVE))
                if ((long int)(point_num % stat_interval) == 0)
                   cout << "VRAY_clusterThis::render() Number of points processed: " << point_num << " Number of instances: " << myInstanceNum << endl;
 
-
-            if ((myPrimType == CLUSTER_PRIM_CURVE) && (myMethod == CLUSTER_INSTANCE_NOW) && (!skip))
-               VRAY_clusterThis::instanceCurve(inst_gdp, mb_gdp, theta);
-
-
          } // for all points ...
-
 
 
          if (myVerbose > CLUSTER_MSG_QUIET)

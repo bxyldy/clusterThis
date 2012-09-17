@@ -182,6 +182,8 @@ private:
       GA_RWAttributeRef pointN;
       GA_RWAttributeRef pointMaterial;
       GA_RWAttributeRef pointId;
+      GA_RWAttributeRef pointWeight;
+      GA_RWAttributeRef pointWidth;
       GA_RWAttributeRef pointInstId;
       GA_RWAttributeRef pointPscale;
 
@@ -221,6 +223,8 @@ private:
       GA_RWAttributeRef pointV;
       GA_RWAttributeRef pointN;
       GA_RWAttributeRef pointMaterial;
+      GA_RWAttributeRef pointWeight;
+      GA_RWAttributeRef pointWidth;
       GA_RWAttributeRef pointId;
       GA_RWAttributeRef pointInstId;
       GA_RWAttributeRef pointPscale;
@@ -294,7 +298,7 @@ private:
    int instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
    int instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
    int instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-   int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta);
+   int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num);
    int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
    int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
