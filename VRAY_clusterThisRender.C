@@ -209,7 +209,7 @@ void VRAY_clusterThis::render()
                for (int copyNum = 0; copyNum < myNumCopies; copyNum++) {
                   for (int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
-                     // insert random number to determine to instance or not
+                     // generate random number to determine to instance or not
 
                      dice = SYSfastRandom(seed);
                      (dice > myBirthProb)?skip = true:skip = false;
