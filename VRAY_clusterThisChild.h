@@ -81,10 +81,9 @@ public:
       myPointAttributes.N = theClusterObj->myPointAttributes.N;
       myPointAttributes.id = theClusterObj->myPointAttributes.id;
       myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
+      myPointAttributes.width = theClusterObj->myPointAttributes.width;
       myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
       myPointAttributes.material = theClusterObj->myPointAttributes.material;
-
-//    myPointAttributes.theta = theClusterObj->myPointAttributes.theta;
 
       myInstAttrRefs.Cd = theClusterObj->myInstAttrRefs.Cd;
       myInstAttrRefs.Alpha = theClusterObj->myInstAttrRefs.Alpha;
@@ -92,6 +91,7 @@ public:
       myInstAttrRefs.N = theClusterObj->myInstAttrRefs.N;
       myInstAttrRefs.pscale = theClusterObj->myInstAttrRefs.pscale;
       myInstAttrRefs.id = theClusterObj->myInstAttrRefs.id;
+      myInstAttrRefs.width = theClusterObj->myInstAttrRefs.width;
       myInstAttrRefs.weight = theClusterObj->myInstAttrRefs.weight;
       myInstAttrRefs.material = theClusterObj->myInstAttrRefs.material;
 
@@ -101,6 +101,7 @@ public:
       myInstMBAttrOffsets.N = theClusterObj->myInstMBAttrOffsets.N;
       myInstMBAttrOffsets.pscale = theClusterObj->myInstMBAttrOffsets.pscale;
       myInstMBAttrOffsets.id = theClusterObj->myInstMBAttrOffsets.id;
+      myInstMBAttrOffsets.width = theClusterObj->myInstMBAttrOffsets.width;
       myInstMBAttrOffsets.weight = theClusterObj->myInstMBAttrOffsets.weight;
       myInstMBAttrOffsets.material = theClusterObj->myInstMBAttrOffsets.material;
 
@@ -152,11 +153,9 @@ private:
       UT_Vector3 N;
       int id;
       fpreal pscale;
+      fpreal width;
       fpreal weight;
-//        UT_String shader;
       UT_String material;
-
-//      fpreal theta;
 
       // Optional attributes
       //int num_neighbors;
@@ -182,6 +181,7 @@ private:
       GA_RWAttributeRef N;
       GA_RWAttributeRef material;
       GA_RWAttributeRef id;
+      GA_RWAttributeRef inst_id;
       GA_RWAttributeRef pscale;
       GA_RWAttributeRef weight;
       GA_RWAttributeRef width;

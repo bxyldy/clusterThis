@@ -177,6 +177,9 @@ void VRAY_clusterThis::render()
          // Create the attribute "offsets" for the geometry to be instanced
          VRAY_clusterThis::createAttributeOffsets(inst_gdp, mb_gdp);
 
+//changeSetting("surface", "constant Cd ( 1 0 0 )", "object");
+
+
          fpreal theta = (2.0 * M_PI) / myNumCopies;
          myInstanceNum = 0;
 
@@ -261,10 +264,9 @@ void VRAY_clusterThis::render()
 
                            // For the "deferred instance" method, add the procedural now ...
                         case CLUSTER_INSTANCE_DEFERRED:
-//                                                   openProceduralObject();
-//                                                   addProcedural(new VRAY_clusterThisChild::VRAY_clusterThisChild(this));
-//                                                   closeObject();
-                           throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() deferred instaning not supported yet, exiting ...", 1);
+                                                   openProceduralObject();
+                                                   addProcedural(new VRAY_clusterThisChild::VRAY_clusterThisChild(this));
+                                                   closeObject();
 
                            break;
                         }
@@ -406,10 +408,13 @@ void VRAY_clusterThis::render()
    catch (VRAY_clusterThis_Exception e) {
       e.what();
       cout << "VRAY_clusterThis::render() - Exception encountered, copying incoming geometry" << endl << endl;
-      freeGeometry(gdp);
-      freeGeometry(inst_gdp);
+      if(gdp)
+         freeGeometry(gdp);
+      if(inst_gdp)
+         freeGeometry(inst_gdp);
       if (myDoMotionBlur == CLUSTER_MB_DEFORMATION)
-         freeGeometry(mb_gdp);
+         if(mb_gdp)
+            freeGeometry(mb_gdp);
       void * handle = queryObject(0);
       gdp = allocateGeometry();
       gdp->copy(*queryGeometry(handle, 0));
