@@ -903,7 +903,6 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
    else
       return 1;
 
-//    return file_gdp->load((const char *)myGeoFile, &myOptions);
 }
 
 

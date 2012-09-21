@@ -42,16 +42,17 @@
 class VRAY_clusterThisChild : public VRAY_Procedural {
 public:
    VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj)
-         :
-         myPrimType(theClusterObj->myPrimType),
-         myRadius(theClusterObj->myRadius),
-         myNumCopies(theClusterObj->myNumCopies),
-         myRecursion(theClusterObj->myRecursion),
-         myBirthProb(theClusterObj->myBirthProb),
-         myDoMotionBlur(theClusterObj->myDoMotionBlur),
-         myShutter(theClusterObj->myShutter),
-         myInstanceNum(theClusterObj->myInstanceNum),
-         myParent(theClusterObj)
+      :
+      myPrimType(theClusterObj->myPrimType),
+      myRadius(theClusterObj->myRadius),
+      myNumCopies(theClusterObj->myNumCopies),
+      myRecursion(theClusterObj->myRecursion),
+      myBirthProb(theClusterObj->myBirthProb),
+      myDoMotionBlur(theClusterObj->myDoMotionBlur),
+      myShutter(theClusterObj->myShutter),
+      myInstanceNum(theClusterObj->myInstanceNum),
+      myGeoFile(theClusterObj->myGeoFile),
+      myParent(theClusterObj)
 
    {
 #ifdef DEBUG
@@ -69,8 +70,6 @@ public:
       mySize[0] = theClusterObj->mySize[0];
       mySize[1] = theClusterObj->mySize[1];
       mySize[2] = theClusterObj->mySize[2];
-
-      myFileGDP = theClusterObj->myFileGDP;
 
 //    myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
       myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
@@ -267,7 +266,7 @@ private:
    UT_BoundingBox myBox;
    fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
 
-   GU_Detail * myFileGDP;
+//   GU_Detail * myFileGDP;
    fpreal myLOD;
    long int myInstanceNum;
 
