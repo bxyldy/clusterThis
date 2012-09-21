@@ -190,13 +190,13 @@ int VRAY_clusterThisChild::instancePoint()
 // TODO:
 
    GA_RWAttributeRef pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
-//   GA_RWAttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
-//   GA_RWAttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
 //   GA_RWAttributeRef pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_pscale = gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
 //   GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
 //   GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-//   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
    ppt = gdp->appendPointElement();
    ppt->setPos((float)myPointAttributes.myNewPos[0],
@@ -204,27 +204,27 @@ int VRAY_clusterThisChild::instancePoint()
                (float)myPointAttributes.myNewPos[2], 1.0);
 
    ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-//   ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-//   ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
+   ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+   ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
 //   ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
    ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
 //   ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //   ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-//   ppt->setString(pt_material, myPointAttributes.material);
+   ppt->setString(pt_material, myPointAttributes.material);
 
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          mb_gdp = allocateGeometry();
 
-//         pt_Cd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-//         pt_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
-//         pt_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
+         pt_Cd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+         pt_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
+         pt_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
 //         pt_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-//         pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+////         pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
 //         pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
 //         pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
-//        pt_material = mb_gdp->addPointAttrib ( "shop_materialpath", sizeof ( UT_String ), GB_ATTRIB_INDEX, 0 );
+         GA_RWAttributeRef pt_material = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
          ppt = mb_gdp->appendPointElement();
          ppt->setPos((float)myPointAttributes.myMBPos[0],

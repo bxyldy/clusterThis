@@ -629,7 +629,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
                if (v_out) v_out->setData(vOut, num_prim);
                if (pscale_out) pscale_out->setData(pscaleOut, num_prim);
                if (weight_out && myPrimType == CLUSTER_PRIM_METABALL)
-                  weight_out->setData(weightOut, num_prim);
+                     weight_out->setData(weightOut, num_prim);
             }
 
          }
@@ -695,28 +695,23 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
                ppt->setPos(pos);
 
                if (myCVEXPointVars.cvex_Cd_pt) {
-                  CdOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(ptCd_ref, 0));
-//                              newAttr->assign( CdOut[num][0], CdOut[num][1], CdOut[num][2] );
+                  ppt->setValue<UT_Vector3>(ptCd_ref, (const UT_Vector3)CdOut[num]);
                }
 
                if (myCVEXPointVars.cvex_Alpha_pt) {
-                  AlphaOut[num] = static_cast<fpreal>(ppt->getValue<fpreal>(ptAlpha_ref, 0));
-//                              *newAlpha = AlphaOut[num];
+                  ppt->setValue<float>(ptAlpha_ref, (const float)AlphaOut[num]);
                }
 
                if (myCVEXPointVars.cvex_N_pt) {
-                  NOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(ptN_ref, 0));
-//                              newAttr->assign( NOut[num][0], NOut[num][1], NOut[num][2] );
+                  ppt->setValue<UT_Vector3>(ptN_ref, (const UT_Vector3)NOut[num]);
                }
 
                if (myCVEXPointVars.cvex_v_pt) {
-                  vOut[num] = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(ptV_ref, 0));
-//                              newAttr->assign( vOut[num][0], vOut[num][1], vOut[num][2] );
+                  ppt->setValue<UT_Vector3>(ptV_ref, (const UT_Vector3)vOut[num]);
                }
 
                if (myCVEXPointVars.cvex_pscale_pt) {
-                  pscaleOut[num] = static_cast<fpreal>(ppt->getValue<fpreal>(ptPscale_ref, 0));
-//                              *newPscale = pscaleOut[num];
+                  ppt->setValue<float>(ptPscale_ref, (const float)pscaleOut[num]);
                }
 
 //                    cout << "OUT - POut: " << POut[num] << "\tNOut: " << NOut[num] << "\tCdOut: " << CdOut[num] << "\tnewPscale: " << *newPscale << endl;
@@ -743,8 +738,6 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
                   num++;
                }
 
-//                                cout << "OUT - POut: " << POut[num] << "\tNOut: " << NOut[num] << "\tCdOut: " << CdOut[num]
-//                                       << "\tnewAlpha: " << *newAlpha << "\tnewPscale: " << *newPscale << endl;
 
             } else {
 
@@ -752,28 +745,28 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 
                GA_FOR_ALL_PRIMITIVES(cvex_gdp, prim) {
 
+                  if (myCVEXPrimVars.cvex_Cd_prim) {
+                     prim->setValue<UT_Vector3>(primCd_ref, (const UT_Vector3)CdOut[num]);
+                  }
+
                   if (myCVEXPrimVars.cvex_N_prim) {
-                     NOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>(primN_ref, 0));
+                     prim->setValue<UT_Vector3>(primN_ref, (const UT_Vector3)NOut[num]);
                   }
 
                   if (myCVEXPrimVars.cvex_v_prim) {
-                     vOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>(primV_ref, 0));
-                  }
-
-                  if (myCVEXPrimVars.cvex_Cd_prim) {
-                     CdOut[num] = static_cast<UT_Vector3>(prim->getValue<UT_Vector3>(primCd_ref, 0));
+                     prim->setValue<UT_Vector3>(primV_ref, (const UT_Vector3)vOut[num]);
                   }
 
                   if (myCVEXPrimVars.cvex_Alpha_prim) {
-                     AlphaOut[num] = static_cast<float>(prim->getValue<float>(primAlpha_ref, 0));
+                     prim->setValue<float>(primAlpha_ref, (const float)AlphaOut[num]);
                   }
 
-                  if (myCVEXPrimVars.cvex_pscale_prim) {
-                     pscaleOut[num] = static_cast<float>(prim->getValue<float>(primPscale_ref, 0));
-                  }
+//                  if (myCVEXPrimVars.cvex_pscale_prim) {
+//                     prim->setValue<float>(primPscale_ref, (const float)pscaleOut[num]);
+//                  }
 
                   if (myPrimType == CLUSTER_PRIM_METABALL && myCVEXPrimVars.cvex_weight_prim) {
-                     weightOut[num] = static_cast<float>(prim->getValue<float>(primWeight_ref, 0));
+                     prim->setValue<float>(primWeight_ref, (const float)weightOut[num]);
                   }
 
                   num++;
