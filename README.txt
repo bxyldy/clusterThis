@@ -1,16 +1,6 @@
-
 ++++++++++++++++++++++++++++++++++++++++++++++++
 "clusterThis" mantra render geometry instancer
 ++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-// New features
-
-// -Usage of an Up vector combined with N or an orient attribute or rot.
-// -Geometry file name per point
-// -More control on motion blur, i.e. centered, backward and forward motion blur.
-
-
 
 
 ***BETA CODE - NO WARRANTY***
