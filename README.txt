@@ -1,24 +1,6 @@
-/*****************************************************************************
-* $RCSfile: README.txt,v $
-*
-* Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
-*
-* $Revision: 1.13 $
-*
-* $Source: /dca/cvsroot/houdini/VRAY_clusterThis/README.txt,v $
-*
-* $Author: mstory $
-*
-*    Digital Cinema Arts (C) 2008
-*
-* This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License.
-* To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ or send a letter to
-* Creative Commons, 543 Howard Street, 5th Floor, San Francisco, California, 94105, USA.
-*
-***************************************************************************** */
 
 ++++++++++++++++++++++++++++++++++++++++++++++++
-"clusterThis" mantra render geo/volume instancer
+"clusterThis" mantra render geometry instancer
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
 
@@ -75,9 +57,6 @@ Temp File Path 	Temporary file for the instanced geometry
 Use temp geo cache file
 Save the geometry in a temp cache file (for optimization)
 Save temp cache file: 	Do not delete cache file (to save the temp geometry cache file for later use)
-
-Example HIP file:
-VRAY_clusterThis_dev_v.1.4.7.hip
 
 
 INSTALLATION:
