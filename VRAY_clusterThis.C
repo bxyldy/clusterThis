@@ -105,6 +105,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("add_proc", "integer", "0"),
    VRAY_ProceduralArg("motion_blur", "integer", "0"),
    VRAY_ProceduralArg("mb_shutter", "real", "0.1"),
+   VRAY_ProceduralArg("mb_shutter2", "real", "0.9"),
    VRAY_ProceduralArg("verbose", "integer", "0"),
    VRAY_ProceduralArg("time", "real",  "0.0"),
    VRAY_ProceduralArg("noise_type","integer", "0"),
@@ -293,7 +294,6 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::exitClusterThisReal() - Exiting" << std::endl;
 }
-
 
 
 /* ******************************************************************************

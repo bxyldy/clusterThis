@@ -267,7 +267,8 @@ void VRAY_clusterThis::render()
                                                    // For the "deferred instance" method, add the procedural now ...
                                                 case CLUSTER_INSTANCE_DEFERRED:
                                                    openProceduralObject();
-                                                   addProcedural(new VRAY_clusterThisChild::VRAY_clusterThisChild(this));
+                                                   VRAY_clusterThisChild *child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
+                                                   addProcedural(child);
                                                    closeObject();
 
                                                    break;
