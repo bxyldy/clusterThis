@@ -245,7 +245,7 @@ int VRAY_clusterThisChild::instancePoint()
    openGeometryObject();
    addGeometry(gdp, 0.0);
    if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
-      addVelocityBlurGeometry(gdp, myShutter);
+      addVelocityBlurGeometry(gdp, myShutter, 1.0);
    else if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
       addGeometry(mb_gdp, myShutter);
    setSurface((const char *)myPointAttributes.material);
@@ -285,7 +285,7 @@ int VRAY_clusterThisChild::instanceSphere()
    GU_Detail * gdp, *mb_gdp;
    UT_Matrix4 xform(1.0);
    UT_XformOrder xformOrder;
-   GEO_Point * ppt;
+//   GEO_Point * ppt;
    GU_PrimSphere * sphere;
    GU_PrimSphereParms sphere_parms;
 
@@ -331,9 +331,9 @@ int VRAY_clusterThisChild::instanceSphere()
 
    openGeometryObject();
    addGeometry(gdp, 0.0);
-//   if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
-//     addVelocityBlurGeometry (gdp, myShutter);
-//   else if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
+   if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
+     addVelocityBlurGeometry (gdp, myShutter, 1.0);
+   else if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
       addGeometry(mb_gdp, myShutter);
    setComputeN(1);
@@ -788,7 +788,7 @@ int VRAY_clusterThisChild::instanceCurve()
             if(true) {
 
                   myParent->calculateNewPosition(theta, copyNum, recursionNum);
-                  ppt = myCurve->getVertex(myInstanceNum).getPt();
+                  ppt = myCurve->getVertexElement(myInstanceNum).getPt();
                   inst_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myNewPos[0],
                         (float)myPointAttributes.myNewPos[1],
                         (float)myPointAttributes.myNewPos[2], 1.0);
@@ -814,7 +814,7 @@ int VRAY_clusterThisChild::instanceCurve()
 
 
                   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-                        ppt = myMBCurve->getVertex(myInstanceNum).getPt();
+                        ppt = myMBCurve->getVertexElement(myInstanceNum).getPt();
                         mb_gdp->points()[myInstanceNum]->setPos((float)myPointAttributes.myMBPos[0],
                                                                 (float)myPointAttributes.myMBPos[1],
                                                                 (float)myPointAttributes.myMBPos[2], 1.0);

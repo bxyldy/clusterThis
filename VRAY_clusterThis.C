@@ -78,6 +78,7 @@
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
 
+class VRAY_clusterThisChild;
 
 /* ******************************************************************************
 *  Function Name : theArgs()
