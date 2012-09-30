@@ -89,9 +89,10 @@ void VRAY_clusterThisChild::getBoundingBox(UT_BoundingBox & box)
       size = mySize[2];
 
    box.enlargeBounds(0, (1 + size) *(1 + size));
-#ifdef DEBUG
+
+//#ifdef DEBUG
    std::cout << "VRAY_clusterThisChild::getBoundingBox() box: " << box << std::endl;
-#endif
+//#endif
 
    myLOD = getLevelOfDetail(box);
 }
@@ -196,7 +197,7 @@ int VRAY_clusterThisChild::instancePoint()
    GA_RWAttributeRef pt_pscale = gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
 //   GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
 //   GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+//   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
    ppt = gdp->appendPointElement();
    ppt->setPos((float)myPointAttributes.myNewPos[0],
@@ -210,7 +211,7 @@ int VRAY_clusterThisChild::instancePoint()
    ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
 //   ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //   ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-   ppt->setString(pt_material, myPointAttributes.material);
+//   ppt->setString(pt_material, myPointAttributes.material);
 
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
@@ -220,16 +221,24 @@ int VRAY_clusterThisChild::instancePoint()
          pt_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
          pt_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
 //         pt_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-////         pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+//         pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
 //         pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
 //         pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
-         GA_RWAttributeRef pt_material = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+//      GA_RWAttributeRef pt_material = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
          ppt = mb_gdp->appendPointElement();
          ppt->setPos((float)myPointAttributes.myMBPos[0],
                      (float)myPointAttributes.myMBPos[1],
                      (float)myPointAttributes.myMBPos[2], 1.0);
+         ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
+         ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+         ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
+//   ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+         ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
+//   ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
+//   ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
+//   ppt->setString(pt_material, myPointAttributes.material);
 
       }
 
@@ -239,7 +248,6 @@ int VRAY_clusterThisChild::instancePoint()
       addVelocityBlurGeometry(gdp, myShutter);
    else if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
       addGeometry(mb_gdp, myShutter);
-//   setComputeN(1);
    setSurface((const char *)myPointAttributes.material);
    closeObject();
 
@@ -293,19 +301,19 @@ int VRAY_clusterThisChild::instanceSphere()
    VRAY_clusterThisChild::setInstanceAttributes(gdp, sphere);
 
 
-   for(int i=0; i < sphere->getVertexCount(); i++) {
-         ppt = sphere->getVertexElement(i).getPt();
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
-         ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
-         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
-         ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
-         ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
-         ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
-         ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
-
-//          cout << "VRAY_clusterThis::setInstanceAttributes: Point Instance Alpha: " << ppt->getValue<float>(myInstAttrRefs.pointAlpha) << endl;
-      }
+//   for (int i=0; i < sphere->getVertexCount(); i++) {
+//      ppt = sphere->getVertexElement(i).getPt();
+//      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+//      ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
+//      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//      ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+//      ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
+//      ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
+//      ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
+//      ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+//
+////          cout << "VRAY_clusterThis::setInstanceAttributes: Point Instance Alpha: " << ppt->getValue<float>(myInstAttrRefs.pointAlpha) << endl;
+//   }
 
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
@@ -612,6 +620,8 @@ int VRAY_clusterThisChild::instanceCircle()
    std::cout << "VRAY_clusterThisChild::instanceCircle()" << std::endl;
 #endif
 
+   std::cout << "VRAY_clusterThisChild::instanceCircle(): myInstanceNum = " << myInstanceNum<< std::endl;
+
    GU_Detail * gdp, *mb_gdp;
    UT_Matrix4 xform(1.0);
    UT_XformOrder xformOrder;
@@ -629,9 +639,6 @@ int VRAY_clusterThisChild::instanceCircle()
 
    VRAY_clusterThisChild::setInstanceAttributes(gdp, circle);
 
-// TODO:  Investigate this function, it's not being used correctly ... ?
-//      circle->normal(1);
-
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          mb_gdp = allocateGeometry();
 
@@ -643,9 +650,6 @@ int VRAY_clusterThisChild::instanceCircle()
          circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
 
          VRAY_clusterThisChild::setInstanceAttributes(mb_gdp, circle);
-
-// TODO:  Investigate this function, it's not being used correctly ... ?
-//      circle->normal(1);
 
       }
 
@@ -734,9 +738,6 @@ int VRAY_clusterThisChild::instanceCurve()
    myCurve->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
    myCurve->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
 
-// TODO:  Investigate this function, it's not being used correctly ... ?
-//    myCurve->normal(1);
-
    myCurve->setValue<int>(pt_id, (const int)myPointAttributes.id);
 
 //               UT_String* mat = myCurve->castAttribData<UT_String> ( myInstAttrRefs.material );
@@ -759,9 +760,6 @@ int VRAY_clusterThisChild::instanceCurve()
          myCurve->setValue<fpreal>(pt_mb_Alpha, (const fpreal)myPointAttributes.Alpha);
          myCurve->setValue<UT_Vector3>(pt_mb_vel, (const UT_Vector3)myPointAttributes.v);
          myCurve->setValue<UT_Vector3>(pt_mb_N, (const UT_Vector3)myPointAttributes.N);
-
-// TODO:  Investigate this function, it's not being used correctly ... ?
-//    myCurve->normal(1);
 
          myCurve->setValue<int>(pt_mb_id, (const int)myPointAttributes.id);
 
@@ -1100,7 +1098,7 @@ inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail * gdp, GEO_Pr
    GA_RWAttributeRef Cd = gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
    GA_RWAttributeRef Alpha = gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
    GA_RWAttributeRef vel = gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
-   GA_RWAttributeRef N = gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+//   GA_RWAttributeRef N = gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
 //   GA_RWAttributeRef pscale = gdp->addFloatTuple(GEO_PRIMITIVE_DICT, "pscale", 1);
 //   GA_RWAttributeRef id = gdp->addIntTuple(GEO_PRIMITIVE_DICT, "id", 1);
 //   GA_RWAttributeRef inst_id = gdp->addIntTuple(GEO_PRIMITIVE_DICT, "inst_id", 1);
@@ -1111,15 +1109,15 @@ inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail * gdp, GEO_Pr
    GA_RWAttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
 //   GA_RWAttributeRef pt_pscale = gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-   GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-   GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+//   GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+//   GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+//   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
 
    myGeoPrim->setValue<UT_Vector3>(Cd, (const UT_Vector3)myPointAttributes.Cd);
    myGeoPrim->setValue<fpreal>(Alpha, (const fpreal)myPointAttributes.Alpha);
    myGeoPrim->setValue<UT_Vector3>(vel, (const UT_Vector3)myPointAttributes.v);
-   myGeoPrim->setValue<UT_Vector3>(N, (const UT_Vector3)myPointAttributes.N);
+//   myGeoPrim->setValue<UT_Vector3>(N, (const UT_Vector3)myPointAttributes.N);
 //    myGeoPrim->setValue<UT_Vector4>(orient (const UT_Vector4)myPointAttributes.orient);
 //   myGeoPrim->setValue<fpreal>(pscale, (const fpreal)myPointAttributes.pscale);
 //   myGeoPrim->setValue<int>(id, (const int)myPointAttributes.id);
@@ -1135,9 +1133,9 @@ inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail * gdp, GEO_Pr
          ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
          ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
 //         ppt->setValue<float>(pt_pscale, (const float)myPointAttributes.pscale);
-         ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-         ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-         ppt->setString(pt_material, myPointAttributes.material);
+//         ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
+//         ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
+//         ppt->setString(pt_material, myPointAttributes.material);
       }
 
 }

@@ -3,29 +3,29 @@ SRC_VER = 2.0.0
 SHELL=/bin/csh
 DBG=-g
 SOURCES = VRAY_clusterThis.C
+CFLAGS := $(CFLAGS) -ftree-vectorize -ftree-vectorizer-verbose=2
 
 DSONAME = VRAY_clusterThis.so
 
 include $(HT)/makefiles/Makefile.gnu
 
-
-
-
-
-#SOURCES = VRAY_clusterThis.C VRAY_clusterThis.h \
-#VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
-#VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
-#VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-#VRAY_clusterThisRender.C
+install_dso:
+	cp ./VRAY_clusterThis.so $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/VRAY_clusterThis.so
 
 #TAGINFO = $(shell (echo -n "Compiled on:" `date`"\n  by:" `whoami`@`hostname`"\n$(SESI_TAGINFO)") | /opt/hfs/bin/sesitag -m)
 #CFLAGS := $(CFLAGS) ${TAGINFO} -ftree-vectorize -ftree-vectorizer-verbose=2
+
+src = VRAY_clusterThis.C VRAY_clusterThis.h \
+VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
+VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
+VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
+VRAY_clusterThisRender.C
 
 # all: clusterThis
 # Debug: clusterThis install
 # Release: clusterThis install
 
-# clusterThis: $(SOURCES)
+# clusterThis: $(src)
 
 
 
@@ -50,7 +50,7 @@ include $(HT)/makefiles/Makefile.gnu
 
 
 
-#install: ${SOURCES}
+#install: ${src}
 #ifeq ($(OSTYPE),linux)
 ##	strip ${DSONAME}
 #	cp ${DSONAME}.so $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/VRAY_clusterThis.so
@@ -64,7 +64,7 @@ include $(HT)/makefiles/Makefile.gnu
 #	rm -fr docs
 #	doxygen Doxyfile
 #	tar zcvf mantra_clusterThis_v${SRC_VER}.src.tar.gz \
-#		${SOURCES} \
+#		${src} \
 #		docs/	\
 #		Makefile Doxyfile \
 #		README.txt \
