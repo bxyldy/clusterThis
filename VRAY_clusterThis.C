@@ -44,7 +44,7 @@
 #include <UT/UT_Noise.h>
 #include <UT/UT_BoundingBox.h>
 #include <VRAY/VRAY_Procedural.h>
-#include <VRAY/VRAY_Volume.h>
+#include <VRAY/VRAY_IO.h>
 #include <GEO/GEO_IORib.h>
 #include <UT/UT_Exit.h>
 #include <UT/UT_Options.h>
@@ -79,6 +79,69 @@
 #include "VRAY_clusterThisRunCVEX.C"
 
 class VRAY_clusterThisChild;
+
+
+
+
+static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
+{
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::calculateNewPosition() i: " << i << " j: " << j << endl;
+#endif
+
+   // Calculate a new position for the object ...
+//   fpreal delta = theta * i;
+//   fpreal dx, dy, dz = 0.0;
+//   dx = SYSsin(delta * myFreqX + myOffsetX);
+//   dy = SYScos(delta * myFreqY + myOffsetY);
+//   dz = SYScos(delta * myFreqZ + myOffsetZ);
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::calculateNewPosition() " << "delta: " << delta << endl;
+   cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
+#endif
+
+//   myNoise.setSeed(myPointAttributes.id);
+
+   // Calculate a bit of noise to add to the new position ...
+   // TODO:
+//   fpreal noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+
+   // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
+   // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
+#endif
+
+//   // Calculate the new object's position
+//   myPointAttributes.myNewPos[0] = (fpreal) myPointAttributes.myPos.x() +
+//                                   ((dx * myRadius) * noise_bias * SYSsin(static_cast<fpreal>(j + i)));
+//   myPointAttributes.myNewPos[1] = (fpreal) myPointAttributes.myPos.y() +
+//                                   ((dy * myRadius) * noise_bias * SYScos(static_cast<fpreal>(j + i)));
+//   myPointAttributes.myNewPos[2] = (fpreal) myPointAttributes.myPos.z() +
+//                                   ((dz * myRadius) * noise_bias * (SYSsin(static_cast<fpreal>(j + i)) + SYScos(static_cast<fpreal>(j + i))));
+////   myPointAttributes.myNewPos[2] = ( fpreal ) myPointAttributes.myPos.z() +
+////                                    ( ( dz * myRadius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
+//
+//   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+//      myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
+//      myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
+//      myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+//   }
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::calculateNewPosition() myPos:   "
+        << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
+   cout << "VRAY_clusterThis::calculateNewPosition() newPos: "
+        << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
+#endif
+
+return 0;
+
+}
+
+
 
 /* ******************************************************************************
 *  Function Name : theArgs()
@@ -502,6 +565,9 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
    if (flt_ptr = VRAY_Procedural::getFParm("mb_shutter"))
       myShutter = *flt_ptr;
 
+   if (flt_ptr = VRAY_Procedural::getFParm("mb_shutter2"))
+      myShutter2 = *flt_ptr;
+
    if (flt_ptr = VRAY_Procedural::getFParm("radius"))
       myRadius = *flt_ptr;
 
@@ -687,12 +753,12 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 {
 //   std::cout << "VRAY_clusterThis::getBoundingBox()" << std::endl;
    box = myBox;
-      box.initBounds(myPointAttributes.myNewPos);
+   box.initBounds(myPointAttributes.myNewPos);
 //    box.enlargeBounds(mySize[0] * 10, mySize[1] * 10, mySize[2] * 10);
    fpreal size = mySize[0];
-   if(size < mySize[1])
+   if (size < mySize[1])
       size = mySize[1];
-   if(size < mySize[2])
+   if (size < mySize[2])
       size = mySize[2];
 
    box.enlargeBounds(0, (1 + size) *(1 + size));

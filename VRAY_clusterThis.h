@@ -305,6 +305,7 @@ private:
    UT_BoundingBox myBox;
    fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
    UT_String myMaterial;
+   UT_Matrix3     myXformInverse;
 
    // Parameters
    uint32   myNumCopies;
@@ -320,6 +321,7 @@ private:
    fpreal   myBirthProb;
    uint32   myDoMotionBlur;
    fpreal   myShutter;
+   fpreal   myShutter2;
    UT_Noise::UT_NoiseType  myNoiseType;
    fpreal   myRough;
    fpreal   myCurrentTime;
@@ -351,32 +353,32 @@ private:
 
    // A struct to keep track os CVEX vars to pass to the CVEX code
    struct cvex_pt_vars_struct {
-uint  cvex_Cd_pt:
+   uint  cvex_Cd_pt:
       1;
-uint  cvex_Alpha_pt:
+   uint  cvex_Alpha_pt:
       1;
-uint  cvex_v_pt:
+   uint  cvex_v_pt:
       1;
-uint  cvex_N_pt:
+   uint  cvex_N_pt:
       1;
-uint  cvex_pscale_pt:
+   uint  cvex_pscale_pt:
       1;
    } myCVEXPointVars;
 
    struct cvex_prim_vars_struct {
-uint  cvex_Cd_prim:
+   uint  cvex_Cd_prim:
       1;
-uint  cvex_Alpha_prim:
+   uint  cvex_Alpha_prim:
       1;
-uint  cvex_v_prim:
+   uint  cvex_v_prim:
       1;
-uint  cvex_N_prim:
+   uint  cvex_N_prim:
       1;
-uint  cvex_pscale_prim:
+   uint  cvex_pscale_prim:
       1;
-uint  cvex_weight_prim:
+   uint  cvex_weight_prim:
       1;
-uint  cvex_width_prim:
+   uint  cvex_width_prim:
       1;
    } myCVEXPrimVars;
 

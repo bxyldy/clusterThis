@@ -617,7 +617,7 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    UT_XformOrder xformOrder;
 
    UT_Vector3 myDir = myPointAttributes.N;
-   myDir.normalize();
+//   myDir.normalize();
    UT_Vector3 myUp = UT_Vector3(0,1,0);
 
 // Transform the geo to the new position

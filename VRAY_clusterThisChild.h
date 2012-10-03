@@ -246,6 +246,7 @@ private:
    fpreal  myRadius;
    int     myDoMotionBlur;
    fpreal  myShutter;
+   fpreal  myShutter2;
    UT_String myGeoFile;
    UT_String myObjectName;
    uint32   myNumCopies;
