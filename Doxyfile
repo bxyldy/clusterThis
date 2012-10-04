@@ -580,7 +580,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = VRAY_clusterThis.h \
+INPUT                  = VRAY_clusterThis.C \
+                   	 VRAY_clusterThis.h \
                          VRAY_clusterThisChild.C \
                          VRAY_clusterThisChild.h \
                          VRAY_clusterThisInstance.C \

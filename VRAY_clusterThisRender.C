@@ -68,8 +68,8 @@ void VRAY_clusterThis::render()
 
          if(!rendered || !myUseTempFile) {
 
-               void * handle = queryObject(0);
-               gdp = allocateGeometry();
+               void * handle = VRAY_Procedural::queryObject(0);
+               gdp = VRAY_Procedural::allocateGeometry();
 
                if(myUseGeoFile) {
                      // If the file failed to load, throw an exception
@@ -80,14 +80,14 @@ void VRAY_clusterThis::render()
                         cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
                   }
                else {
-                     gdp->copy(*queryGeometry(handle, 0));
+                     gdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
                      if(myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
                   }
 
 
                gdp->getBBox(&myBox);
-               querySurfaceShader(handle, myMaterial);
+               VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
 //         myPointAttributes.material = myMaterial;
 
@@ -99,6 +99,12 @@ void VRAY_clusterThis::render()
                cout << "VRAY_clusterThis::render() myMaterial: " << myMaterial << endl;
 #endif
 
+               myLOD = getLevelOfDetail(myBox);
+//#ifdef DEBUG
+               cout << "VRAY_clusterThis::render() myLOD: " << myLOD << endl;
+//#endif
+
+
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
                long int num_points = (long int) gdp->points().entries();
                long int stat_interval = (long int)(num_points * 0.10) + 1;
@@ -106,10 +112,12 @@ void VRAY_clusterThis::render()
                if(myVerbose > CLUSTER_MSG_QUIET)
                   cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << num_points << endl;
 
-               myObjectName = queryObjectName(handle);
+               myObjectName = VRAY_Procedural::queryObjectName(handle);
 
 //      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << endl;
 //      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << endl;
+
+// DEBUG stuff ...
 
 //   changeSetting("object:geo_velocityblur", "on");
 
@@ -126,7 +134,7 @@ void VRAY_clusterThis::render()
 //               const char  *  name;
 //               name = queryObjectName(handle);
                            VRAYwarning("%s[%s] cannot get %s",
-                                       getClassName(), (const char *)myObjectName, " motion blur attr");
+                                       VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
 
                         }
                   }
@@ -134,6 +142,8 @@ void VRAY_clusterThis::render()
 
                myXformInverse = queryTransform(handle, 0);
                myXformInverse.invert();
+
+
 
 
 #ifdef DEBUG
@@ -147,9 +157,9 @@ void VRAY_clusterThis::render()
 
                switch(myMethod) {
                      case CLUSTER_INSTANCE_NOW:
-                        inst_gdp = allocateGeometry();
+                        inst_gdp = VRAY_Procedural::allocateGeometry();
                         if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
-                           mb_gdp = allocateGeometry();
+                           mb_gdp = VRAY_Procedural::allocateGeometry();
                         if(myVerbose > CLUSTER_MSG_QUIET)
                            cout << "VRAY_clusterThis::render() - Using \"instance all the geometry at once\" method" << endl;
                         break;
@@ -176,7 +186,7 @@ void VRAY_clusterThis::render()
 
 
                if(myPrimType == CLUSTER_FILE) {
-                     file_gdp = allocateGeometry();
+                     file_gdp = VRAY_Procedural::allocateGeometry();
                      int file_load_stat = VRAY_clusterThis::preLoadGeoFile(file_gdp);
 
                      if(!file_load_stat) {
@@ -289,10 +299,13 @@ void VRAY_clusterThis::render()
 
                                                    // For the "deferred instance" method, add the procedural now ...
                                                 case CLUSTER_INSTANCE_DEFERRED:
-                                                   openProceduralObject();
+                                                   VRAY_Procedural::openProceduralObject();
                                                    VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
-                                                   addProcedural(child);
-                                                   closeObject();
+                                                   VRAY_Procedural::addProcedural(child);
+                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
+                                                   VRAY_Procedural::closeObject();
+//changeSetting("surface", "constant Cd ( 1 0 0 )", "object");
+//   changeSetting("object:geo_velocityblur", "on");
 
                                                    break;
                                              }
@@ -342,20 +355,20 @@ void VRAY_clusterThis::render()
                                  cout << "VRAY_clusterThis::render() Executing Post Process CVEX code" << endl;
                               VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname_post, CLUSTER_CVEX_POINT);
                            }
-                        openGeometryObject();
-                        addGeometry(inst_gdp, 0.0);
+                        VRAY_Procedural::openGeometryObject();
+                        VRAY_Procedural::addGeometry(inst_gdp, 0.0);
 
                         if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
-                           addVelocityBlurGeometry(inst_gdp, myShutter, myShutter2);
+                           VRAY_Procedural::addVelocityBlurGeometry(inst_gdp, myShutter, myShutter2);
 
 // float    addVelocityBlurGeometry (GU_Detail *gdp, fpreal pre_blur, fpreal post_blur, const char *velocity_attribute="v")
 
                         if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
-                           addGeometry(mb_gdp, myShutter);
+                           VRAY_Procedural::addGeometry(mb_gdp, myShutter);
 
-                        setComputeN(1);
+                        VRAY_Procedural::setComputeN(1);
 //                        setSurface(myMaterial);
-                        closeObject();
+                        VRAY_Procedural::closeObject();
 
                         break;
                      case CLUSTER_INSTANCE_DEFERRED:
@@ -379,10 +392,10 @@ void VRAY_clusterThis::render()
                   }
 
                if(myPrimType == CLUSTER_FILE)
-                  freeGeometry(file_gdp);
+                  VRAY_Procedural::freeGeometry(file_gdp);
 
                // We're done, free the original geometry
-               freeGeometry(gdp);
+               VRAY_Procedural::freeGeometry(gdp);
 
             } /// if (rendered) ...
 
@@ -391,7 +404,7 @@ void VRAY_clusterThis::render()
          else {
                if(myVerbose > CLUSTER_MSG_QUIET)
                   cout << "VRAY_clusterThis::render() - Already generated geometry, reading temp geo file: " << myTempFname << endl;
-               inst_gdp = allocateGeometry();
+               inst_gdp = VRAY_Procedural::allocateGeometry();
                UT_Options myOptions;
 
                // If the file failed to load, throw an exception
@@ -402,11 +415,11 @@ void VRAY_clusterThis::render()
                else
                   throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read temp geometry file ", 1);
 
-               openGeometryObject();
-               addGeometry(inst_gdp, 0);
+               VRAY_Procedural::openGeometryObject();
+               VRAY_Procedural::addGeometry(inst_gdp, 0);
 
                if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
-                  addVelocityBlurGeometry(inst_gdp, myShutter, myShutter2);
+                  VRAY_Procedural::addVelocityBlurGeometry(inst_gdp, myShutter, myShutter2);
 
 // float    addVelocityBlurGeometry (GU_Detail *gdp, fpreal pre_blur, fpreal post_blur, const char *velocity_attribute="v")
 
@@ -421,9 +434,9 @@ void VRAY_clusterThis::render()
                //   addGeometry(mb_gdp, myShutter);
                //   }
 
-               setComputeN(1);
-               setSurface(myMaterial);
-               closeObject();
+               VRAY_Procedural::setComputeN(1);
+               VRAY_Procedural::setSurface(myMaterial);
+               VRAY_Procedural::closeObject();
             }
 
       } // try ...

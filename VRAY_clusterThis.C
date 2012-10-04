@@ -142,6 +142,50 @@ return 0;
 }
 
 
+// We get a rough bounding box for the sprite by expanding the box around
+// the position by the largest component of the scale (assuming it were
+// rotated 45 degrees).
+static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
+                  const GEO_Point * point, const UT_Vector3 & sprite_scale,
+                  const GA_ROAttributeRef & voff,
+                  fpreal tscale, const UT_Matrix4 & xform)
+{
+   fpreal     maxradius;
+   static fpreal isin45 = 1.0F / SYSsin(M_PI/4);
+   UT_Vector3    pt;
+
+   maxradius = SYSmax(sprite_scale.x(), sprite_scale.y()) * isin45 * 0.5F;
+
+   pt = UT_Vector3(-maxradius, -maxradius, 0)*xform;
+   box.initBounds(pt);
+   pt = UT_Vector3(-maxradius,  maxradius, 0)*xform;
+   box.enlargeBounds(pt);
+   pt = UT_Vector3(maxradius, -maxradius, 0)*xform;
+   box.enlargeBounds(pt);
+   pt = UT_Vector3(maxradius,  maxradius, 0)*xform;
+   box.enlargeBounds(pt);
+
+   box.translate(point->getPos());
+   vbox = box;
+
+   if(voff.isValid())
+      {
+         UT_Vector3  vel;
+         int      i;
+         fpreal      amount;
+
+         vel = point->getValue<UT_Vector3>(voff);
+         for(i = 0; i < 3; i++)
+            {
+               amount = vel(i) * tscale;
+               if(amount < 0)
+                  vbox.vals[i][1] -= amount;
+               else vbox.vals[i][0] -= amount;
+
+            }
+      }
+}
+
 
 /* ******************************************************************************
 *  Function Name : theArgs()
@@ -766,8 +810,6 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 //#ifdef DEBUG
    std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
 //#endif
-
-   myLOD = getLevelOfDetail(box);
 
 }
 
