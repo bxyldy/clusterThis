@@ -1,5 +1,5 @@
 
-SRC_VER = 2.0.0
+SRC_VER = 2.0.1
 SHELL=/bin/csh
 DBG=-g
 src = VRAY_clusterThis.C VRAY_clusterThis.h \
@@ -11,7 +11,6 @@ src = VRAY_clusterThis.C VRAY_clusterThis.h \
 SOURCES = VRAY_clusterThis.C
 H_CFLAGS = `hcustom --cflags`
 CFLAGS := $(CFLAGS) -ftree-vectorize -ftree-vectorizer-verbose=2
-
 
 INSTDIR = $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/
 DSONAME = VRAY_clusterThis.so
@@ -66,15 +65,15 @@ install_dso: VRAY_clusterThis.so
 #	cp ${DSONAME}.dylib ${HOME}/houdini${VERSION}/dso/mantra/
 #endif
 
-#archive_src:
-#	rm -fr docs
-#	doxygen Doxyfile
-#	tar zcvf mantra_clusterThis_v${SRC_VER}.src.tar.gz \
-#		${src} \
-#		docs/	\
-#		Makefile Doxyfile \
-#		README.txt \
-#      help.html
+archive_src:
+	rm -fr docs
+	doxygen Doxyfile
+	tar zcvf mantra_clusterThis_v${SRC_VER}.src.tar.gz \
+		${src} \
+		docs/	\
+		Makefile Doxyfile \
+		README.txt \
+	        help.html
 
 #clean:
 #	rm -f *.o *.so *.dll *.exp *.lib *.dylib

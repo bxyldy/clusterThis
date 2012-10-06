@@ -12,8 +12,8 @@
 *
 * $Author: mstory $
 *
-*  Version 2.0.0
-*  Date: September, 5, 2012
+*  Version 2.0.1
+*  Date: October 5, 2012
 *  Author: Mark Story
 *
 * See Change History at the end of the file.
@@ -137,7 +137,7 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
         << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
 #endif
 
-return 0;
+   return 0;
 
 }
 
@@ -146,9 +146,9 @@ return 0;
 // the position by the largest component of the scale (assuming it were
 // rotated 45 degrees).
 static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
-                  const GEO_Point * point, const UT_Vector3 & sprite_scale,
-                  const GA_ROAttributeRef & voff,
-                  fpreal tscale, const UT_Matrix4 & xform)
+                               const GEO_Point * point, const UT_Vector3 & sprite_scale,
+                               const GA_ROAttributeRef & voff,
+                               fpreal tscale, const UT_Matrix4 & xform)
 {
    fpreal     maxradius;
    static fpreal isin45 = 1.0F / SYSsin(M_PI/4);
@@ -168,22 +168,20 @@ static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
    box.translate(point->getPos());
    vbox = box;
 
-   if(voff.isValid())
-      {
-         UT_Vector3  vel;
-         int      i;
-         fpreal      amount;
+   if (voff.isValid()) {
+      UT_Vector3  vel;
+      int      i;
+      fpreal      amount;
 
-         vel = point->getValue<UT_Vector3>(voff);
-         for(i = 0; i < 3; i++)
-            {
-               amount = vel(i) * tscale;
-               if(amount < 0)
-                  vbox.vals[i][1] -= amount;
-               else vbox.vals[i][0] -= amount;
+      vel = point->getValue<UT_Vector3>(voff);
+      for (i = 0; i < 3; i++) {
+         amount = vel(i) * tscale;
+         if (amount < 0)
+            vbox.vals[i][1] -= amount;
+         else vbox.vals[i][0] -= amount;
 
-            }
       }
+   }
 }
 
 

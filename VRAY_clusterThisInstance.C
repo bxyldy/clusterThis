@@ -54,16 +54,16 @@ int VRAY_clusterThis::instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setPointInstanceAttributes(inst_gdp, ppt);
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         ppt = mb_gdp->appendPointElement();
-         ppt->setPos((float)myPointAttributes.myMBPos[0],
-                     (float)myPointAttributes.myMBPos[1],
-                     (float)myPointAttributes.myMBPos[2], 1.0);
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      ppt = mb_gdp->appendPointElement();
+      ppt->setPos((float)myPointAttributes.myMBPos[0],
+                  (float)myPointAttributes.myMBPos[1],
+                  (float)myPointAttributes.myMBPos[2], 1.0);
 
-         VRAY_clusterThis::setPointInstanceAttributes(mb_gdp, ppt);
-      }
+      VRAY_clusterThis::setPointInstanceAttributes(mb_gdp, ppt);
+   }
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
 #ifdef DEBUG
@@ -107,21 +107,21 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, sphere);
 
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         sphere_parms.gdp = mb_gdp;
-         sphere_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         sphere_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         sphere_parms.xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
-         sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      sphere_parms.gdp = mb_gdp;
+      sphere_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+      sphere_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+      sphere_parms.xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
+      sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, sphere);
-      }
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, sphere);
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceSphere() Instanced a sphere " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -163,39 +163,39 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-   for(int i=0; i < myCube->getVertexCount(); i++) {
+   for (int i=0; i < myCube->getVertexCount(); i++) {
+      ppt = myCube->getVertexElement(i).getPt();
+      UT_Vector4  P = ppt->getPos();
+      P *= xform;
+      ppt->setPos(P);
+   }
+
+   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCube);
+
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+
+      myCube = (GEO_Primitive *) mb_gdp->cube(myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
+                                              myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
+                                              myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
+                                              myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
+                                              myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
+                                              myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
+
+      for (int i=0; i < myCube->getVertexCount(); i++) {
          ppt = myCube->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
          ppt->setPos(P);
       }
 
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCube);
-
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-
-         myCube = (GEO_Primitive *) mb_gdp->cube(myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
-
-         for(int i=0; i < myCube->getVertexCount(); i++) {
-               ppt = myCube->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
-
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
-      }
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceCube() Instanced a cube " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -240,37 +240,37 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    grid_parms.plane = GU_PLANE_XY;
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-   for(int i=0; i < myGrid->getVertexCount(); i++) {
+   for (int i=0; i < myGrid->getVertexCount(); i++) {
+      ppt = myGrid->getVertexElement(i).getPt();
+      UT_Vector4  P = ppt->getPos();
+      P *= xform;
+      ppt->setPos(P);
+   }
+
+   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myGrid);
+
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+
+      grid_parms.xcenter = myPointAttributes.myMBPos[0];
+      grid_parms.ycenter = myPointAttributes.myMBPos[1];
+      grid_parms.zcenter = myPointAttributes.myMBPos[2];
+      myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
+
+      for (int i=0; i < myGrid->getVertexCount(); i++) {
          ppt = myGrid->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
          ppt->setPos(P);
       }
 
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myGrid);
-
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-
-         grid_parms.xcenter = myPointAttributes.myMBPos[0];
-         grid_parms.ycenter = myPointAttributes.myMBPos[1];
-         grid_parms.zcenter = myPointAttributes.myMBPos[2];
-         myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
-
-         for(int i=0; i < myGrid->getVertexCount(); i++) {
-               ppt = myGrid->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
-
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myGrid);
-      }
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myGrid);
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceGrid() Instanced a grid " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -358,21 +358,21 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, tube);
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         tube_parms.gdp = mb_gdp;
-         tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         tube_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-         tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      tube_parms.gdp = mb_gdp;
+      tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+      tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+      tube_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+      tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, tube);
-      }
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, tube);
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceTube() Instanced a tube " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -409,22 +409,22 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, circle);
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         circle_parms.gdp = mb_gdp;
-         circle_parms.xform = xform;
-         circle_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         circle_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         circle_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-         circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      circle_parms.gdp = mb_gdp;
+      circle_parms.xform = xform;
+      circle_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+      circle_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+      circle_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+      circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, circle);
-      }
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, circle);
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceCircle() Instanced a circle " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -473,30 +473,30 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 //   cout << "breakCount: "  << myCurve->breakCount() << endl;
 
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)mb_gdp, num_vtx, 4, 0, 1, 1);
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myMBCurve);
-      }
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)mb_gdp, num_vtx, 4, 0, 1, 1);
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, myMBCurve);
+   }
 
 
-   for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
-      for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
+   for (int copyNum = 0; copyNum < myNumCopies; copyNum++)
+      for (int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
-            calculateNewPosition(theta, copyNum, recursionNum);
-            ppt = myCurve->getVertexElement(myCurvePointNum).getPt();
-            ppt->setPos((float)myPointAttributes.myNewPos[0],
-                        (float)myPointAttributes.myNewPos[1],
-                        (float)myPointAttributes.myNewPos[2], 1.0);
+         calculateNewPosition(theta, copyNum, recursionNum);
+         ppt = myCurve->getVertexElement(myCurvePointNum).getPt();
+         ppt->setPos((float)myPointAttributes.myNewPos[0],
+                     (float)myPointAttributes.myNewPos[1],
+                     (float)myPointAttributes.myNewPos[2], 1.0);
 
-            // Assign attributes to each point
-            ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myCd);
-            ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-            ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
-            ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-            ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
+         // Assign attributes to each point
+         ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myCd);
+         ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+         ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
+         ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+         ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
 //            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //            ppt->setValue<int>(pt_inst_id, (const int)myCurvePointNum);
-            ppt->setString(pt_material, myPointAttributes.material);
+         ppt->setString(pt_material, myPointAttributes.material);
 
 //            if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 //                  ppt = myMBCurve->getVertexElement(myCurvePointNum).getPt();
@@ -518,8 +518,8 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 //
 //            std::cout << "VRAY_clusterThis::instanceCurve() myCurvePointNum: " << myCurvePointNum << std::endl;
 
-            myCurvePointNum++;
-         }
+         myCurvePointNum++;
+      }
 
 //   myCurve->close ();
 //   myMBCurve->close ();
@@ -529,7 +529,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    cout << "VRAY_clusterThis::instanceCurve() - Instanced a curve " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -570,25 +570,25 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, metaball);
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
-         metaball_parms.gdp = mb_gdp;
-         metaball_parms.xform = xform;
-         metaball_parms.weight = myPointAttributes.weight;
-         metaball_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         metaball_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         metaball_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-         metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
+      metaball_parms.gdp = mb_gdp;
+      metaball_parms.xform = xform;
+      metaball_parms.weight = myPointAttributes.weight;
+      metaball_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+      metaball_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+      metaball_parms.xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+      metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, metaball);
+      VRAY_clusterThis::setInstanceAttributes(mb_gdp, metaball);
 
-      }
+   }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::instanceMetaball() Instanced a metaball " << endl;
 #endif
 
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    return 0;
@@ -638,41 +638,41 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    setFileAttributes(&temp_gdp);
 
    // Run CVEX function on this instance
-   if(myCVEX_Exec)
+   if (myCVEX_Exec)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
-   if(myCVEX_Exec_prim)
+   if (myCVEX_Exec_prim)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
    inst_gdp->merge(temp_gdp);
 
 
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         GU_Detail temp_gdp(file_gdp);
+   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+      GU_Detail temp_gdp(file_gdp);
 
-         xform.identity();
-         rot_xform.identity();
-         rot_xform.orient(myDir, myUp);
-         xform = rot_xform;
+      xform.identity();
+      rot_xform.identity();
+      rot_xform.orient(myDir, myUp);
+      xform = rot_xform;
 
-         xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+      xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 //        xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-         //   xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
-         //               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
-         //               mySize[0], mySize[1], mySize[2]);
+      xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+      //   xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+      //               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
+      //               mySize[0], mySize[1], mySize[2]);
 
-         // Run CVEX function on this instance
-         if(myCVEX_Exec)
-            VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
+      // Run CVEX function on this instance
+      if (myCVEX_Exec)
+         VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
-         if(myCVEX_Exec_prim)
-            VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
+      if (myCVEX_Exec_prim)
+         VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
-         temp_gdp.transform(xform);
-         mb_gdp->merge(temp_gdp);
+      temp_gdp.transform(xform);
+      mb_gdp->merge(temp_gdp);
 
-      }
+   }
 
 
 #ifdef DEBUG
