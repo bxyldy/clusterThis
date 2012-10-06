@@ -9,13 +9,17 @@ src = VRAY_clusterThis.C VRAY_clusterThis.h \
    VRAY_clusterThisRender.C
 
 SOURCES = VRAY_clusterThis.C
+H_CFLAGS = `hcustom --cflags`
 CFLAGS := $(CFLAGS) -ftree-vectorize -ftree-vectorizer-verbose=2
+
+
 INSTDIR = $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/
 DSONAME = VRAY_clusterThis.so
 
 include $(HT)/makefiles/Makefile.gnu
 
-install_dso:
+install_dso: VRAY_clusterThis.so
+	echo $(H_CFLAGS)
 	cp ./VRAY_clusterThis.so $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/VRAY_clusterThis.so
 
 #TAGINFO = $(shell (echo -n "Compiled on:" `date`"\n  by:" `whoami`@`hostname`"\n$(SESI_TAGINFO)") | /opt/hfs/bin/sesitag -m)
