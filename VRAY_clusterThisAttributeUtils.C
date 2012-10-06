@@ -369,6 +369,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail * inst_gdp, GEO_Pr
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
    myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
 
+
    // apply attribues to each vertex
    for (int i=0; i < myGeoPrim->getVertexCount(); i++) {
       ppt = myGeoPrim->getVertexElement(i).getPt();
