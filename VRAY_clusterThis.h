@@ -2,20 +2,7 @@
 *
 *  clusterThis mantra DSO for render time geo clustering
 *
-* $RCSfile: VRAY_clusterThis.h,v $
-*
-* Description : This DSO  will instance geomtery during the render of mantra IFD's
-*
-* $Revision: 1.40 $
-*
-* $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThis.h,v $
-*
-* $Author: mstory $
-*
-*
-* See Change History at the end of the file.
-*
-*    Digital Cinema Arts (C) 2008
+*    Digital Cinema Arts (C) 2008-2012
 *
 * This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License.
 * To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ or send a letter to
@@ -305,7 +292,7 @@ private:
    UT_BoundingBox myBox;
    fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
    UT_String myMaterial;
-   UT_Matrix3     myXformInverse;
+   UT_Matrix3 myXformInverse;
 
    // Parameters
    uint32   myNumCopies;

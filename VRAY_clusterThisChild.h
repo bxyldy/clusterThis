@@ -1,21 +1,8 @@
 /* ******************************************************************************
 *
-*  clusterThisChild
+* clusterThisChild
 *
-* $RCSfile: VRAY_clusterThisChild.h,v $
-*
-* Description : This class will instance geomtery from the addProcedural calls of it's "parent" class, VRAY_clusterThis
-*
-* $Revision: 1.23 $
-*
-* $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisChild.h,v $
-*
-* $Author: mstory $
-*
-*
-* See Change History at the end of the file.
-*
-*    Digital Cinema Arts (C) 2008
+* Digital Cinema Arts (C) 2008-2012
 *
 * This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License.
 * To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ or send a letter to
@@ -25,7 +12,6 @@
 
 #ifndef __VRAY_clusterThisChild_h__
 #define __VRAY_clusterThisChild_h__
-
 
 
 /* ******************************************************************************
@@ -42,17 +28,17 @@
 class VRAY_clusterThisChild : public VRAY_Procedural {
 public:
    VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj)
-         :
-         myPrimType(theClusterObj->myPrimType),
-         myRadius(theClusterObj->myRadius),
-         myNumCopies(theClusterObj->myNumCopies),
-         myRecursion(theClusterObj->myRecursion),
-         myBirthProb(theClusterObj->myBirthProb),
-         myDoMotionBlur(theClusterObj->myDoMotionBlur),
-         myShutter(theClusterObj->myShutter),
-         myInstanceNum(theClusterObj->myInstanceNum),
-         myGeoFile(theClusterObj->myGeoFile),
-         myParent(theClusterObj)
+      :
+      myPrimType(theClusterObj->myPrimType),
+      myRadius(theClusterObj->myRadius),
+      myNumCopies(theClusterObj->myNumCopies),
+      myRecursion(theClusterObj->myRecursion),
+      myBirthProb(theClusterObj->myBirthProb),
+      myDoMotionBlur(theClusterObj->myDoMotionBlur),
+      myShutter(theClusterObj->myShutter),
+      myInstanceNum(theClusterObj->myInstanceNum),
+      myGeoFile(theClusterObj->myGeoFile),
+      myParent(theClusterObj)
 
    {
 #ifdef DEBUG
@@ -70,6 +56,15 @@ public:
       mySize[0] = theClusterObj->mySize[0];
       mySize[1] = theClusterObj->mySize[1];
       mySize[2] = theClusterObj->mySize[2];
+
+      myCVEXFname = theClusterObj->myCVEXFname;
+      myCVEX_Exec = theClusterObj->myCVEX_Exec;
+      myCVEXFname_prim = theClusterObj->myCVEXFname_prim;
+      myCVEX_Exec_prim = theClusterObj->myCVEX_Exec_prim;
+      myCVEXFname_pre = theClusterObj->myCVEXFname_pre;
+      myCVEX_Exec_pre = theClusterObj->myCVEX_Exec_pre;
+      myCVEXFname_post = theClusterObj->myCVEXFname_post;
+      myCVEX_Exec_post = theClusterObj->myCVEX_Exec_post;
 
 //    myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
       myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
@@ -252,6 +247,14 @@ private:
    uint32   myNumCopies;
    uint32   myRecursion;
    fpreal   myBirthProb;
+   UT_String myCVEXFname;
+   bool     myCVEX_Exec;
+   UT_String myCVEXFname_prim;
+   bool     myCVEX_Exec_prim;
+   UT_String myCVEXFname_pre;
+   bool     myCVEX_Exec_pre;
+   UT_String myCVEXFname_post;
+   bool     myCVEX_Exec_post;
 
    // Other vars ...
 //   UT_String myMaterial;
@@ -280,6 +283,11 @@ private:
       CLUSTER_MB_NONE = 0,
       CLUSTER_MB_VELOCITY,
       CLUSTER_MB_DEFORMATION
+   };
+
+   enum clusterCVEXMethod {
+      CLUSTER_CVEX_POINT = 0,
+      CLUSTER_CVEX_PRIM
    };
 
 };
