@@ -486,6 +486,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    GA_RWAttributeRef pt_Alpha = curve_gdp->addAlphaAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_v = curve_gdp->addVelocityAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_N = curve_gdp->addNormalAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_pscale = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
    GA_RWAttributeRef pt_width = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
    GA_RWAttributeRef pt_material = curve_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
@@ -521,6 +522,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
             ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
             ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
             ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+            ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
             ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
 //            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //            ppt->setValue<int>(pt_inst_id, (const int)myCurvePointNum);
