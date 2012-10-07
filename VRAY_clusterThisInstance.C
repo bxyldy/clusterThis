@@ -91,15 +91,15 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    UT_Matrix4 xform(1.0);
    GU_PrimSphere * sphere;
    GU_PrimSphereParms sphere_parms;
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
-//   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], \
-//               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
-//               mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2],
+               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
+               mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 
-   xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
+//   xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+//   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+//   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
 
    sphere_parms.gdp = inst_gdp;
    sphere_parms.xform = xform;
@@ -107,9 +107,10 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, sphere);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-//         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2], \
-//                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
+//         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+//                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
 //                     mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+         xform.identity();
          xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
          xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
          xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
@@ -149,11 +150,11 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    GEO_Primitive * myCube;
    GEO_Point * ppt;
    UT_Matrix4 xform(1.0);
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+//   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
-   UT_Vector3 myDir = myPointAttributes.N;
+//   UT_Vector3 myDir = myPointAttributes.N;
    UT_Vector3 myUp = UT_Vector3(0,1,0);
-   rot_xform.orient(myDir, myUp);
+   rot_xform.orient(myPointAttributes.N, myUp);
    xform = rot_xform;
 
    myCube = (GEO_Primitive *) inst_gdp->cube(
@@ -223,11 +224,11 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    GU_GridParms grid_parms;
    GEO_Point * ppt;
    UT_Matrix4 xform(1.0);
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+//   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
-   UT_Vector3 myDir = myPointAttributes.N;
+//   UT_Vector3 myDir = myPointAttributes.N;
    UT_Vector3 myUp = UT_Vector3(0,1,0);
-   rot_xform.orient(myDir, myUp);
+   rot_xform.orient(myPointAttributes.N, myUp);
    xform = rot_xform;
 
    grid_parms.rows = 2;
@@ -296,7 +297,7 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    GU_PrimTubeParms tube_parms;
    GU_CapOptions tube_cap_options;
    UT_Matrix4 xform(1.0);
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
 //    GU_CapOptions:
 //GU_CapType   firstUCap
@@ -348,13 +349,13 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    tube_parms.taper = 1.0;
    tube_parms.type = GEO_PATCH_TRIANGLE;
 
-//   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], \
-//               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
-//               mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2],
+               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
+               mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 
-   xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
+//   xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+//   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+//   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
 
 //   tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 //   tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
@@ -367,12 +368,13 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, tube);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-//         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2], \
-//                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
-//                     mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
-         xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
-         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
+         xform.identity();
+         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
+                     mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+//         xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
+//         xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+//         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
 
 //         tube_parms.xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 //         tube_parms.xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
@@ -413,10 +415,10 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    UT_Matrix4 xform(1.0);
    GU_PrimCircle * circle;
    GU_PrimCircleParms circle_parms;
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
-//   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], \
-//               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
+//   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2],
+//               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
 //               mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 
    xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
@@ -429,12 +431,12 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    VRAY_clusterThis::setInstanceAttributes(inst_gdp, circle);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         xform(1.0);
+         xform.identity();
          xform.scale(mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
          xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
          xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
-//         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2], \
-//                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
+//         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+//                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
 //                     mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
          circle_parms.gdp = mb_gdp;
          circle_parms.xform = xform;
@@ -474,30 +476,33 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    uint32 num_vtx;
    int myCurvePointNum = 0;
    UT_Vector4 pt_pos;
+   GU_Detail * curve_gdp, * curve_mb_gdp;
 
-   UT_Vector3 myCd(0.0, 1.0, 0.0);
-   UT_Vector3 myV(0.1, 1.1, 0.1);
-   UT_Vector3 myN(0.0, 0.0, 1.0);
+   curve_gdp = allocateGeometry();
+//   curve_mb_gdp = allocateGeometry();
 
-   GA_RWAttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_v = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_width = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
-   GA_RWAttributeRef pt_material = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+   GA_RWAttributeRef prim_Cd = curve_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+   GA_RWAttributeRef pt_Cd = curve_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_Alpha = curve_gdp->addAlphaAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_v = curve_gdp->addVelocityAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_N = curve_gdp->addNormalAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_width = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
+   GA_RWAttributeRef pt_material = curve_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
 
    num_vtx = ((myNumCopies * myRecursion) > 4)?(myNumCopies * myRecursion):4;
-   myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)inst_gdp, num_vtx, 4, 0, 1, 1);
+   myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_gdp, num_vtx, 4, 0, 1, 1);
+
+   myCurve->setValue<UT_Vector3>(prim_Cd, (const UT_Vector3)myPointAttributes.Cd);
 
 //   cout << "VRAY_clusterThis::instanceCurve() - num vertices: " << myCurve->getVertexCount() << endl;;
 //   cout << "id: "  << myCurve->getPrimitiveId() << endl;
 //   cout << "breakCount: "  << myCurve->breakCount() << endl;
 
-
-   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)mb_gdp, num_vtx, 4, 0, 1, 1);
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myMBCurve);
-      }
+//   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+//         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_mb_gdp, num_vtx, 4, 0, 1, 1);
+//
+////         VRAY_clusterThis::setInstanceAttributes(curve_mb_gdp, myMBCurve);
+//      }
 
 
    for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
@@ -509,8 +514,10 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
                         (float)myPointAttributes.myNewPos[1],
                         (float)myPointAttributes.myNewPos[2], 1.0);
 
+//         VRAY_clusterThis::setInstanceAttributes(curve_gdp, myCurve);
+
             // Assign attributes to each point
-            ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myCd);
+//            ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
             ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
             ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
             ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
@@ -518,6 +525,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 //            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //            ppt->setValue<int>(pt_inst_id, (const int)myCurvePointNum);
             ppt->setString(pt_material, myPointAttributes.material);
+
 
 //            if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 //                  ppt = myMBCurve->getVertexElement(myCurvePointNum).getPt();
@@ -529,7 +537,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 //                  ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
 //                  ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
 //                  ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
-////                  ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+//                  ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
 //                  ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
 ////            ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
 ////            ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
@@ -542,14 +550,18 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
             myCurvePointNum++;
          }
 
-   myCurve->close();
+//   myCurve->close();
 //   myMBCurve->close ();
 
+
    if(myCVEX_Exec)
-      VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
+      VRAY_clusterThis::runCVEX(curve_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    if(myCVEX_Exec_prim)
-      VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
+      VRAY_clusterThis::runCVEX(curve_gdp, mb_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
+
+   inst_gdp->merge(*curve_gdp);
+   VRAY_Procedural::freeGeometry(curve_gdp);
 
    return 0;
 }
@@ -574,12 +586,12 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 #endif
 
    UT_Matrix4 xform(1.0);
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
    GU_PrimMetaBall * metaball;
    GU_PrimMetaBallParms metaball_parms;
 
-   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2], \
-               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
+   xform.xform(xformOrder, myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2],
+               myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
                mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
 
    metaball_parms.gdp = inst_gdp;
@@ -590,8 +602,9 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          metaball_parms.weight = myPointAttributes.weight;
-         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2], \
-                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], \
+         xform.identity();
+         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
+                     myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2],
                      mySize[0] * myPointAttributes.pscale, mySize[1] * myPointAttributes.pscale, mySize[2] * myPointAttributes.pscale);
          metaball_parms.gdp = mb_gdp;
          metaball_parms.xform = xform;
@@ -628,7 +641,7 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    GU_Detail temp_gdp(file_gdp), null_gdp;
    UT_Matrix4 xform(1.0);
    UT_Matrix3 rot_xform(1.0);
-   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+//   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
    UT_Vector3 myDir = myPointAttributes.N;
 //   myDir.normalize();

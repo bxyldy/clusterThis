@@ -443,17 +443,17 @@ void VRAY_clusterThis::render()
       e.what();
       cout << "VRAY_clusterThis::render() - Exception encountered, copying incoming geometry" << endl << endl;
       if (gdp)
-         freeGeometry(gdp);
+         VRAY_Procedural::freeGeometry(gdp);
       if (inst_gdp)
-         freeGeometry(inst_gdp);
+         VRAY_Procedural::freeGeometry(inst_gdp);
       if (myDoMotionBlur == CLUSTER_MB_DEFORMATION)
          if (mb_gdp)
-            freeGeometry(mb_gdp);
+            VRAY_Procedural::freeGeometry(mb_gdp);
       void * handle = queryObject(0);
-      gdp = allocateGeometry();
+      gdp = VRAY_Procedural::allocateGeometry();
       gdp->copy(*queryGeometry(handle, 0));
-      openGeometryObject();
-      addGeometry(gdp, 0);
+      VRAY_Procedural::openGeometryObject();
+      VRAY_Procedural::addGeometry(gdp, 0);
       closeObject();
       return;
    }
