@@ -344,12 +344,12 @@ inline void VRAY_clusterThis::setPointInstanceAttributes(GU_Detail * inst_gdp, G
 *
 *  Description : Set the attributes of the instanced primitive
 *
-*  Input Arguments : GU_Detail *inst_gdp, GEO_Primitive *myGeoPrim
+*  Input Arguments : GEO_Primitive *myGeoPrim
 *
 *  Return Value : void
 *
 ***************************************************************************** */
-inline void VRAY_clusterThis::setInstanceAttributes(GU_Detail * inst_gdp, GEO_Primitive * myGeoPrim)
+inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
 {
 
 #ifdef DEBUG

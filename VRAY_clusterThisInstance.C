@@ -104,7 +104,7 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    sphere_parms.gdp = inst_gdp;
    sphere_parms.xform = xform;
    sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, sphere);
+   VRAY_clusterThis::setInstanceAttributes(sphere);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 //         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
@@ -117,7 +117,7 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          sphere_parms.gdp = mb_gdp;
          sphere_parms.xform = xform;
          sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, sphere);
+         VRAY_clusterThis::setInstanceAttributes(sphere);
       }
 
    if(myCVEX_Exec)
@@ -172,7 +172,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          ppt->setPos(P);
       }
 
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myCube);
+   VRAY_clusterThis::setInstanceAttributes(myCube);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
@@ -190,7 +190,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                ppt->setPos(P);
             }
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myCube);
+         VRAY_clusterThis::setInstanceAttributes(myCube);
       }
 
    if(myCVEX_Exec)
@@ -248,7 +248,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          ppt->setPos(P);
       }
 
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, myGrid);
+   VRAY_clusterThis::setInstanceAttributes(myGrid);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
@@ -264,7 +264,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                ppt->setPos(P);
             }
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, myGrid);
+         VRAY_clusterThis::setInstanceAttributes(myGrid);
       }
 
    if(myCVEX_Exec)
@@ -365,7 +365,7 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    tube_parms.xform = xform;
    tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, tube);
+   VRAY_clusterThis::setInstanceAttributes(tube);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          xform.identity();
@@ -383,7 +383,7 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          tube_parms.gdp = mb_gdp;
          tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, tube);
+         VRAY_clusterThis::setInstanceAttributes(tube);
       }
 
    if(myCVEX_Exec)
@@ -428,7 +428,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    circle_parms.gdp = inst_gdp;
    circle_parms.xform = xform;
    circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, circle);
+   VRAY_clusterThis::setInstanceAttributes(circle);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          xform.identity();
@@ -441,7 +441,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          circle_parms.gdp = mb_gdp;
          circle_parms.xform = xform;
          circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, circle);
+         VRAY_clusterThis::setInstanceAttributes(circle);
       }
 
    if(myCVEX_Exec)
@@ -479,31 +479,57 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    GU_Detail * curve_gdp, * curve_mb_gdp;
 
    curve_gdp = allocateGeometry();
-//   curve_mb_gdp = allocateGeometry();
 
    GA_RWAttributeRef prim_Cd = curve_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+   GA_RWAttributeRef prim_Alpha = curve_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+   GA_RWAttributeRef prim_v = curve_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+   GA_RWAttributeRef prim_N = curve_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+   GA_RWAttributeRef prim_material = curve_gdp->addStringTuple(GEO_PRIMITIVE_DICT, "shop_materialpath", 1);
+
    GA_RWAttributeRef pt_Cd = curve_gdp->addDiffuseAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_Alpha = curve_gdp->addAlphaAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_v = curve_gdp->addVelocityAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_N = curve_gdp->addNormalAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_pscale = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
    GA_RWAttributeRef pt_width = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
+   GA_RWAttributeRef pt_id = curve_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+   GA_RWAttributeRef pt_instId = curve_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
    GA_RWAttributeRef pt_material = curve_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+
+   GA_RWAttributeRef pt_mb_Cd;
+   GA_RWAttributeRef pt_mb_Alpha;
+   GA_RWAttributeRef pt_mb_v;
+   GA_RWAttributeRef pt_mb_N;
+   GA_RWAttributeRef pt_mb_pscale;
+   GA_RWAttributeRef pt_mb_width;
+   GA_RWAttributeRef pt_mb_id;
+   GA_RWAttributeRef pt_mb_instId;
+   GA_RWAttributeRef pt_mb_material;
 
    num_vtx = ((myNumCopies * myRecursion) > 4)?(myNumCopies * myRecursion):4;
    myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_gdp, num_vtx, 4, 0, 1, 1);
 
    myCurve->setValue<UT_Vector3>(prim_Cd, (const UT_Vector3)myPointAttributes.Cd);
+   myCurve->setValue<fpreal>(prim_Alpha, (const fpreal)myPointAttributes.Alpha);
+   myCurve->setString(prim_material, myPointAttributes.material);
 
 //   cout << "VRAY_clusterThis::instanceCurve() - num vertices: " << myCurve->getVertexCount() << endl;;
 //   cout << "id: "  << myCurve->getPrimitiveId() << endl;
 //   cout << "breakCount: "  << myCurve->breakCount() << endl;
 
-//   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-//         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_mb_gdp, num_vtx, 4, 0, 1, 1);
-//
-////         VRAY_clusterThis::setInstanceAttributes(curve_mb_gdp, myMBCurve);
-//      }
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         curve_mb_gdp = allocateGeometry();
+         myMBCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_mb_gdp, num_vtx, 4, 0, 1, 1);
+         pt_mb_Cd = curve_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+         pt_mb_Alpha = curve_gdp->addAlphaAttribute(GEO_POINT_DICT);
+         pt_mb_v = curve_gdp->addVelocityAttribute(GEO_POINT_DICT);
+         pt_mb_N = curve_gdp->addNormalAttribute(GEO_POINT_DICT);
+         pt_mb_pscale = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+         pt_mb_width = curve_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
+         pt_mb_id = curve_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+         pt_mb_instId = curve_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+         pt_mb_material = curve_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+      }
 
 
    for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
@@ -515,55 +541,53 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
                         (float)myPointAttributes.myNewPos[1],
                         (float)myPointAttributes.myNewPos[2], 1.0);
 
-//         VRAY_clusterThis::setInstanceAttributes(curve_gdp, myCurve);
-
             // Assign attributes to each point
-//            ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
+            ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
             ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
             ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
             ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
             ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
             ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
-//            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-//            ppt->setValue<int>(pt_inst_id, (const int)myCurvePointNum);
+            ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
+            ppt->setValue<int>(pt_instId, (const int)myCurvePointNum);
             ppt->setString(pt_material, myPointAttributes.material);
 
+            if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+                  ppt = myMBCurve->getVertexElement(myCurvePointNum).getPt();
+                  ppt->setPos((float)myPointAttributes.myNewPos[0],
+                              (float)myPointAttributes.myMBPos[1],
+                              (float)myPointAttributes.myMBPos[2], 1.0);
 
-//            if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-//                  ppt = myMBCurve->getVertexElement(myCurvePointNum).getPt();
-//                  ppt->setPos((float)myPointAttributes.myNewPos[0],
-//                              (float)myPointAttributes.myMBPos[1],
-//                              (float)myPointAttributes.myMBPos[2], 1.0);
-//
-//                  // Assign attributes to each point
-//                  ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-//                  ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-//                  ppt->setValue<UT_Vector3>(pt_v, (const UT_Vector3)myPointAttributes.v);
-//                  ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-//                  ppt->setValue<fpreal>(pt_width, (const fpreal)myPointAttributes.width);
-////            ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
-////            ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
-//                  ppt->setString(pt_material, myPointAttributes.material);
-//
-//               }
-//
+                  // Assign attributes to each point
+                  ppt->setValue<UT_Vector3>(pt_mb_Cd, (const UT_Vector3)myPointAttributes.Cd);
+                  ppt->setValue<fpreal>(pt_mb_Alpha, (const fpreal)myPointAttributes.Alpha);
+                  ppt->setValue<UT_Vector3>(pt_mb_v, (const UT_Vector3)myPointAttributes.v);
+                  ppt->setValue<UT_Vector3>(pt_mb_N, (const UT_Vector3)myPointAttributes.N);
+                  ppt->setValue<fpreal>(pt_mb_pscale, (const fpreal)myPointAttributes.pscale);
+                  ppt->setValue<fpreal>(pt_mb_width, (const fpreal)myPointAttributes.width);
+                  ppt->setValue<int>(pt_mb_id, (const int)myPointAttributes.id);
+                  ppt->setValue<int>(pt_mb_instId, (const int)myInstanceNum);
+                  ppt->setString(pt_mb_material, myPointAttributes.material);
+               }
 //            std::cout << "VRAY_clusterThis::instanceCurve() myCurvePointNum: " << myCurvePointNum << std::endl;
-
             myCurvePointNum++;
          }
 
 //   myCurve->close();
 //   myMBCurve->close ();
 
-
    if(myCVEX_Exec)
-      VRAY_clusterThis::runCVEX(curve_gdp, mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
+      VRAY_clusterThis::runCVEX(curve_gdp, curve_mb_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
 
    if(myCVEX_Exec_prim)
-      VRAY_clusterThis::runCVEX(curve_gdp, mb_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
+      VRAY_clusterThis::runCVEX(curve_gdp, curve_mb_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
    inst_gdp->merge(*curve_gdp);
    VRAY_Procedural::freeGeometry(curve_gdp);
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         mb_gdp->merge(*curve_mb_gdp);
+         VRAY_Procedural::freeGeometry(curve_mb_gdp);
+      }
 
    return 0;
 }
@@ -600,7 +624,7 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    metaball_parms.xform = xform;
    metaball_parms.weight = myPointAttributes.weight;
    metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
-   VRAY_clusterThis::setInstanceAttributes(inst_gdp, metaball);
+   VRAY_clusterThis::setInstanceAttributes(metaball);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          metaball_parms.weight = myPointAttributes.weight;
@@ -611,7 +635,7 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          metaball_parms.gdp = mb_gdp;
          metaball_parms.xform = xform;
          metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
-         VRAY_clusterThis::setInstanceAttributes(mb_gdp, metaball);
+         VRAY_clusterThis::setInstanceAttributes(metaball);
       }
 
    if(myCVEX_Exec)
@@ -859,6 +883,9 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 //  Lots of changes!!!
 //
 /**********************************************************************************/
+
+
+
 
 
 

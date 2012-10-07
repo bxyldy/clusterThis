@@ -272,7 +272,7 @@ private:
    int getAttributes(GEO_Point * ppt, GU_Detail * gdp);
    void checkRequiredAttributes();
    int addFileAttributeOffsets(GU_Detail * gdp);
-   void setInstanceAttributes(GU_Detail * gdp, GEO_Primitive * myGeoPrim);
+   void setInstanceAttributes(GEO_Primitive * myGeoPrim);
    void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
    int setFileAttributes(GU_Detail * gdp);
    int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
