@@ -809,9 +809,9 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
    box.enlargeBounds(0, size * maxradius);
 
 
-//#ifdef DEBUG
+#ifdef DEBUG
    std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
-//#endif
+#endif
 
 }
 

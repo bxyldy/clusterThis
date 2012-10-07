@@ -88,7 +88,7 @@ void VRAY_clusterThis::render()
 
                gdp->getBBox(&myBox);
 
-               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
+//               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
 
                VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
@@ -103,9 +103,8 @@ void VRAY_clusterThis::render()
 #endif
 
                myLOD = getLevelOfDetail(myBox);
-//#ifdef DEBUG
-               cout << "VRAY_clusterThis::render() myLOD: " << myLOD << endl;
-//#endif
+               if(myVerbose > CLUSTER_MSG_INFO)
+                  cout << "VRAY_clusterThis::render() myLOD: " << myLOD << endl;
 
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
