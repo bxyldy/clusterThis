@@ -142,9 +142,6 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
 }
 
 
-// We get a rough bounding box for the sprite by expanding the box around
-// the position by the largest component of the scale (assuming it were
-// rotated 45 degrees).
 static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
                                const GEO_Point * point, const UT_Vector3 & sprite_scale,
                                const GA_ROAttributeRef & voff,
@@ -794,8 +791,14 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
 void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 {
 //   std::cout << "VRAY_clusterThis::getBoundingBox()" << std::endl;
+   fpreal     maxradius;
+   static fpreal isin45 = 1.0F / SYSsin(M_PI/4);
+   UT_Vector3    pt;
+
+   maxradius = SYSmax(mySize[0], mySize[1] * isin45 * 0.5F);
+
    box = myBox;
-   box.initBounds(myPointAttributes.myNewPos);
+   box.translate(myPointAttributes.myNewPos);
 //    box.enlargeBounds(mySize[0] * 10, mySize[1] * 10, mySize[2] * 10);
    fpreal size = mySize[0];
    if (size < mySize[1])
@@ -803,7 +806,8 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
    if (size < mySize[2])
       size = mySize[2];
 
-   box.enlargeBounds(0, (1 + size) *(1 + size));
+   box.enlargeBounds(0, size * maxradius);
+
 
 //#ifdef DEBUG
    std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
@@ -947,7 +951,7 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myMethod: " << myMethod << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseType: " << myNoiseType << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseAmp: " << myNoiseAmp << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: " << myNoiseAtten << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: VRAY_clusterThis.C:798:" << myNoiseAtten << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseSeed: " << myNoiseSeed << endl;
    cout << "VRAY_clusterThis::dumpParameters() myFractalDepth: " << myFractalDepth << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRadius: " << myRadius << endl;
@@ -994,7 +998,7 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myVerbose: " << myVerbose << endl;
 
 
-   cout << "VRAY_clusterThis::dumpParameters() Current gdp bounding box (myBox):"  << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myBox:"  << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[1][0] << " " << myBox.vals[1][1] << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[2][0] << " " << myBox.vals[2][1] << endl;
