@@ -48,20 +48,27 @@ void VRAY_clusterThis::render()
    long int point_num = 0;
    static bool rendered = false;
 
+
+   tempFileDeleted = false;
+//   cout << "VRAY_clusterThis::render() tempFileDeleted: " << tempFileDeleted << endl;
+
+   dca::myPasses(1);
+//   std::cout << "VRAY_clusterThis::render() - num_passes: " << dca::myPasses(0) <<  std::endl;
+
    if(myVerbose > CLUSTER_MSG_QUIET) {
-         std::cout << "VRAY_clusterThis::render() - Version: " << DCA_VERSION << std::endl;
+         std::cout << "VRAY_clusterThis::render() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
          std::cout << "VRAY_clusterThis::render() - Built for Houdini Version: " << UT_MAJOR_VERSION
                    << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
-         std::cout << "VRAY_clusterThis::render() - Instancing ..." <<  endl;
+         std::cout << "VRAY_clusterThis::render() - Instancing ..." <<  std::endl;
       }
 
 
    try {
 
-//          cout << "VM_GEO_clusterThis OTL version: " <<  myOTLVersion << endl;
+//          cout << "VM_GEO_clusterThis OTL version: " <<  myOTLVersion << std::endl;
 
 //       if(myOTLVersion != DCA_VERSION) {
-//          cout << "VM_GEO_clusterThis OTL is wrong version: " <<  myOTLVersion << ", should be version: " << DCA_VERSION << ", please install correct version." << endl;
+//          cout << "VM_GEO_clusterThis OTL is wrong version: " <<  myOTLVersion << ", should be version: " << DCA_VERSION << ", please install correct version." << std::endl;
 //          throw VRAY_clusterThis_Exception ( "VRAY_clusterThis::render() VM_GEO_clusterThis OTL is wrong version!", 1 );
 //       }
 
@@ -70,6 +77,9 @@ void VRAY_clusterThis::render()
 
                void * handle = VRAY_Procedural::queryObject(0);
                gdp = VRAY_Procedural::allocateGeometry();
+               if(!gdp) {
+                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
+                  }
 
                if(myUseGeoFile) {
                      // If the file failed to load, throw an exception
@@ -77,12 +87,12 @@ void VRAY_clusterThis::render()
                         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read source geometry file ", 1);
 
                      if(myVerbose > CLUSTER_MSG_INFO)
-                        cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
+                        cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << std::endl;
                   }
                else {
                      gdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
                      if(myVerbose > CLUSTER_MSG_INFO)
-                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
+                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << std::endl;
                   }
 
 
@@ -90,21 +100,22 @@ void VRAY_clusterThis::render()
 
 //               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
 
+
                VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
 //         myPointAttributes.material = myMaterial;
 
 //         const char **        getSParm (int token) const
-//         cout << "VRAY_clusterThis::render() getSParm: " << *getSParm (0) << endl;
+//         cout << "VRAY_clusterThis::render() getSParm: " << *getSParm (0) << std::endl;
 
 
 #ifdef DEBUG
-               cout << "VRAY_clusterThis::render() myMaterial: " << myMaterial << endl;
+               cout << "VRAY_clusterThis::render() myMaterial: " << myMaterial << std::endl;
 #endif
 
                myLOD = getLevelOfDetail(myBox);
                if(myVerbose > CLUSTER_MSG_INFO)
-                  cout << "VRAY_clusterThis::render() myLOD: " << myLOD << endl;
+                  cout << "VRAY_clusterThis::render() myLOD: " << myLOD << std::endl;
 
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
@@ -112,12 +123,12 @@ void VRAY_clusterThis::render()
                long int stat_interval = (long int)(num_points * 0.10) + 1;
 
                if(myVerbose > CLUSTER_MSG_QUIET)
-                  cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << num_points << endl;
+                  cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << num_points << std::endl;
 
                myObjectName = VRAY_Procedural::queryObjectName(handle);
 
-//      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << endl;
-//      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << endl;
+//      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << std::endl;
+//      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << std::endl;
 
 // DEBUG stuff ...
 
@@ -147,8 +158,8 @@ void VRAY_clusterThis::render()
 
 
 #ifdef DEBUG
-               cout << "Geometry Samples: " << queryGeometrySamples(handle) << endl;
-// cout << "scale: " << getFParm ( "scale" ) << endl;
+               cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
+// cout << "scale: " << getFParm ( "scale" ) << std::endl;
 #endif
 
                // Dump the user parameters to the console
@@ -161,11 +172,11 @@ void VRAY_clusterThis::render()
                         if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                            mb_gdp = VRAY_Procedural::allocateGeometry();
                         if(myVerbose > CLUSTER_MSG_QUIET)
-                           cout << "VRAY_clusterThis::render() - Using \"instance all the geometry at once\" method" << endl;
+                           cout << "VRAY_clusterThis::render() - Using \"instance all the geometry at once\" method" << std::endl;
                         break;
                      case CLUSTER_INSTANCE_DEFERRED:
                         if(myVerbose > CLUSTER_MSG_QUIET)
-                           cout << "VRAY_clusterThis::render() - Using \"addProcedural()\" method" << endl;
+                           cout << "VRAY_clusterThis::render() - Using \"addProcedural()\" method" << std::endl;
                         break;
                   }
 
@@ -180,7 +191,7 @@ void VRAY_clusterThis::render()
                // Check for weight attribute if the user wants metaballs
                if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrOffsets.weight.isInvalid())) {
 
-                     cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << endl;
+                     cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
                      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1);
                   }
 
@@ -192,7 +203,7 @@ void VRAY_clusterThis::render()
                      if(!file_load_stat) {
 //                           myFileGDP = file_gdp;
                            if(myVerbose > CLUSTER_MSG_INFO)
-                              cout << "VRAY_clusterThis::render() Successfully loaded geometry file: " << myGeoFile << endl;
+                              cout << "VRAY_clusterThis::render() Successfully loaded geometry file: " << myGeoFile << std::endl;
                         }
                      else {
                            throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Failed to load geometry file ", 1);
@@ -220,7 +231,7 @@ void VRAY_clusterThis::render()
 
                if(myCVEX_Exec_pre) {
                      if(myVerbose > CLUSTER_MSG_INFO)
-                        cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << endl;
+                        cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << std::endl;
                      VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
                   }
 
@@ -232,7 +243,7 @@ void VRAY_clusterThis::render()
                   VRAY_clusterThis::getAttributes(ppt, gdp);
 
 #ifdef DEBUG
-                  cout << "VRAY_clusterThis::render() " << "theta: " << theta << endl;
+                  cout << "VRAY_clusterThis::render() " << "theta: " << theta << std::endl;
 #endif
 
                   uint seed = 37;
@@ -250,8 +261,8 @@ void VRAY_clusterThis::render()
                                     // generate random number to determine to instance or not
 
                                     dice = SYSfastRandom(seed);
-                                    (dice > myBirthProb)?skip = true:skip = false;
-//                  cout << dice << " " << skip << endl;
+                                    (dice > myBirthProb) ? skip = true : skip = false;
+//                  cout << dice << " " << skip << std::endl;
                                     seed = uint(dice * 100);
 
                                     // Calculate the position for the next instanced object ...
@@ -332,19 +343,241 @@ void VRAY_clusterThis::render()
                   // Print out stats to the console
                   if(myVerbose > CLUSTER_MSG_INFO && (myPrimType != CLUSTER_PRIM_CURVE))
                      if((long int)(point_num % stat_interval) == 0)
-                        cout << "VRAY_clusterThis::render() Number of points processed: " << point_num << " Number of instances: " << myInstanceNum << endl;
+                        cout << "VRAY_clusterThis::render() Number of points processed: " << point_num << " Number of instances: " << myInstanceNum << std::endl;
 
                } // for all points ...
+
+
+
+
+
+               if(myPostProcess) {
+
+                     cout << "VRAY_clusterThis::render() Processing Voxels" << std::endl;
+
+//   Vec3d voxelDimensions() const { return mTransform->voxelDimensions(); }
+//00257     Vec3d voxelDimensions(const Vec3d& xyz) const { return mTransform->voxelDimensions(xyz); }
+//00259     bool hasUniformVoxels() const { return mTransform->hasUniformScale(); }
+//00261
+//00262     Vec3d indexToWorld(const Vec3d& xyz) const { return mTransform->indexToWorld(xyz); }
+//00263     Vec3d indexToWorld(const Coord& ijk) const { return mTransform->indexToWorld(ijk); }
+//00265
+//00266     Vec3d worldToIndex(const Vec3d& xyz) const { return mTransform->worldToIndex(xyz); }
+
+// Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
+
+//                     openvdb::ScalarGrid::Accessor accessor;
+//                     openvdb::FloatTree myTree;
+                     openvdb::FloatTree::ConstPtr myTreePtr;
+                     openvdb::VectorTree::ConstPtr myGradTreePtr;
+
+                     ParticleList paList(gdp, /* "dR" */ 1.0, /* "dV" */ 1.0);
+                     openvdb::tools::PointSampler mySampler, gradSampler;
+//                     openvdb::tools::GridSampling<openvdb::FloatTree>  myGridSampler;
+
+                     std::cout << "paList.size() ... "  << paList.size() << std::endl;
+
+                     if(paList.size() != 0) {
+
+                           hvdb::Interrupter boss("Converting particles to level set");
+
+                           Settings settings;
+                           settings.mRasterizeTrails = myRasterType;
+                           settings.mDx = myDx;  // only used for rasterizeTrails()
+                           settings.mFogVolume = myFogVolume;
+                           settings.mGradientWidth = myGradientWidth;  // only used for fog volume
+
+                           float background;
+
+                           // background in WS units
+                           if(myWSUnits)
+                              background = myBandWidth;
+                           // background NOT in WS units
+                           else
+                              background = myVoxelSize * myBandWidth;
+
+                           // Construct a new scalar grid with the specified background value.
+                           openvdb::math::Transform::Ptr transform =
+                              openvdb::math::Transform::createLinearTransform(myVoxelSize);
+                           openvdb::ScalarGrid::Ptr outputGrid = openvdb::ScalarGrid::create(background);
+                           outputGrid->setTransform(transform);
+                           outputGrid->setGridClass(openvdb::GRID_LEVEL_SET);
+
+                           // Perform the particle conversion.
+                           this->convert(outputGrid, paList, settings, boss);
+
+                           std::cout << "VRAY_clusterThis::render() - activeVoxelCount () "
+                                     << outputGrid->activeVoxelCount() << std::endl;
+                           std::cout << "VRAY_clusterThis::render() - background: "
+                                     << outputGrid->background() << std::endl;
+
+//                           openvdb::FloatGrid::Accessor accessor = outputGrid->getAccessor();
+//
+//                           openvdb::Vec3i anIndex = outputGrid->worldToIndex(openvdb::Vec3d(-0.0168841, -2.81901, 0.0316872));
+//
+//                           openvdb::Coord xyz(1000, -200000000, 30000000);
+//                           openvdb::Coord xyz(anIndex);
+//                           accessor.setValue(xyz, 1.0);
+//                           -0.0168841, -2.81901, 0.0316872
+//                           std::cout << "outputGrid" << xyz << " = " << accessor.getValue(xyz) << std::endl;
+
+
+//
+//                     long int aCounter = 0;
+//
+//                           for(openvdb::ScalarGrid::ValueOnCIter iter = outputGrid->cbeginValueOn(); iter; ++iter)
+//                              {
+//                                 openvdb::Vec3d worldPos = outputGrid->indexToWorld(iter.getCoord());
+//                                 openvdb::CoordBBox bbox;
+//                                 iter.getBoundingBox(bbox);
+//                                 if(((long int)aCounter++ % 100) == 0) {
+//                                       std::cout << "outputGrid" << iter.getCoord() << " = " << *iter << "\t"
+//                                                 << "\tbbox: " << bbox
+//                                                 << "\tworldPos: " << worldPos << std::endl;
+//                                    }
+//                              }
+//
+
+                           // Insert the new grid into the ouput detail.
+                           UT_String gridNameStr = "My Cluster Grid";
+                           outputGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
+                           outputGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
+                           outputGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+                           outputGrid->insertMeta("background", openvdb::FloatMetadata(background));
+
+//    hvdb::createVdbPrimitive(*gdp, outputGrid, gridNameStr.toStdString().c_str());
+//    GU_PrimVDB (GU_Detail *gdp, GA_Offset offset=GA_INVALID_OFFSET)
+//    GU_PrimVDB (const GA_MergeMap &map, GA_Detail &detail, GA_Offset offset, const GA_Primitive &src_prim)
+
+
+                           UT_Vector3 inst_pos, seed_pos, currVel;
+                           const GA_PointGroup * sourceGroup = NULL;
+                           long int pt_counter = 0;
+                           float radius = 5.0f;
+
+                           std::cout << "VRAY_clusterThis::render() - Massaging data ... " << std::endl;
+
+                           long int pointsFound = 0;
+                           GEO_AttributeHandle inst_vel_gah = inst_gdp->getPointAttribute("v");
+                           GEO_AttributeHandle source_vel_gah = gdp->getPointAttribute("v");
+                           GEO_AttributeHandle inst_Cd_gah = inst_gdp->getPointAttribute("Cd");
+                           GEO_AttributeHandle source_Cd_gah = gdp->getPointAttribute("Cd");
+                           GEO_AttributeHandle inst_Alpha_gah = inst_gdp->getPointAttribute("Alpha");
+                           GEO_AttributeHandle source_Alpha_gah = gdp->getPointAttribute("Alpha");
+
+                           if(!inst_vel_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Instance velocity handle invalid, exiting ...", 1);
+                           if(!source_vel_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Source velocity handle invalid, exiting ...", 1);
+                           if(!inst_Cd_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Instance color handle invalid, exiting ...", 1);
+                           if(!source_Cd_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Source color handle invalid, exiting ...", 1);
+                           if(!inst_Alpha_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Instance alpha handle invalid, exiting ...", 1);
+                           if(!source_Alpha_gah.isAttributeValid())
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Source alpha handle invalid, exiting ...", 1);
+
+                           openvdb::FloatTree::ValueType sampleResult;
+                           openvdb::VectorGrid::ValueType gradResult;
+                           const openvdb::FloatTree aTree;
+                           myTreePtr = outputGrid->tree();
+
+                           openvdb::VectorGrid::Ptr gradientGrid = openvdb::VectorGrid::create();
+
+                           openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(outputGrid);
+
+                           gradientGrid = myGradient.process();
+                           myGradTreePtr = gradientGrid->tree();
+
+
+                           GA_FOR_ALL_GROUP_POINTS(inst_gdp, sourceGroup, ppt) {
+//                              myCurrPtOff = ppt->getMapOffset();
+//                              std::cout << "myCurrPtOff: " << myCurrPtOff << std::endl;
+
+                              inst_pos = ppt->getPos();
+
+// Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
+
+//                              openvdb::Vec3R theIndex =
+//                                 (openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
+                              openvdb::Vec3R theIndex =
+                                 outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
+
+// static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
+                              const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
+
+                              bool success = mySampler.sample(*myTreePtr, inst_sample_pos, sampleResult);
+
+                              gradSampler.sample(*myGradTreePtr, inst_sample_pos, gradResult);
+//
+//                              std::cout << "success: " << success << "\tinst_pos: " << inst_pos
+//                                        << "\tinst_sample_pos: " << inst_sample_pos
+//                                        << "\tsampleResult: " << sampleResult << std::endl;
+
+
+//ValueType    sampleWorld (const Vec3R &pt) const
+//ValueType    sampleWorld (Real x, Real y, Real z) const
+
+                              // if the instanced point is within the vdb volume
+                              if(success) {
+//                                    std::cout << "inst_pos: " << inst_pos << " inst_sample_pos: "
+//                                              << inst_sample_pos << " sampleResult: " << sampleResult
+//                                              << " gradResult: " << gradResult << std::endl;
+
+                                    radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+//                                    std::cout << "radius: " << radius << std::endl;
+
+//                                    float weight;
+                                    pointsFound++;
+
+                                    inst_vel_gah.setElement(ppt);
+                                    currVel = inst_vel_gah.getV3();
+
+//                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
+
+//                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
+                                    inst_vel_gah.setV3(currVel + UT_Vector3(gradResult[0], gradResult[1], gradResult[2]));
+
+//                                    std::cout << "currVel: " << currVel << " sampleResult " << sampleResult
+//                                              << " new vel: " <<  currVel * sampleResult << std::endl;
+
+//                                    inst_Cd_gah.setElement(ppt);
+//                                    inst_Cd_gah.setV3(inst_Cd_gah.getV3() * abs(sampleResult));
+//
+//
+//                                    inst_Alpha_gah.setElement(ppt);
+//                                    inst_Alpha_gah.setF(inst_Alpha_gah.getF() * abs(sampleResult));
+
+                                 } // if the instanced point is within the vdb volume
+
+                              pt_counter++;
+                              if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
+                                    cout << "VRAY_clusterThis::render() Number of points post processed: " << pt_counter
+                                         << "\t - Number of points found in vdb grid: " << pointsFound << std::endl;
+                                 }
+                           }
+
+
+                           if(!pointsFound)
+                              cout << "VRAY_clusterThis::render() NO POINTS POST PROCESSED!!! " << std::endl;
+
+                        }   //  if(paList.size() != 0)
+
+
+                  }
+
+
 
 
                if(myVerbose > CLUSTER_MSG_QUIET)
                   if(myMethod == CLUSTER_INSTANCE_NOW)
                      if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                         cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                             (fpreal)(inst_gdp->getMemoryUsage() + mb_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
+                             (fpreal)(inst_gdp->getMemoryUsage() + mb_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << std::endl;
                      else
                         cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                             (fpreal)(inst_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << endl;
+                             (fpreal)(inst_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << std::endl;
 
                // If the "instance all the geo at once method" is used, add the the instanced geo for mantra to render ...
                switch(myMethod) {
@@ -352,7 +585,7 @@ void VRAY_clusterThis::render()
 
                         if(myCVEX_Exec_post) {
                               if(myVerbose > CLUSTER_MSG_INFO)
-                                 cout << "VRAY_clusterThis::render() Executing Post Process CVEX code" << endl;
+                                 cout << "VRAY_clusterThis::render() Executing Post Process CVEX code" << std::endl;
                               VRAY_clusterThis::runCVEX(inst_gdp, mb_gdp, myCVEXFname_post, CLUSTER_CVEX_POINT);
                            }
                         VRAY_Procedural::openGeometryObject();
@@ -376,7 +609,7 @@ void VRAY_clusterThis::render()
                   }
 
                if(myVerbose > CLUSTER_MSG_QUIET && (myPrimType != CLUSTER_PRIM_CURVE))
-                  cout << "VRAY_clusterThis::render() Total number of instances: " << myInstanceNum << endl;
+                  cout << "VRAY_clusterThis::render() Total number of instances: " << myInstanceNum << std::endl;
 
                // Save the geo to temp location so it doesn't have to be regenerated for a deep shadow pass, etc.
                if(myMethod == CLUSTER_INSTANCE_NOW && myUseTempFile) {
@@ -388,7 +621,7 @@ void VRAY_clusterThis::render()
                      myGeoStream.flush();
                      myGeoStream.close();
                      if(myVerbose > CLUSTER_MSG_QUIET)
-                        cout << "VRAY_clusterThis::render() - Saved geometry to temp file: " << myTempFname << endl;
+                        cout << "VRAY_clusterThis::render() - Saved geometry to temp file: " << myTempFname << std::endl;
                   }
 
                if(myPrimType == CLUSTER_FILE)
@@ -403,14 +636,14 @@ void VRAY_clusterThis::render()
          // Geo has already been generated ...
          else {
                if(myVerbose > CLUSTER_MSG_QUIET)
-                  cout << "VRAY_clusterThis::render() - Already generated geometry, reading temp geo file: " << myTempFname << endl;
+                  cout << "VRAY_clusterThis::render() - Already generated geometry, reading temp geo file: " << myTempFname << std::endl;
                inst_gdp = VRAY_Procedural::allocateGeometry();
                UT_Options myOptions;
 
                // If the file failed to load, throw an exception
                if((inst_gdp->load((const char *)myTempFname).success())) {
                      if(myVerbose > CLUSTER_MSG_QUIET)
-                        cout << "VRAY_clusterThis::render() - Successfully loaded temp geo file: " << myTempFname << endl;
+                        cout << "VRAY_clusterThis::render() - Successfully loaded temp geo file: " << myTempFname << std::endl;
                   }
                else
                   throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read temp geometry file ", 1);
@@ -427,7 +660,7 @@ void VRAY_clusterThis::render()
                //   mb_gdp = allocateGeometry();
 
                // if(!mb_gdp->load((const char *)myTempFname, &myOptions))
-               //  cout << "VRAY_clusterThis::render() - Successfully loaded temp geo file for deformation motion blur: " << myTempFname << endl;
+               //  cout << "VRAY_clusterThis::render() - Successfully loaded temp geo file for deformation motion blur: " << myTempFname << std::endl;
                // else
                //      throw VRAY_clusterThis_Exception ("VRAY_clusterThis::render() - Failed to read temp geometry file ", 1 );
 
@@ -446,7 +679,7 @@ void VRAY_clusterThis::render()
    // Process exceptions ...
    catch(VRAY_clusterThis_Exception e) {
          e.what();
-         cout << "VRAY_clusterThis::render() - Exception encountered, copying incoming geometry" << endl << endl;
+         cout << "VRAY_clusterThis::render() - Exception encountered, copying incoming geometry" << std::endl << std::endl;
          if(gdp)
             VRAY_Procedural::freeGeometry(gdp);
          if(inst_gdp)
@@ -465,7 +698,7 @@ void VRAY_clusterThis::render()
 
 
    catch(...) {
-         cout << "VRAY_clusterThis::render() - Unknown exception encountered, freeing geometry and exiting" << endl << endl;
+         cout << "VRAY_clusterThis::render() - Unknown exception encountered, freeing geometry and exiting" << std::endl << std::endl;
          freeGeometry(gdp);
          freeGeometry(inst_gdp);
          if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
@@ -475,7 +708,7 @@ void VRAY_clusterThis::render()
 
 
    if(myVerbose > CLUSTER_MSG_QUIET)
-      cout << "VRAY_clusterThis::render() - Leaving render() method" << endl;
+      cout << "VRAY_clusterThis::render() - Leaving render() method" << std::endl;
 
    return;
 
@@ -486,66 +719,5 @@ void VRAY_clusterThis::render()
 #endif
 
 
-/**********************************************************************************/
-//  $Log: VRAY_clusterThisRender.C,v $
-//  Revision 1.17  2012-09-09 05:00:55  mstory
-//  More cleanup and testing.
-//
-//  Revision 1.16  2012-09-07 15:39:23  mstory
-//   Removed all volume instancing (used in different project) and continu… …
-//
-//  …ed H12 modifications.
-//
-//  --mstory
-//
-//  Revision 1.15  2012-09-05 23:02:39  mstory
-//  Modifications for H12.
-//
-//  Revision 1.14  2012-09-04 03:25:28  mstory
-//  .
-//
-//  Revision 1.11  2011-02-15 00:59:15  mstory
-//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
-//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
-//
-//
-//  --mstory
-//
-//  Revision 1.10  2011-02-06 22:35:15  mstory
-//  Fixed the exit processing function.
-//
-//  Ready for release 1.5.1
-//
-//  Revision 1.9  2011-02-06 19:49:15  mstory
-//  Modified for Houdini version 11.
-//
-//  Refactored a lot of the attribute code, cleaned up odds and ends.
-//
-//  Revision 1.8  2010-04-12 06:39:42  mstory
-//  Finished CVEX modifications.
-//
-//  Revision 1.7  2010-04-10 10:11:42  mstory
-//  Added additional CVEX processing.  Fixed a few annoying bugs.  Adding external disk geo source.
-//
-//  Revision 1.6  2010-02-26 08:06:32  mstory
-//  Adding more CVEX options.
-//
-//  Revision 1.5  2010-02-23 08:36:22  mstory
-//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
-//
-//  Revision 1.4  2009-11-20 14:59:57  mstory
-//  Release 1.4.7 ready.
-//
-//  Revision 1.3  2009-11-19 16:26:51  mstory
-//  Adding point inst id to child objects (for deferred instancing), need to add to prims as well.
-//
-//  Revision 1.2  2009-11-16 17:47:12  mstory
-//  Fixed the curve instancing, still need to determine all attribites required for the curve (i.e. width)
-//
-//  Revision 1.1  2009-11-16 08:35:03  mstory
-//  Created seperate source files for some of the functions in VRAY_clusterThis.C.
-//
-
-/**********************************************************************************/
 
 

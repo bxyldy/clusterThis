@@ -412,6 +412,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    std::cout << "VRAY_clusterThis::instanceCircle()" << std::endl;
 #endif
 
+
    UT_Matrix4 xform(1.0);
    GU_PrimCircle * circle;
    GU_PrimCircleParms circle_parms;

@@ -26,10 +26,42 @@
 *
 ***************************************************************************** */
 
+///////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2012 DreamWorks Animation LLC
+//
+// All rights reserved. This software is distributed under the
+// Mozilla Public License 2.0 ( http://www.mozilla.org/MPL/2.0/ )
+//
+// Redistributions of source code must retain the above copyright
+// and license notice and the following restrictions and disclaimer.
+//
+// *     Neither the name of DreamWorks Animation nor the names of
+// its contributors may be used to endorse or promote products derived
+// from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE
+// LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00.
+//
+///////////////////////////////////////////////////////////////////////////
+//
+
 #ifndef __VRAY_clusterThis_C__
 #define __VRAY_clusterThis_C__
 
 #include <GU/GU_Detail.h>
+#include <GEO/GEO_PointTree.h>
 #include <GEO/GEO_Primitive.h>
 #include <GU/GU_PrimCircle.h>
 #include <GU/GU_PrimSphere.h>
@@ -67,29 +99,121 @@
 #include <ios>
 #include <assert.h>
 
-#define DCA_VERSION "2.0.0"
+#include <openvdb/openvdb.h>
+#include <openvdb/tools/LevelSetSphere.h>
+#include <openvdb/tools/LevelSetUtil.h>
+#include <openvdb/tools/ParticlesToLevelSet.h>
+#include <openvdb/tools/GridTransformer.h>
+#include <openvdb/tools/GridSampling.h>
+#include <openvdb/tools/Gradient.h>
 
-#include "VRAY_clusterThis.h"
-#include "VRAY_clusterThisChild.h"
-#include "VRAY_clusterThisChild.C"
-#include "VRAY_clusterThisRender.C"
-#include "VRAY_clusterThisInstance.C"
-#include "VRAY_clusterThisAttributeUtils.C"
-#include "VRAY_clusterCVEXUtil.C"
-#include "VRAY_clusterThisRunCVEX.C"
+#include <houdini_utils/ParmFactory.h>
+#include <openvdb_houdini/Utils.h>
+#include <openvdb_houdini/SOP_NodeVDB.h>
+#include <openvdb_houdini/GU_PrimVDB.h>
+
+namespace hvdb = openvdb_houdini;
+namespace hutil = houdini_utils;
 
 class VRAY_clusterThisChild;
+class VRAY_clusterThis_Exception;
 
 
-
-
-static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
+namespace
 {
+
+// This class is required by openvdb::tools::ParticlesToLeveSet
+   class ParticleList
+   {
+      public:
+         ParticleList(const GA_Detail * gdp,
+                      openvdb::Real radiusMult = 1,
+                      openvdb::Real velocityMult = 1) :
+            mGdp(gdp),
+            mScaleHandle(gdp, GEO_POINT_DICT, "radius"),
+            mVelHandle(gdp, GEO_POINT_DICT, "v"),
+            mHasRadius(mScaleHandle.isValid()),
+            mHasVelocity(mVelHandle.isValid()),
+            mRadiusMult(radiusMult),
+            mVelocityMult(velocityMult) {
+         }
+
+         bool hasRadius()   const {
+            return mHasRadius;
+         }
+         bool hasVelocity() const {
+            return mHasVelocity;
+         }
+
+         // The public methods below are the only ones required
+         // by tools::ParticlesToLevelSet
+         size_t size() const {
+            return mGdp->getNumPoints();
+         }
+         openvdb::Vec3R pos(int n) const {
+            UT_Vector3 p = mGdp->getPos3(this->offset(n));
+            return openvdb::Vec3R(p[0], p[1], p[2]);
+         }
+         openvdb::Vec3R vel(int n) const {
+            if(!mHasVelocity)
+               return openvdb::Vec3R(0, 0, 0);
+            UT_Vector3 v = mVelHandle.get(this->offset(n));
+            return mVelocityMult * openvdb::Vec3R(v[0], v[1], v[2]);
+         }
+         openvdb::Real radius(int n) const {
+            if(!mHasRadius)
+               return mRadiusMult;
+            return mRadiusMult * mScaleHandle.get(this->offset(n));
+         }
+
+      protected:
+         GA_Offset offset(int n) const {
+            return mGdp->pointOffset(n);
+         }
+
+         const GA_Detail  *  mGdp;
+         GA_ROHandleF        mScaleHandle;
+         GA_ROHandleV3       mVelHandle;
+         const bool          mHasRadius, mHasVelocity;
+         const openvdb::Real mRadiusMult; // multiplier for radius
+         const openvdb::Real mVelocityMult; // multiplier for velocity
+   };// ParticleList
+
+// Convenient settings struct
+   struct Settings {
+      Settings(): mRasterizeTrails(false), mFogVolume(false), mDx(1.0), mGradientWidth(-1.0) {}
+      bool mRasterizeTrails, mFogVolume;
+      float mDx, mGradientWidth;
+   };
+
+} // unnamed namespace
+
+
+
+
+namespace dca
+{
+
+   static short int myPasses(int mode)
+   {
+      static short int num_passes; // keep track of how many times the DSO gets called
+      if(mode)
+         return num_passes;
+      else
+         num_passes++;
+      return 0;
+
+   }
+
+
+
+   static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
+   {
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewPosition() i: " << i << " j: " << j << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() i: " << i << " j: " << j << endl;
 #endif
 
-   // Calculate a new position for the object ...
+      // Calculate a new position for the object ...
 //   fpreal delta = theta * i;
 //   fpreal dx, dy, dz = 0.0;
 //   dx = SYSsin(delta * myFreqX + myOffsetX);
@@ -97,21 +221,21 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
 //   dz = SYScos(delta * myFreqZ + myOffsetZ);
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewPosition() " << "delta: " << delta << endl;
-   cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() " << "delta: " << delta << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
 #endif
 
 //   myNoise.setSeed(myPointAttributes.id);
 
-   // Calculate a bit of noise to add to the new position ...
-   // TODO:
+      // Calculate a bit of noise to add to the new position ...
+      // TODO:
 //   fpreal noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
 
-   // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
-   // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
+      // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
+      // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
 #endif
 
 //   // Calculate the new object's position
@@ -131,55 +255,82 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
 //   }
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewPosition() myPos:   "
-        << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
-   cout << "VRAY_clusterThis::calculateNewPosition() newPos: "
-        << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() myPos:   "
+           << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
+      cout << "VRAY_clusterThis::calculateNewPosition() newPos: "
+           << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
 #endif
 
-   return 0;
+      return 0;
 
-}
-
-
-static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
-                               const GEO_Point * point, const UT_Vector3 & sprite_scale,
-                               const GA_ROAttributeRef & voff,
-                               fpreal tscale, const UT_Matrix4 & xform)
-{
-   fpreal     maxradius;
-   static fpreal isin45 = 1.0F / SYSsin(M_PI/4);
-   UT_Vector3    pt;
-
-   maxradius = SYSmax(sprite_scale.x(), sprite_scale.y()) * isin45 * 0.5F;
-
-   pt = UT_Vector3(-maxradius, -maxradius, 0)*xform;
-   box.initBounds(pt);
-   pt = UT_Vector3(-maxradius,  maxradius, 0)*xform;
-   box.enlargeBounds(pt);
-   pt = UT_Vector3(maxradius, -maxradius, 0)*xform;
-   box.enlargeBounds(pt);
-   pt = UT_Vector3(maxradius,  maxradius, 0)*xform;
-   box.enlargeBounds(pt);
-
-   box.translate(point->getPos());
-   vbox = box;
-
-   if (voff.isValid()) {
-      UT_Vector3  vel;
-      int      i;
-      fpreal      amount;
-
-      vel = point->getValue<UT_Vector3>(voff);
-      for (i = 0; i < 3; i++) {
-         amount = vel(i) * tscale;
-         if (amount < 0)
-            vbox.vals[i][1] -= amount;
-         else vbox.vals[i][0] -= amount;
-
-      }
    }
+
+
+
+   static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
+                                  const GEO_Point * point, const UT_Vector3 & sprite_scale,
+                                  const GA_ROAttributeRef & voff,
+                                  fpreal tscale, const UT_Matrix4 & xform)
+   {
+      fpreal     maxradius;
+      static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);
+      UT_Vector3    pt;
+
+      maxradius = SYSmax(sprite_scale.x(), sprite_scale.y()) * isin45 * 0.5F;
+
+      pt = UT_Vector3(-maxradius, -maxradius, 0) * xform;
+      box.initBounds(pt);
+      pt = UT_Vector3(-maxradius,  maxradius, 0) * xform;
+      box.enlargeBounds(pt);
+      pt = UT_Vector3(maxradius, -maxradius, 0) * xform;
+      box.enlargeBounds(pt);
+      pt = UT_Vector3(maxradius,  maxradius, 0) * xform;
+      box.enlargeBounds(pt);
+
+      box.translate(point->getPos());
+      vbox = box;
+
+      if(voff.isValid()) {
+            UT_Vector3  vel;
+            int      i;
+            fpreal      amount;
+
+            vel = point->getValue<UT_Vector3>(voff);
+            for(i = 0; i < 3; i++) {
+                  amount = vel(i) * tscale;
+                  if(amount < 0)
+                     vbox.vals[i][1] -= amount;
+                  else
+                     vbox.vals[i][0] -= amount;
+
+               }
+         }
+   }
+
+
 }
+
+using namespace dca;
+
+
+
+// TODO: Ahh yes, the ol' order of include issues ... figure out the issue with declaring the static(s) & namespace above
+// and how it's interfering with the include files below ... oy!
+
+#include "version.h"
+#include "VRAY_clusterThis.h"
+#include "VRAY_clusterThisChild.h"
+#include "VRAY_clusterThisChild.C"
+#include "VRAY_clusterThisRender.C"
+#include "VRAY_clusterThisInstance.C"
+#include "VRAY_clusterThisAttributeUtils.C"
+#include "VRAY_clusterCVEXUtil.C"
+#include "VRAY_clusterThisRunCVEX.C"
+
+
+
+
+
 
 
 /* ******************************************************************************
@@ -199,7 +350,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("use_geo_file", "integer", "0"),
    VRAY_ProceduralArg("src_geo_file", "string", "default.bgeo"),
    VRAY_ProceduralArg("num_copy", "integer", "10"),
-   VRAY_ProceduralArg("recursion","integer", "2"),
+   VRAY_ProceduralArg("recursion", "integer", "2"),
    VRAY_ProceduralArg("radius",    "real",  "0.1"),
    VRAY_ProceduralArg("size",  "real", "0.01 0.01 0.01"),
    VRAY_ProceduralArg("freq",    "real",  "1.0 1.0 1.0"),
@@ -211,15 +362,15 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("mb_shutter2", "real", "0.9"),
    VRAY_ProceduralArg("verbose", "integer", "0"),
    VRAY_ProceduralArg("time", "real",  "0.0"),
-   VRAY_ProceduralArg("noise_type","integer", "0"),
+   VRAY_ProceduralArg("noise_type", "integer", "0"),
    VRAY_ProceduralArg("noise_amp", "real", "0.1"),
-   VRAY_ProceduralArg("noise_rough","real", "0.1"),
-   VRAY_ProceduralArg("noise_atten","real", "0.0"),
-   VRAY_ProceduralArg("noise_seed","integer", "7"),
-   VRAY_ProceduralArg("noise_fractal_depth","integer", "3"),
-   VRAY_ProceduralArg("copy_attrs","integer", "1"),
-   VRAY_ProceduralArg("speed_stretch","real", "0.0 0.0 0.0"),
-   VRAY_ProceduralArg("blend_attrs","integer", "0"),
+   VRAY_ProceduralArg("noise_rough", "real", "0.1"),
+   VRAY_ProceduralArg("noise_atten", "real", "0.0"),
+   VRAY_ProceduralArg("noise_seed", "integer", "7"),
+   VRAY_ProceduralArg("noise_fractal_depth", "integer", "3"),
+   VRAY_ProceduralArg("copy_attrs", "integer", "1"),
+   VRAY_ProceduralArg("speed_stretch", "real", "0.0 0.0 0.0"),
+   VRAY_ProceduralArg("blend_attrs", "integer", "0"),
    VRAY_ProceduralArg("geo_file", "string", "default.bgeo"),
    VRAY_ProceduralArg("CVEX_shader", "string", "default.vex"),
    VRAY_ProceduralArg("CVEX_exec", "integer", "0"),
@@ -229,15 +380,15 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("CVEX_exec_pre", "integer", "0"),
    VRAY_ProceduralArg("CVEX_shader_post", "string", "default.vex"),
    VRAY_ProceduralArg("CVEX_exec_post", "integer", "0"),
-   VRAY_ProceduralArg("filter_type","integer", "0"),
-   VRAY_ProceduralArg("filter_amp","real", "0.0"),
-   VRAY_ProceduralArg("volume_data_1","string", "file.vol"),
-   VRAY_ProceduralArg("volume_data_2","string", "file.vol"),
-   VRAY_ProceduralArg("volume_data_3","string", "file.vol"),
-   VRAY_ProceduralArg("temp_file_path","string", "/tmp/geo/"),
+   VRAY_ProceduralArg("filter_type", "integer", "0"),
+   VRAY_ProceduralArg("filter_amp", "real", "0.0"),
+   VRAY_ProceduralArg("volume_data_1", "string", "file.vol"),
+   VRAY_ProceduralArg("volume_data_2", "string", "file.vol"),
+   VRAY_ProceduralArg("volume_data_3", "string", "file.vol"),
+   VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
    VRAY_ProceduralArg("temp_file", "integer", "0"),
    VRAY_ProceduralArg("save_temp_file", "integer", "0"),
-   VRAY_ProceduralArg("otl_version","string", DCA_VERSION),
+   VRAY_ProceduralArg("otl_version", "string", "DCA_VERSION"),
 
    VRAY_ProceduralArg("Cd_pt", "integer", "0"),
    VRAY_ProceduralArg("Alpha_pt", "integer", "0"),
@@ -266,6 +417,20 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("cvex_pscale_prim", "integer", "0"),
    VRAY_ProceduralArg("cvex_weight_prim", "integer", "0"),
    VRAY_ProceduralArg("cvex_width_prim", "integer", "0"),
+
+
+   VRAY_ProceduralArg("post_process", "integer", "1"),
+   VRAY_ProceduralArg("raster_type", "integer", "0"),
+   VRAY_ProceduralArg("ws_units", "integer", "1"),
+   VRAY_ProceduralArg("fog_volume", "integer", "0"),
+   VRAY_ProceduralArg("dx", "real", "1.0"),
+   VRAY_ProceduralArg("gradient_width", "real", "0.5"),
+   VRAY_ProceduralArg("voxel_size", "real", "0.025"),
+   VRAY_ProceduralArg("radius_min", "real", "1.5"),
+   VRAY_ProceduralArg("bandwidth", "real", "0.2"),
+   VRAY_ProceduralArg("falloff", "real", "0.5"),
+   VRAY_ProceduralArg("pos_influence", "real", "0.1"),
+
 
    VRAY_ProceduralArg()
 };
@@ -349,10 +514,62 @@ VRAY_clusterThis_Exception::VRAY_clusterThis_Exception(std::string msg, int code
 ***************************************************************************** */
 void VRAY_clusterThis::exitClusterThis(void * data)
 {
-//   if (myVerbose > CLUSTER_MSG_INFO)
-//      std::cout << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+   std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+
    VRAY_clusterThis * me = (VRAY_clusterThis *)data;
-   me->exitClusterThisReal((const char *)me->myTempFname);
+
+//   if(me->myVerbose > CLUSTER_MSG_INFO)
+//      cout << "VRAY_clusterThis::exitClusterThis() myTempFname: " << (const char *)me->myTempFname << endl;
+
+
+//   if(me->tempFileDeleted) {
+//         me->tempFileDeleted = true;
+//         cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
+////         me->exitClusterThisReal((const char *)me->myTempFname);
+//         me->exitClusterThisReal(data);
+//      }
+
+
+   if(me->myVerbose > CLUSTER_MSG_INFO)
+      cout << "VRAY_clusterThis::exitClusterThis() - Running exit processing" << endl;
+
+//   cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
+//
+//   cout << "VRAY_clusterThis::exitClusterThis() - temp filename " << me->myTempFname << endl;
+
+//   const char * fname = me->myTempFname;
+//
+////   ofstream myStream;
+//
+////   myStream.open("exit_data.txt", ios_base::app);
+////   myStream << this->exitData.exitTime << std::endl;
+////   myStream << this->exitData.exitCode << std::endl;
+////   myStream.flush();
+////   myStream.close();
+////   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
+////
+//
+//   struct stat fileResults;
+//
+//   if(me->myUseTempFile && !me->mySaveTempFile) {
+//         if((UT_String(fname)).isstring() && stat(fname, &fileResults) == 0) {
+//               if(me->myVerbose > CLUSTER_MSG_INFO)
+//                  cout << "VRAY_clusterThis::exitClusterThis() - Found temp file " << fname << endl;
+//               if(!remove(fname) && (me->myVerbose > CLUSTER_MSG_INFO))
+//                  cout << "VRAY_clusterThis::exitClusterThis() - Removed geometry temp file: " << fname << endl;
+//            }
+//         else
+//            if(me->myVerbose > CLUSTER_MSG_INFO)
+//               cout << "VRAY_clusterThis::exitClusterThis() - Did not find temp file " << fname << endl << endl;
+//      }
+//
+//
+
+   const char * fname = me->myTempFname;
+
+   me->exitClusterThisReal(fname);
+//         me->exitClusterThisReal(data);
+
 }
 
 
@@ -367,35 +584,140 @@ void VRAY_clusterThis::exitClusterThis(void * data)
 *  Return Value :
 *
 * ***************************************************************************** */
+//void VRAY_clusterThis::exitClusterThisReal(void * data)
 void VRAY_clusterThis::exitClusterThisReal(const char * fname)
 {
    struct stat fileResults;
+//   VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
-   if (myVerbose > CLUSTER_MSG_INFO)
+
+   if(myVerbose > CLUSTER_MSG_INFO)
       cout << "VRAY_clusterThis::exitClusterThisReal() - Running exit processing" << endl;
 
-//    ofstream myStream;
-//
+   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
+
+   cout << "VRAY_clusterThis::exitClusterThisReal() - temp filename " << myTempFname << endl;
+
+//   const char * fname = me->myTempFname;
+
+//   ofstream myStream;
+
 //   myStream.open("exit_data.txt", ios_base::app);
 //   myStream << this->exitData.exitTime << std::endl;
 //   myStream << this->exitData.exitCode << std::endl;
 //   myStream.flush();
 //   myStream.close();
-//      cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
+//   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
+//
 
-   if (this->myUseTempFile && !this->mySaveTempFile) {
-      if ((UT_String(fname)).isstring() && stat(fname, &fileResults)==0) {
-         if (myVerbose > CLUSTER_MSG_INFO)
-            cout << "VRAY_clusterThis::exitClusterThisReal() - Found temp file " << fname << endl;
-         if (!remove(fname) && (myVerbose > CLUSTER_MSG_INFO))
-            cout << "VRAY_clusterThis::exitClusterThisReal() - Removed geometry temp file: " << fname << endl;
-      } else if (myVerbose > CLUSTER_MSG_INFO)
-         cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << fname << endl << endl;
-   }
 
-   if (myVerbose > CLUSTER_MSG_INFO)
+   if(this->myUseTempFile && !this->mySaveTempFile) {
+         if((UT_String(fname)).isstring() && stat(fname, &fileResults) == 0) {
+               if(myVerbose > CLUSTER_MSG_INFO)
+                  cout << "VRAY_clusterThis::exitClusterThisReal() - Found temp file " << fname << endl;
+               if(!remove(fname) && (myVerbose > CLUSTER_MSG_INFO))
+                  cout << "VRAY_clusterThis::exitClusterThisReal() - Removed geometry temp file: " << fname << endl;
+            }
+         else
+            if(myVerbose > CLUSTER_MSG_INFO)
+               cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << fname << endl << endl;
+      }
+
+
+
+   if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::exitClusterThisReal() - Exiting" << std::endl;
 }
+
+
+
+
+
+/* ******************************************************************************
+*  Function Name : convert()
+*
+*  Description : convert point cloud to VDB level set or fog volume
+*
+*  Input Arguments : None
+*
+*  Return Value :
+*
+* ***************************************************************************** */
+void VRAY_clusterThis::convert(
+   openvdb::ScalarGrid::Ptr outputGrid,
+   ParticleList & paList,
+   const Settings & settings,
+   hvdb::Interrupter & boss)
+{
+//    openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList> raster(*outputGrid);
+   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, &boss);
+
+//   std::cout << "VRAY_clusterThis::convert() " << std::endl;
+   std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+   std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
+   std::cout << "VRAY_clusterThis::convert(): raster.getVoxelSize(): " << raster.getVoxelSize() << std::endl;
+
+   raster.setRmin(myRadiusMin);
+
+   std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
+   std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+
+   if(raster.getHalfWidth() < openvdb::Real(2)) {
+         std::cout << "VRAY_clusterThis::convert: Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
+      }
+   else
+      if(raster.getHalfWidth() > openvdb::Real(1000)) {
+            throw std::runtime_error(
+               "VRAY_clusterThis::convert: Half width of narrow-band > 1000 voxels which exceeds memory limitations!");
+         }
+
+   if(settings.mRasterizeTrails && paList.hasVelocity()) {
+         std::cout << "rasterizing trails"  << std::endl;
+         raster.rasterizeTrails(paList, settings.mDx);
+      }
+   else {
+         std::cout << "VRAY_clusterThis::convert: rasterizing spheres"  << std::endl;
+         raster.rasterizeSpheres(paList);
+      }
+
+   if(boss.wasInterrupted()) {
+         std::cout << "VRAY_clusterThis::convert: Process was interrupted"  << std::endl;
+         return;
+      }
+
+   // Convert the level-set into a fog volume.
+   if(settings.mFogVolume) {
+         std::cout << "coverting to fog volume"  << std::endl;
+         float cutOffDist = std::numeric_limits<float>::max();
+         if(settings.mGradientWidth > 1e-6)
+            cutOffDist = settings.mGradientWidth;
+         openvdb::tools::levelSetToFogVolume(outputGrid, cutOffDist, false);
+      }
+
+// print stats of the vdb grid
+   if(myVerbose > CLUSTER_MSG_INFO)
+      outputGrid->print();
+
+}
+
+
+
+
+int VRAY_clusterThis::convertVDBUnits()
+{
+//     const bool toWSUnits = static_cast<bool>(evalInt("worldSpaceUnits", 0, 0));
+//
+//     if (toWSUnits) {
+//         setFloat("bandWidthWS", 0, 0, evalFloat("bandWidth", 0, 0) * mVoxelSize);
+//         return 1;
+//     }
+//
+//     setFloat("bandWidth", 0, 0, evalFloat("bandWidthWS", 0, 0) / mVoxelSize);
+//
+   return 1;
+}
+
+
 
 
 /* ******************************************************************************
@@ -440,7 +762,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    mySize[2] = 0.0;
    myDoMotionBlur = CLUSTER_MB_NONE;
    myCurrentTime = 0.0;
-   myShutter      = 0.1;
+   myShutter = 0.1;
    myNoiseAmp = 0.0;
    myFilterType = 0;
    myFilterAmp = 0.0;
@@ -476,6 +798,20 @@ VRAY_clusterThis::VRAY_clusterThis()
    myCVEXPrimVars.cvex_weight_prim = 0;
    myCVEXPrimVars.cvex_width_prim = 0;
 
+// VDB parms
+   myPostProcess = 0;
+   myRasterType = 0;
+   myDx = 1.0;
+   myFogVolume = 0;
+   myGradientWidth = 0.5;
+   myVoxelSize = 0.025;
+   myRadiusMin = 1.5;
+   myBandWidth = 0.2;
+   myWSUnits = 1;
+   myFalloff = 0.5;
+   myPosInfluence = 0.1;
+
+
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
 
@@ -484,12 +820,10 @@ VRAY_clusterThis::VRAY_clusterThis()
    int exitCallBackStatus = -1;
    exitCallBackStatus = UT_Exit::addExitCallback(VRAY_clusterThis::exitClusterThis, (void *)this);
 
-   if ((exitCallBackStatus != 1) && exitCallBackStatus != 0) {
-      std::cout << "VRAY_clusterThis::VRAY_clusterThis() - error adding ExitCallback() - exitCallBackStatus = " << std::hex
-                << exitCallBackStatus << std::dec << std::endl;
-   }
-
-//    exitCallBackStatus = 0;
+   if((exitCallBackStatus != 1) && exitCallBackStatus != 0) {
+         std::cout << "VRAY_clusterThis::VRAY_clusterThis() - error adding ExitCallback() - exitCallBackStatus = " << std::hex
+                   << exitCallBackStatus << std::dec << std::endl;
+      }
 
 #ifdef DEBUG
    std::cout << "VRAY_clusterThis::VRAY_clusterThis() - exitCallBackStatus: " << std::hex << exitCallBackStatus <<  std::dec << std::endl;
@@ -545,10 +879,10 @@ const char * VRAY_clusterThis::getClassName()
 ***************************************************************************** */
 int VRAY_clusterThis::initialize(const UT_BoundingBox *)
 {
-   if (myVerbose > CLUSTER_MSG_INFO)
+   if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
 
-   UT_String geo_fname, temp_fname, cvex_fname, otl_version;
+//   UT_String geo_fname, temp_fname, cvex_fname, otl_version;
    const int * int_ptr;
    const fpreal * flt_ptr;
    const char ** char_handle;
@@ -557,7 +891,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
    // shutter time (in seconds) on a per object basis.  It's used primarily
    // for velocity blur.
 
-   if (!import("object:velocityscale", &myVelocityScale, 1))
+   if(!import("object:velocityscale", &myVelocityScale, 1))
       myVelocityScale = 0;
 
 //const int *  getIParm (const char *name) const
@@ -572,206 +906,244 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
 
    // Get OTL parameters
 
-   if (flt_ptr = VRAY_Procedural::getFParm("minbound")) {
-      bb_x1 = *flt_ptr++;
-      bb_y1 = *flt_ptr++;
-      bb_z1 = *flt_ptr;
-      myBox.initBounds(bb_x1, bb_y1, bb_z1);
-   }
+   if(flt_ptr = VRAY_Procedural::getFParm("minbound")) {
+         bb_x1 = *flt_ptr++;
+         bb_y1 = *flt_ptr++;
+         bb_z1 = *flt_ptr;
+         myBox.initBounds(bb_x1, bb_y1, bb_z1);
+      }
 
-   if (flt_ptr = VRAY_Procedural::getFParm("maxbound")) {
-      bb_x2 = *flt_ptr++;
-      bb_y2 = *flt_ptr++;
-      bb_z2 = *flt_ptr;
-      myBox.enlargeBounds(bb_x2, bb_y2, bb_z2);
-   }
+   if(flt_ptr = VRAY_Procedural::getFParm("maxbound")) {
+         bb_x2 = *flt_ptr++;
+         bb_y2 = *flt_ptr++;
+         bb_z2 = *flt_ptr;
+         myBox.enlargeBounds(bb_x2, bb_y2, bb_z2);
+      }
 
-   if (int_ptr = VRAY_Procedural::getIParm("prim_type"))
+   if(int_ptr = VRAY_Procedural::getIParm("prim_type"))
       myPrimType = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("num_copy"))
+   if(int_ptr = VRAY_Procedural::getIParm("num_copy"))
       myNumCopies = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("recursion"))
+   if(int_ptr = VRAY_Procedural::getIParm("recursion"))
       myRecursion = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("add_proc"))
+   if(int_ptr = VRAY_Procedural::getIParm("add_proc"))
       myMethod = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("motion_blur"))
+   if(int_ptr = VRAY_Procedural::getIParm("motion_blur"))
       myDoMotionBlur = *int_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("mb_shutter"))
+   if(flt_ptr = VRAY_Procedural::getFParm("mb_shutter"))
       myShutter = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("mb_shutter2"))
+   if(flt_ptr = VRAY_Procedural::getFParm("mb_shutter2"))
       myShutter2 = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("radius"))
+   if(flt_ptr = VRAY_Procedural::getFParm("radius"))
       myRadius = *flt_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("noise_type"))
+   if(int_ptr = VRAY_Procedural::getIParm("noise_type"))
       myNoiseType = static_cast<UT_Noise::UT_NoiseType>(*int_ptr);
 
-   if (flt_ptr = VRAY_Procedural::getFParm("freq")) {
-      myFreqX = *flt_ptr++;
-      myFreqY = *flt_ptr++;
-      myFreqZ = *flt_ptr;
-   }
+   if(flt_ptr = VRAY_Procedural::getFParm("freq")) {
+         myFreqX = *flt_ptr++;
+         myFreqY = *flt_ptr++;
+         myFreqZ = *flt_ptr;
+      }
 
-   if (flt_ptr = VRAY_Procedural::getFParm("offset")) {
-      myOffsetX = *flt_ptr++;
-      myOffsetY = *flt_ptr++;
-      myOffsetZ = *flt_ptr;
-   }
+   if(flt_ptr = VRAY_Procedural::getFParm("offset")) {
+         myOffsetX = *flt_ptr++;
+         myOffsetY = *flt_ptr++;
+         myOffsetZ = *flt_ptr;
+      }
 
-   if (flt_ptr = VRAY_Procedural::getFParm("radius"))
+   if(flt_ptr = VRAY_Procedural::getFParm("radius"))
       myRadius = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("noise_rough"))
+   if(flt_ptr = VRAY_Procedural::getFParm("noise_rough"))
       myRough = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("size")) {
-      mySize[0] = *flt_ptr++;
-      mySize[1] = *flt_ptr++;
-      mySize[2] = *flt_ptr;
-   }
+   if(flt_ptr = VRAY_Procedural::getFParm("size")) {
+         mySize[0] = *flt_ptr++;
+         mySize[1] = *flt_ptr++;
+         mySize[2] = *flt_ptr;
+      }
 
-   if (flt_ptr = VRAY_Procedural::getFParm("birth_prob"))
+   if(flt_ptr = VRAY_Procedural::getFParm("birth_prob"))
       myBirthProb = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("time"))
+   if(flt_ptr = VRAY_Procedural::getFParm("time"))
       myCurrentTime = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("noise_amp"))
+   if(flt_ptr = VRAY_Procedural::getFParm("noise_amp"))
       myNoiseAmp = *flt_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("filter_type"))
+   if(int_ptr = VRAY_Procedural::getIParm("filter_type"))
       myFilterType = *int_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("filter_amp"))
+   if(flt_ptr = VRAY_Procedural::getFParm("filter_amp"))
       myFilterAmp = *flt_ptr;
 
-   if (flt_ptr = VRAY_Procedural::getFParm("noise_atten"))
+   if(flt_ptr = VRAY_Procedural::getFParm("noise_atten"))
       myNoiseAtten = *flt_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("noise_seed"))
+   if(int_ptr = VRAY_Procedural::getIParm("noise_seed"))
       myNoiseSeed = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("noise_fractal_depth"))
+   if(int_ptr = VRAY_Procedural::getIParm("noise_fractal_depth"))
       myFractalDepth = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("copy_attrs"))
+   if(int_ptr = VRAY_Procedural::getIParm("copy_attrs"))
       myCopyAttrs = bool (*int_ptr);
 
-   if (int_ptr = VRAY_Procedural::getIParm("blend_attrs"))
+   if(int_ptr = VRAY_Procedural::getIParm("blend_attrs"))
       myBlendAttrs = bool (*int_ptr);
 
-   if (int_ptr = VRAY_Procedural::getIParm("use_geo_file"))
+   if(int_ptr = VRAY_Procedural::getIParm("use_geo_file"))
       myUseGeoFile = bool (*int_ptr);
 
-   if (char_handle = VRAY_Procedural::getSParm("src_geo_file")) {
-      mySrcGeoFname = (UT_String)(*char_handle);
-      mySrcGeoFname.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("src_geo_file")) {
+         mySrcGeoFname = (UT_String)(*char_handle);
+         mySrcGeoFname.harden();
+      }
 
 
-   if (char_handle = VRAY_Procedural::getSParm("geo_file")) {
-      myGeoFile = (UT_String)(*char_handle);
-      myGeoFile.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("geo_file")) {
+         myGeoFile = (UT_String)(*char_handle);
+         myGeoFile.harden();
+      }
 
-   if (char_handle = VRAY_Procedural::getSParm("temp_file_path")) {
-      myTempFname = (UT_String)(*char_handle);
-      myTempFname.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("temp_file_path")) {
+         myTempFname = (UT_String)(*char_handle);
+         myTempFname.harden();
+      }
 
-   if (char_handle = VRAY_Procedural::getSParm("CVEX_shader")) {
-      myCVEXFname = (UT_String)(*char_handle);
-      myCVEXFname.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("CVEX_shader")) {
+         myCVEXFname = (UT_String)(*char_handle);
+         myCVEXFname.harden();
+      }
 
 
-   if (int_ptr = VRAY_Procedural::getIParm("CVEX_exec"))
+   if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec"))
       myCVEX_Exec = bool (*int_ptr);
 
 
-   if (char_handle = VRAY_Procedural::getSParm("CVEX_shader_prim")) {
-      myCVEXFname_prim = (UT_String)(*char_handle);
-      myCVEXFname_prim.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_prim")) {
+         myCVEXFname_prim = (UT_String)(*char_handle);
+         myCVEXFname_prim.harden();
+      }
 
-   if (int_ptr = VRAY_Procedural::getIParm("CVEX_exec_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_prim"))
       myCVEX_Exec_prim = bool (*int_ptr);
 
 
-   if (char_handle = VRAY_Procedural::getSParm("CVEX_shader_pre")) {
-      myCVEXFname_pre = (UT_String)(*char_handle);
-      myCVEXFname_pre.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_pre")) {
+         myCVEXFname_pre = (UT_String)(*char_handle);
+         myCVEXFname_pre.harden();
+      }
 
-   if (int_ptr = VRAY_Procedural::getIParm("CVEX_exec_pre"))
+   if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_pre"))
       myCVEX_Exec_pre = bool (*int_ptr);
 
-   if (char_handle = VRAY_Procedural::getSParm("CVEX_shader_post")) {
-      myCVEXFname_post = (UT_String)(*char_handle);
-      myCVEXFname_post.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_post")) {
+         myCVEXFname_post = (UT_String)(*char_handle);
+         myCVEXFname_post.harden();
+      }
 
-   if (int_ptr = VRAY_Procedural::getIParm("CVEX_exec_post"))
+   if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_post"))
       myCVEX_Exec_post = bool (*int_ptr);
 
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_Cd_pt"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_Cd_pt"))
       myCVEXPointVars.cvex_Cd_pt = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_Alpha_pt"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_Alpha_pt"))
       myCVEXPointVars.cvex_Alpha_pt = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_v_pt"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_v_pt"))
       myCVEXPointVars.cvex_v_pt = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_N_pt"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_N_pt"))
       myCVEXPointVars.cvex_N_pt = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_pscale_pt"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_pscale_pt"))
       myCVEXPointVars.cvex_pscale_pt = *int_ptr;
 
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_Cd_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_Cd_prim"))
       myCVEXPrimVars.cvex_Cd_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_Alpha_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_Alpha_prim"))
       myCVEXPrimVars.cvex_Alpha_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_v_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_v_prim"))
       myCVEXPrimVars.cvex_v_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_N_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_N_prim"))
       myCVEXPrimVars.cvex_N_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_pscale_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_pscale_prim"))
       myCVEXPrimVars.cvex_pscale_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_weight_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_weight_prim"))
       myCVEXPrimVars.cvex_weight_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("cvex_width_prim"))
+   if(int_ptr = VRAY_Procedural::getIParm("cvex_width_prim"))
       myCVEXPrimVars.cvex_width_prim = *int_ptr;
 
-   if (int_ptr = VRAY_Procedural::getIParm("temp_file"))
+   if(int_ptr = VRAY_Procedural::getIParm("temp_file"))
       myUseTempFile = bool (*int_ptr);
 
-   if (int_ptr = VRAY_Procedural::getIParm("save_temp_file"))
+   if(int_ptr = VRAY_Procedural::getIParm("save_temp_file"))
       mySaveTempFile = bool (*int_ptr);
 
-   if (int_ptr = VRAY_Procedural::getIParm("verbose"))
+   if(int_ptr = VRAY_Procedural::getIParm("verbose"))
       myVerbose = *int_ptr;
 
-   if (char_handle = VRAY_Procedural::getSParm("otl_version")) {
-      myOTLVersion = (UT_String)(*char_handle);
-      myOTLVersion.harden();
-   }
+   if(char_handle = VRAY_Procedural::getSParm("otl_version")) {
+         myOTLVersion = (UT_String)(*char_handle);
+         myOTLVersion.harden();
+      }
+
+
+
+    if(int_ptr = VRAY_Procedural::getIParm("post_process"))
+      myPostProcess = *int_ptr;
+
+    if(int_ptr = VRAY_Procedural::getIParm("raster_type"))
+      myRasterType = *int_ptr;
+
+    if(int_ptr = VRAY_Procedural::getIParm("ws_units"))
+      myWSUnits = *int_ptr;
+
+    if(int_ptr = VRAY_Procedural::getIParm("fog_volume"))
+      myFogVolume = *int_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("dx"))
+      myDx = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("gradient_width"))
+      myGradientWidth = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("voxel_size"))
+      myVoxelSize = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("radius_min"))
+      myRadiusMin = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("bandwidth"))
+      myBandWidth = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("falloff"))
+      myFalloff = *flt_ptr;
+
+    if(flt_ptr = VRAY_Procedural::getFParm("pos_influence"))
+      myPosInfluence = *flt_ptr;
+
+
+
 
    return 1;
 }
@@ -792,7 +1164,7 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 {
 //   std::cout << "VRAY_clusterThis::getBoundingBox()" << std::endl;
    fpreal     maxradius;
-   static fpreal isin45 = 1.0F / SYSsin(M_PI/4);
+   static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);
    UT_Vector3    pt;
 
    maxradius = SYSmax(mySize[0], mySize[1] * isin45 * 0.5F);
@@ -801,9 +1173,9 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
    box.translate(myPointAttributes.myNewPos);
 //    box.enlargeBounds(mySize[0] * 10, mySize[1] * 10, mySize[2] * 10);
    fpreal size = mySize[0];
-   if (size < mySize[1])
+   if(size < mySize[1])
       size = mySize[1];
-   if (size < mySize[2])
+   if(size < mySize[2])
       size = mySize[2];
 
    box.enlargeBounds(0, size * maxradius);
@@ -830,35 +1202,35 @@ void VRAY_clusterThis::checkRequiredAttributes()
 {
 //   std::cout << "VRAY_clusterThis::checkRequiredAttributes()" << std::endl;
    // Check for required attributes
-   if (myPointAttrOffsets.Cd.isInvalid()) {
-      cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
-   }
+   if(myPointAttrOffsets.Cd.isInvalid()) {
+         cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
+      }
 
-   if (myPointAttrOffsets.Alpha.isInvalid()) {
-      cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
-   }
+   if(myPointAttrOffsets.Alpha.isInvalid()) {
+         cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
+      }
 
-   if (myPointAttrOffsets.v.isInvalid()) {
-      cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
-   }
+   if(myPointAttrOffsets.v.isInvalid()) {
+         cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
+      }
 
-   if (myPointAttrOffsets.N.isInvalid()) {
-      cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
-   }
+   if(myPointAttrOffsets.N.isInvalid()) {
+         cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
+      }
 
-   if (myPointAttrOffsets.pscale.isInvalid()) {
-      cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
-   }
+   if(myPointAttrOffsets.pscale.isInvalid()) {
+         cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
+      }
 
-   if (myPointAttrOffsets.id.isInvalid()) {
-      cout << "Incoming points must have id attribute Throwing exception ..." << endl;
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
-   }
+   if(myPointAttrOffsets.id.isInvalid()) {
+         cout << "Incoming points must have id attribute Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
+      }
 
 }
 
@@ -914,11 +1286,11 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
 //   myPointAttributes.myNewPos[2] = ( fpreal ) myPointAttributes.myPos.z() +
 //                                    ( ( dz * myRadius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
 
-   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-      myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
-      myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
-      myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
-   }
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
+         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
+         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::calculateNewPosition() myPos:   "
@@ -951,7 +1323,7 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myMethod: " << myMethod << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseType: " << myNoiseType << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseAmp: " << myNoiseAmp << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: VRAY_clusterThis.C:798:" << myNoiseAtten << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: " << myNoiseAtten << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNoiseSeed: " << myNoiseSeed << endl;
    cout << "VRAY_clusterThis::dumpParameters() myFractalDepth: " << myFractalDepth << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRadius: " << myRadius << endl;
@@ -997,6 +1369,16 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myVelocityScale: " << myVelocityScale << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVerbose: " << myVerbose << endl;
 
+   cout << "VRAY_clusterThis::dumpParameters() myPostProcess: " << myPostProcess << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myRasterType: " << myRasterType << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myDx: " << myDx << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myFogVolume: " << myFogVolume << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myGradientWidth: " << myGradientWidth << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVoxelSize: " << myVoxelSize << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myBandWidth: " << myBandWidth << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myWSUnits: " << myWSUnits << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myFalloff: " << myFalloff << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPosInfluence: " << myPosInfluence << endl;
 
    cout << "VRAY_clusterThis::dumpParameters() myBox:"  << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << endl;
@@ -1024,7 +1406,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 {
 //     UT_Options myOptions;
 
-   if (file_gdp->load((const char *)myGeoFile).success())
+   if(file_gdp->load((const char *)myGeoFile).success())
       return 0;
    else
       return 1;
@@ -1035,169 +1417,6 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 #endif
 
 
-/**********************************************************************************/
-//  $Log: VRAY_clusterThis.C,v $
-//  Revision 1.60  2012-09-09 05:00:54  mstory
-//  More cleanup and testing.
-//
-//  Revision 1.59  2012-09-07 15:39:23  mstory
-//   Removed all volume instancing (used in different project) and continu… …
-//
-//  …ed H12 modifications.
-//
-//  --mstory
-//
-//  Revision 1.58  2012-09-05 23:02:38  mstory
-//  Modifications for H12.
-//
-//  Revision 1.57  2012-09-04 03:25:28  mstory
-//  .
-//
-//  Revision 1.54  2011-02-15 01:00:23  mstory
-//  .
-//
-//  Revision 1.53  2011-02-15 00:59:15  mstory
-//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
-//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
-//
-//
-//  --mstory
-//
-//  Revision 1.52  2011-02-06 22:35:15  mstory
-//  Fixed the exit processing function.
-//
-//  Ready for release 1.5.1
-//
-//  Revision 1.51  2011-02-06 19:49:15  mstory
-//  Modified for Houdini version 11.
-//
-//  Refactored a lot of the attribute code, cleaned up odds and ends.
-//
-//  Revision 1.50  2010-04-12 06:39:42  mstory
-//  Finished CVEX modifications.
-//
-//  Revision 1.49  2010-04-10 10:11:42  mstory
-//  Added additional CVEX processing.  Fixed a few annoying bugs.  Adding external disk geo source.
-//
-//  Revision 1.48  2010-02-23 08:36:22  mstory
-//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
-//
-//  Revision 1.47  2009-11-20 14:59:57  mstory
-//  Release 1.4.7 ready.
-//
-//  Revision 1.46  2009-11-19 16:26:51  mstory
-//  Adding point inst id to child objects (for deferred instancing), need to add to prims as well.
-//
-//  Revision 1.45  2009-11-16 17:47:12  mstory
-//  Fixed the curve instancing, still need to determine all attribites required for the curve (i.e. width)
-//
-//  Revision 1.44  2009-11-16 08:32:44  mstory
-//  Added instance ID for each instance passed to CVEX processing.
-//
-//  Revision 1.41  2009-04-06 17:13:44  mstory
-//  Clean up code a bit.
-//
-//  Revision 1.40  2009-04-06 16:40:58  mstory
-//  Added volume and curve instancing.
-//  Optimized attribute processing.
-//  Added motion blur pass for CVEX processing.
-//  Changed parameter code to use proper functions.
-//  Added verbosity switch for console messages.
-//  Added randomness for when to instance of objects
-//  Using SYSsin() and SYScos () instead of std C functions.
-//  Optimized memory usage for CVEX processing, correct memory allocationfor attributes and objects.
-//  Added user selectable attributes for CVEX processing.
-//
-//  --mstory
-//
-//  Revision 1.39  2009-02-11 04:17:53  mstory
-//  Added velocity blur for point instancing.
-//
-//  Revision 1.38  2009-02-10 21:55:58  mstory
-//  Added all attributes for the CVEX processing of instanced geo.
-//  Added OTL version checking.
-//
-//  Revision 1.37  2009-02-05 00:59:05  mstory
-//  Added simple CVEX processng.
-//  Addded temp file for caching geo during deep shad passes.
-//
-//  Revision 1.36  2008-12-04 05:37:41  mstory
-//  .
-//
-//  Revision 1.35  2008-11-27 05:32:39  mstory
-//  Added Alpha attribute and fixed bug where it crashes mantra if the weight attr wasn't in the input geo.
-//
-//  Revision 1.34  2008-11-19 01:27:00  mstory
-//  Added memory useage to status out.
-//
-//  Revision 1.33  2008-11-19 01:11:43  mstory
-//  Added point instancing.  Fixed the file instancing problem.
-//  Most of the shader assignment issues straightened out.
-//
-//  Revision 1.32  2008-10-30 19:51:54  mstory
-//  Added file instancing (still needs work).
-//
-//  Revision 1.31  2008-10-30 07:03:06  mstory
-//  Added deformation motion blur and metaball instancing.
-//
-//  Revision 1.30  2008-10-20 22:51:45  mstory
-//  .
-//
-//  Revision 1.29  2008-10-20 22:43:57  mstory
-//  *** empty log message ***
-//
-//  Revision 1.28  2008-10-20 22:12:14  mstory
-//  Cleaned up unused vars, etc.  Ready for enxt release.
-//
-//  Revision 1.27  2008-10-20 19:35:00  mstory
-//  Added a switch to be able to choose using the addProcedural() method of allocating procedurals.
-//
-//  Revision 1.25  2008-10-11 18:15:06  mstory
-//  .
-//
-//  Revision 1.23  2008-10-06 21:58:40  mstory
-//  .
-//
-//  Revision 1.21  2008-10-06 06:16:52  mstory
-//  .
-//
-//  Revision 1.20  2008-10-06 04:20:04  mstory
-//  Added the beginning of volume instancing, file instancing and almost have multi pass temp file working.
-//
-//  Revision 1.19  2008-10-04 23:33:40  mstory
-//  .
-//
-//  Revision 1.18  2008-10-04 04:42:44  mstory
-//  Added simple exception processing.
-//
-//  Revision 1.17  2008-10-04 04:40:33  mstory
-//  .
-//
-//  Revision 1.16  2008-10-04 00:39:32  mstory
-//  fixed pscale
-//
-//  Revision 1.15  2008-10-03 16:49:10  mstory
-//  .
-//
-//  Revision 1.14  2008-10-03 00:01:00  mstory
-//  Working out motion blur, material assignments, etc.; much more work to do ....
-//
-//  Revision 1.13  2008-10-01 22:18:42  mstory
-//  Changed the "recursion algorythm" ... needs proper design, coming soon to a DSO near you!
-//
-//  Revision 1.12  2008-09-30 21:55:00  mstory
-//  .
-//
-//  Revision 1.11  2008-09-30 21:37:38  mstory
-//  Added a few more status messages to be printed to the console.
-//
-//  Revision 1.10  2008-09-21 17:46:43  mstory
-//  Added recursion and aliging to normals.
-//
-//  Revision 1.3  2008-08-28 03:08:08  mstory
-//  Lots of changes!!!
-//
-/**********************************************************************************/
 
 
 
