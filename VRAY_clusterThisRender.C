@@ -499,10 +499,10 @@ void VRAY_clusterThis::render()
                            if(myVDBLaplacianFilter)
                               fooFilter.laplacian();
 
-//                           if(myVDBOffsetFilter)
+//                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
-                           if(myVDBReNormalizeFilter)
+                           if(myVDBOffsetFilter)
                               fooFilter.offset(myVDBOffsetFilterAmount);
 
 
