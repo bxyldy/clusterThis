@@ -106,6 +106,7 @@
 #include <openvdb/tools/GridTransformer.h>
 #include <openvdb/tools/GridSampling.h>
 #include <openvdb/tools/Gradient.h>
+#include <openvdb/tools/Filter.h>
 
 #include <houdini_utils/ParmFactory.h>
 #include <openvdb_houdini/Utils.h>
@@ -431,6 +432,13 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("falloff", "real", "0.5"),
    VRAY_ProceduralArg("pos_influence", "real", "0.1"),
 
+   VRAY_ProceduralArg("vdb_median_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_mean_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_mean_curvature_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_laplacian_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_offset_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_offset_filter_real", "real", "0.0"),
+
 
    VRAY_ProceduralArg()
 };
@@ -485,8 +493,6 @@ const VRAY_ProceduralArg * getProceduralArgs(const char *)
 VRAY_clusterThis_Exception::VRAY_clusterThis_Exception(std::string msg, int code)
 {
 
-//   cout << "VRAY_clusterThis_Exception: in constructor ... " << endl;
-
    e_msg = msg;
    e_code = code;
 
@@ -495,7 +501,6 @@ VRAY_clusterThis_Exception::VRAY_clusterThis_Exception(std::string msg, int code
 
 //VRAY_clusterThis_Exception::~VRAY_clusterThis_Exception() {
 
-//   cout << "VRAY_clusterThis_Exception: in destructor ... " << endl;
 
 //   };
 
@@ -663,31 +668,31 @@ void VRAY_clusterThis::convert(
    std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
 
    if(raster.getHalfWidth() < openvdb::Real(2)) {
-         std::cout << "VRAY_clusterThis::convert: Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
       }
    else
       if(raster.getHalfWidth() > openvdb::Real(1000)) {
             throw std::runtime_error(
-               "VRAY_clusterThis::convert: Half width of narrow-band > 1000 voxels which exceeds memory limitations!");
+               "VRAY_clusterThis::convert(): Half width of narrow-band > 1000 voxels which exceeds memory limitations!");
          }
 
    if(settings.mRasterizeTrails && paList.hasVelocity()) {
-         std::cout << "rasterizing trails"  << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): rasterizing trails"  << std::endl;
          raster.rasterizeTrails(paList, settings.mDx);
       }
    else {
-         std::cout << "VRAY_clusterThis::convert: rasterizing spheres"  << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): rasterizing spheres"  << std::endl;
          raster.rasterizeSpheres(paList);
       }
 
    if(boss.wasInterrupted()) {
-         std::cout << "VRAY_clusterThis::convert: Process was interrupted"  << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): Process was interrupted"  << std::endl;
          return;
       }
 
    // Convert the level-set into a fog volume.
    if(settings.mFogVolume) {
-         std::cout << "coverting to fog volume"  << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): converting to fog volume"  << std::endl;
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
@@ -810,6 +815,17 @@ VRAY_clusterThis::VRAY_clusterThis()
    myWSUnits = 1;
    myFalloff = 0.5;
    myPosInfluence = 0.1;
+
+
+   myVDBMedianFilter = 0;
+   myVDBMeanFilter = 0;
+   myVDBMeanCurvatureFilter = 0;
+   myVDBLaplacianFilter = 0;
+   myVDBOffsetFilter = 0;
+   myVDBOffsetFilterAmount = 0.0;
+   myVDBReNormalizeFilter = 0;
+
+
 
 
    VRAY_clusterThis::exitData.exitTime = 3.333;
@@ -1109,39 +1125,59 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
 
 
 
-    if(int_ptr = VRAY_Procedural::getIParm("post_process"))
+   if(int_ptr = VRAY_Procedural::getIParm("post_process"))
       myPostProcess = *int_ptr;
 
-    if(int_ptr = VRAY_Procedural::getIParm("raster_type"))
+   if(int_ptr = VRAY_Procedural::getIParm("raster_type"))
       myRasterType = *int_ptr;
 
-    if(int_ptr = VRAY_Procedural::getIParm("ws_units"))
+   if(int_ptr = VRAY_Procedural::getIParm("ws_units"))
       myWSUnits = *int_ptr;
 
-    if(int_ptr = VRAY_Procedural::getIParm("fog_volume"))
+   if(int_ptr = VRAY_Procedural::getIParm("fog_volume"))
       myFogVolume = *int_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("dx"))
+   if(flt_ptr = VRAY_Procedural::getFParm("dx"))
       myDx = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("gradient_width"))
+   if(flt_ptr = VRAY_Procedural::getFParm("gradient_width"))
       myGradientWidth = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("voxel_size"))
+   if(flt_ptr = VRAY_Procedural::getFParm("voxel_size"))
       myVoxelSize = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("radius_min"))
+   if(flt_ptr = VRAY_Procedural::getFParm("radius_min"))
       myRadiusMin = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("bandwidth"))
+   if(flt_ptr = VRAY_Procedural::getFParm("bandwidth"))
       myBandWidth = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("falloff"))
+   if(flt_ptr = VRAY_Procedural::getFParm("falloff"))
       myFalloff = *flt_ptr;
 
-    if(flt_ptr = VRAY_Procedural::getFParm("pos_influence"))
+   if(flt_ptr = VRAY_Procedural::getFParm("pos_influence"))
       myPosInfluence = *flt_ptr;
 
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_median_filter"))
+      myVDBMedianFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_mean_filter"))
+      myVDBMeanFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_mean_curvature_filter"))
+      myVDBMeanCurvatureFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_laplacian_filter"))
+      myVDBLaplacianFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_offset_filter"))
+      myVDBOffsetFilter = *int_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_offset_filter_amount"))
+      myVDBOffsetFilterAmount = *flt_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_renormalize_filter"))
+      myVDBReNormalizeFilter = *int_ptr;
 
 
 

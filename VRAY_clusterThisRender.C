@@ -483,12 +483,46 @@ void VRAY_clusterThis::render()
                            const openvdb::FloatTree aTree;
                            myTreePtr = outputGrid->tree();
 
+
+                           openvdb::tools::Filter<openvdb::FloatGrid> fooFilter(outputGrid);
+//                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(outputGrid);
+
+                           if(myVDBMedianFilter)
+                              fooFilter.median();
+
+                           if(myVDBMeanFilter)
+                              fooFilter.mean();
+
+                           if(myVDBMeanCurvatureFilter)
+                              fooFilter.meanCurvature();
+
+                           if(myVDBLaplacianFilter)
+                              fooFilter.laplacian();
+
+//                           if(myVDBOffsetFilter)
+//                              float r = barFilter.renormalize(3, 0.1);
+
+                           if(myVDBReNormalizeFilter)
+                              fooFilter.offset(myVDBOffsetFilterAmount);
+
+
+
                            openvdb::VectorGrid::Ptr gradientGrid = openvdb::VectorGrid::create();
-
                            openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(outputGrid);
-
                            gradientGrid = myGradient.process();
                            myGradTreePtr = gradientGrid->tree();
+
+
+//void   median (int width=1, bool serial=false)
+//void   mean (int width=1, bool serial=false)
+//void   meanCurvature (bool serial=false)
+//void   laplacian (bool serial=false)
+//void   offset (float offset, bool serial=false)
+
+//template<bool UseWENO>
+//float  renormalize (size_t maxSteps, float epsilon, bool verbose=false, bool serial=false)
+//    Iterative re-normalization.
+
 
 
                            GA_FOR_ALL_GROUP_POINTS(inst_gdp, sourceGroup, ppt) {
@@ -536,7 +570,7 @@ void VRAY_clusterThis::render()
 
                                     UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
 
-                                    ppt->setPos(inst_pos + (myPosInfluence * (sampleResult * gradVect)));
+                                    ppt->setPos(inst_pos + (myPosInfluence *(sampleResult * gradVect)));
 //                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
 
 //                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
