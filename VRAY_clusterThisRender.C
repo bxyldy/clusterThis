@@ -504,6 +504,9 @@ void VRAY_clusterThis::render()
                               openvdb::Vec3R theIndex =
                                  outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
 
+                              radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+//                                    std::cout << "radius: " << radius << std::endl;
+
 // static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
                               const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
 
@@ -525,19 +528,19 @@ void VRAY_clusterThis::render()
 //                                              << inst_sample_pos << " sampleResult: " << sampleResult
 //                                              << " gradResult: " << gradResult << std::endl;
 
-                                    radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
-//                                    std::cout << "radius: " << radius << std::endl;
-
 //                                    float weight;
                                     pointsFound++;
 
                                     inst_vel_gah.setElement(ppt);
                                     currVel = inst_vel_gah.getV3();
 
+                                    UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
+
+                                    ppt->setPos(inst_pos + (myPosInfluence * (sampleResult * gradVect)));
 //                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
 
 //                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
-                                    inst_vel_gah.setV3(currVel + UT_Vector3(gradResult[0], gradResult[1], gradResult[2]));
+                                    inst_vel_gah.setV3(currVel + (sampleResult * gradVect));
 
 //                                    std::cout << "currVel: " << currVel << " sampleResult " << sampleResult
 //                                              << " new vel: " <<  currVel * sampleResult << std::endl;
