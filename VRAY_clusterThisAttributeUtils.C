@@ -465,53 +465,6 @@ inline int VRAY_clusterThis::setFileAttributes(GU_Detail * file_gdp)
 #endif
 
 
-/**********************************************************************************/
-//  $Log: VRAY_clusterThisAttributeUtils.C,v $
-//  Revision 1.13  2012-09-09 05:00:54  mstory
-//  More cleanup and testing.
-//
-//  Revision 1.12  2012-09-07 15:39:22  mstory
-//   Removed all volume instancing (used in different project) and continu… …
-//
-//  …ed H12 modifications.
-//
-//  --mstory
-//
-//  Revision 1.11  2012-09-05 23:02:38  mstory
-//  Modifications for H12.
-//
-//  Revision 1.10  2012-09-04 03:25:28  mstory
-//  .
-//
-//  Revision 1.7  2011-02-15 00:59:15  mstory
-//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
-//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
-//
-//
-//  --mstory
-//
-//  Revision 1.6  2011-02-06 19:49:15  mstory
-//  Modified for Houdini version 11.
-//
-//  Refactored a lot of the attribute code, cleaned up odds and ends.
-//
-//  Revision 1.5  2010-04-10 10:11:42  mstory
-//  Added additional CVEX processing.  Fixed a few annoying bugs.  Adding external disk geo source.
-//
-//  Revision 1.4  2010-02-23 08:36:22  mstory
-//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
-//
-//  Revision 1.3  2009-11-20 14:59:57  mstory
-//  Release 1.4.7 ready.
-//
-//  Revision 1.2  2009-11-16 17:47:12  mstory
-//  Fixed the curve instancing, still need to determine all attribites required for the curve (i.e. width)
-//
-//  Revision 1.1  2009-11-16 08:35:03  mstory
-//  Created seperate source files for some of the functions in VRAY_clusterThis.C.
-//
-
-/**********************************************************************************/
 
 
 

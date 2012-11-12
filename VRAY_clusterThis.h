@@ -370,7 +370,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myVDBMeanCurvatureFilter;
       int      myVDBLaplacianFilter;
       int      myVDBOffsetFilter;
-      int      myVDBOffsetFilterAmount;
+      fpreal   myVDBOffsetFilterAmount;
       int      myVDBReNormalizeFilter;
 
 

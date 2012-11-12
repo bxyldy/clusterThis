@@ -418,7 +418,6 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("cvex_weight_prim", "integer", "0"),
    VRAY_ProceduralArg("cvex_width_prim", "integer", "0"),
 
-
    VRAY_ProceduralArg("post_process", "integer", "1"),
    VRAY_ProceduralArg("raster_type", "integer", "0"),
    VRAY_ProceduralArg("ws_units", "integer", "1"),
@@ -436,8 +435,8 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_mean_curvature_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_laplacian_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_offset_filter", "integer", "0"),
-   VRAY_ProceduralArg("vdb_offset_filter_real", "real", "0.0"),
-
+   VRAY_ProceduralArg("vdb_offset_filter_amount", "real", "0.1"),
+   VRAY_ProceduralArg("vdb_renormalize_filter", "integer", "0"),
 
    VRAY_ProceduralArg()
 };
@@ -815,7 +814,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    myFalloff = 0.5;
    myPosInfluence = 0.1;
 
-
    myVDBMedianFilter = 0;
    myVDBMeanFilter = 0;
    myVDBMeanCurvatureFilter = 0;
@@ -823,9 +821,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    myVDBOffsetFilter = 0;
    myVDBOffsetFilterAmount = 0.0;
    myVDBReNormalizeFilter = 0;
-
-
-
 
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
@@ -1414,6 +1409,14 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myWSUnits: " << myWSUnits << endl;
    cout << "VRAY_clusterThis::dumpParameters() myFalloff: " << myFalloff << endl;
    cout << "VRAY_clusterThis::dumpParameters() myPosInfluence: " << myPosInfluence << endl;
+
+   cout << "VRAY_clusterThis::dumpParameters() myVDBMedianFilter: " << myVDBMedianFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBMeanFilter: " << myVDBMeanFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBMeanCurvatureFilter: " << myVDBMeanCurvatureFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBLaplacianFilter: " << myVDBLaplacianFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBOffsetFilter: " << myVDBOffsetFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBOffsetFilterAmount: " << myVDBOffsetFilterAmount << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << endl;
 
    cout << "VRAY_clusterThis::dumpParameters() myBox:"  << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << endl;
