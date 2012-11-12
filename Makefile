@@ -4,7 +4,7 @@ src = VRAY_clusterThis.C VRAY_clusterThis.h \
    VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
    VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
    VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-   VRAY_clusterThisRender.C
+   VRAY_clusterThisPostProcess.C VRAY_clusterThisRender.C
 
 SOURCES = VRAY_clusterThis.C
 H_CFLAGS =  $(shell hcustom --cflags)

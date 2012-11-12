@@ -290,6 +290,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
       int convertVDBUnits();
       void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
 
       // Instancing methods

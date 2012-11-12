@@ -327,8 +327,7 @@ using namespace dca;
 #include "VRAY_clusterThisAttributeUtils.C"
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
-
-
+#include "VRAY_clusterThisPostProcess.C"
 
 
 

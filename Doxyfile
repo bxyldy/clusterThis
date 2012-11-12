@@ -591,6 +591,7 @@ INPUT                  = VRAY_clusterThis.C \
                          README.txt \
                          VRAY_clusterThisAttributeUtils.C \
                          VRAY_clusterThisRender.C \
+                         VRAY_clusterThisPostProcess.C \
                          VRAY_clusterThisRunCVEX.C
 
 # This tag can be used to specify the character encoding of the source files 
