@@ -428,7 +428,9 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("radius_min", "real", "1.5"),
    VRAY_ProceduralArg("bandwidth", "real", "0.2"),
    VRAY_ProceduralArg("falloff", "real", "0.5"),
-   VRAY_ProceduralArg("pos_influence", "real", "0.1"),
+   VRAY_ProceduralArg("vdb_pos_influence", "real", "0.1"),
+   VRAY_ProceduralArg("vdb_vel_influence", "real", "0.1"),
+   VRAY_ProceduralArg("vdb_normal_influence", "real", "0.1"),
 
    VRAY_ProceduralArg("vdb_median_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_mean_filter", "integer", "0"),
@@ -437,6 +439,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_offset_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_offset_filter_amount", "real", "0.1"),
    VRAY_ProceduralArg("vdb_renormalize_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_write_debug_file", "integer", "0"),
 
    VRAY_ProceduralArg()
 };
@@ -517,9 +520,11 @@ VRAY_clusterThis_Exception::VRAY_clusterThis_Exception(std::string msg, int code
 ***************************************************************************** */
 void VRAY_clusterThis::exitClusterThis(void * data)
 {
-   std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
-
    VRAY_clusterThis * me = (VRAY_clusterThis *)data;
+
+   if(me->myVerbose > CLUSTER_MSG_INFO)
+      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+
 
 //   if(me->myVerbose > CLUSTER_MSG_INFO)
 //      cout << "VRAY_clusterThis::exitClusterThis() myTempFname: " << (const char *)me->myTempFname << endl;
@@ -597,10 +602,11 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
    if(myVerbose > CLUSTER_MSG_INFO)
       cout << "VRAY_clusterThis::exitClusterThisReal() - Running exit processing" << endl;
 
-   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
 
-   cout << "VRAY_clusterThis::exitClusterThisReal() - temp filename " << myTempFname << endl;
-
+//   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
+//
+//   cout << "VRAY_clusterThis::exitClusterThisReal() - temp filename " << myTempFname << endl;
+//
 //   const char * fname = me->myTempFname;
 
 //   ofstream myStream;
@@ -656,14 +662,15 @@ void VRAY_clusterThis::convert(
    openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, &boss);
 
 //   std::cout << "VRAY_clusterThis::convert() " << std::endl;
-   std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
-   std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
-   std::cout << "VRAY_clusterThis::convert(): raster.getVoxelSize(): " << raster.getVoxelSize() << std::endl;
+
 
    raster.setRmin(myRadiusMin);
 
-   std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
-   std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+   if(myVerbose == CLUSTER_MSG_DEBUG) {
+         std::cout << "VRAY_clusterThis::convert(): raster.getVoxelSize(): " << raster.getVoxelSize() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+      }
 
    if(raster.getHalfWidth() < openvdb::Real(2)) {
          std::cout << "VRAY_clusterThis::convert(): Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
@@ -675,22 +682,26 @@ void VRAY_clusterThis::convert(
          }
 
    if(settings.mRasterizeTrails && paList.hasVelocity()) {
-         std::cout << "VRAY_clusterThis::convert(): rasterizing trails"  << std::endl;
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing trails"  << std::endl;
          raster.rasterizeTrails(paList, settings.mDx);
       }
    else {
-         std::cout << "VRAY_clusterThis::convert(): rasterizing spheres"  << std::endl;
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing spheres"  << std::endl;
          raster.rasterizeSpheres(paList);
       }
 
    if(boss.wasInterrupted()) {
-         std::cout << "VRAY_clusterThis::convert(): Process was interrupted"  << std::endl;
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): Process was interrupted"  << std::endl;
          return;
       }
 
    // Convert the level-set into a fog volume.
    if(settings.mFogVolume) {
-         std::cout << "VRAY_clusterThis::convert(): converting to fog volume"  << std::endl;
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): converting to fog volume"  << std::endl;
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
@@ -698,7 +709,7 @@ void VRAY_clusterThis::convert(
       }
 
 // print stats of the vdb grid
-   if(myVerbose > CLUSTER_MSG_INFO)
+   if(myVerbose == CLUSTER_MSG_DEBUG)
       outputGrid->print();
 
 }
@@ -813,6 +824,8 @@ VRAY_clusterThis::VRAY_clusterThis()
    myWSUnits = 1;
    myFalloff = 0.5;
    myPosInfluence = 0.1;
+   myNormalInfluence = 0.1;
+   myVelInfluence = 0.1;
 
    myVDBMedianFilter = 0;
    myVDBMeanFilter = 0;
@@ -821,6 +834,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myVDBOffsetFilter = 0;
    myVDBOffsetFilterAmount = 0.0;
    myVDBReNormalizeFilter = 0;
+   myVDBWriteDebugFiles = 0;
 
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
@@ -1149,8 +1163,14 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
    if(flt_ptr = VRAY_Procedural::getFParm("falloff"))
       myFalloff = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("pos_influence"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pos_influence"))
       myPosInfluence = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_vel_influence"))
+      myVelInfluence = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_normal_influence"))
+      myNormalInfluence = *flt_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("vdb_median_filter"))
       myVDBMedianFilter = *int_ptr;
@@ -1173,6 +1193,8 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
    if(int_ptr = VRAY_Procedural::getIParm("vdb_renormalize_filter"))
       myVDBReNormalizeFilter = *int_ptr;
 
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_write_debug_file"))
+      myVDBWriteDebugFiles = *int_ptr;
 
 
    return 1;
@@ -1409,6 +1431,8 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myWSUnits: " << myWSUnits << endl;
    cout << "VRAY_clusterThis::dumpParameters() myFalloff: " << myFalloff << endl;
    cout << "VRAY_clusterThis::dumpParameters() myPosInfluence: " << myPosInfluence << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVelInfluence: " << myVelInfluence << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNormalInfluence: " << myNormalInfluence << endl;
 
    cout << "VRAY_clusterThis::dumpParameters() myVDBMedianFilter: " << myVDBMedianFilter << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBMeanFilter: " << myVDBMeanFilter << endl;
@@ -1417,6 +1441,7 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myVDBOffsetFilter: " << myVDBOffsetFilter << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBOffsetFilterAmount: " << myVDBOffsetFilterAmount << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBWriteDebugFiles: " << myVDBWriteDebugFiles << endl;
 
    cout << "VRAY_clusterThis::dumpParameters() myBox:"  << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << endl;
@@ -1453,6 +1478,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

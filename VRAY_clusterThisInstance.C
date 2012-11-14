@@ -153,7 +153,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 //   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
 //   UT_Vector3 myDir = myPointAttributes.N;
-   UT_Vector3 myUp = UT_Vector3(0,1,0);
+   UT_Vector3 myUp = UT_Vector3(0, 1, 0);
    rot_xform.orient(myPointAttributes.N, myUp);
    xform = rot_xform;
 
@@ -165,7 +165,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-   for(int i=0; i < myCube->getVertexCount(); i++) {
+   for(int i = 0; i < myCube->getVertexCount(); i++) {
          ppt = myCube->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
@@ -183,7 +183,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                                                  myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                                                  myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-         for(int i=0; i < myCube->getVertexCount(); i++) {
+         for(int i = 0; i < myCube->getVertexCount(); i++) {
                ppt = myCube->getVertexElement(i).getPt();
                UT_Vector4  P = ppt->getPos();
                P *= xform;
@@ -227,7 +227,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 //   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
 //   UT_Vector3 myDir = myPointAttributes.N;
-   UT_Vector3 myUp = UT_Vector3(0,1,0);
+   UT_Vector3 myUp = UT_Vector3(0, 1, 0);
    rot_xform.orient(myPointAttributes.N, myUp);
    xform = rot_xform;
 
@@ -241,7 +241,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    grid_parms.plane = GU_PLANE_XY;
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-   for(int i=0; i < myGrid->getVertexCount(); i++) {
+   for(int i = 0; i < myGrid->getVertexCount(); i++) {
          ppt = myGrid->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
@@ -257,7 +257,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          grid_parms.zcenter = myPointAttributes.myMBPos[2];
          myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-         for(int i=0; i < myGrid->getVertexCount(); i++) {
+         for(int i = 0; i < myGrid->getVertexCount(); i++) {
                ppt = myGrid->getVertexElement(i).getPt();
                UT_Vector4  P = ppt->getPos();
                P *= xform;
@@ -507,7 +507,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    GA_RWAttributeRef pt_mb_instId;
    GA_RWAttributeRef pt_mb_material;
 
-   num_vtx = ((myNumCopies * myRecursion) > 4)?(myNumCopies * myRecursion):4;
+   num_vtx = ((myNumCopies * myRecursion) > 4) ? (myNumCopies * myRecursion) : 4;
    myCurve = (GU_PrimNURBCurve *)GU_PrimNURBCurve::build((GU_Detail *)curve_gdp, num_vtx, 4, 0, 1, 1);
 
    myCurve->setValue<UT_Vector3>(prim_Cd, (const UT_Vector3)myPointAttributes.Cd);
@@ -663,16 +663,26 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 {
 #ifdef DEBUG
    std::cout << "VRAY_clusterThis::instanceFile()" << std::endl;
+   cout << "VRAY_clusterThis::instanceFile() myPointAttributes.geo_fname: " << myPointAttributes.geo_fname << endl;
 #endif
 
-   GU_Detail temp_gdp(file_gdp), null_gdp;
+//   GU_Detail temp_gdp(file_gdp);
+   GU_Detail null_gdp;
+   GU_Detail * file_geo_gdp;
    UT_Matrix4 xform(1.0);
    UT_Matrix3 rot_xform(1.0);
 //   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
+   file_geo_gdp = VRAY_Procedural::allocateGeometry();
+
+   if(!file_geo_gdp->load((const char *)myPointAttributes.geo_fname).success())
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::instanceFile() Failed to load geometry file ", 1);
+
+   GU_Detail temp_gdp(file_geo_gdp);
+
    UT_Vector3 myDir = myPointAttributes.N;
 //   myDir.normalize();
-   UT_Vector3 myUp = UT_Vector3(0,1,0);
+   UT_Vector3 myUp = UT_Vector3(0, 1, 0);
 
 // Transform the geo to the new position
    rot_xform.orient(myDir, myUp);
@@ -699,7 +709,6 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
    inst_gdp->merge(temp_gdp);
-
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          GU_Detail temp_gdp(file_gdp);
@@ -728,167 +737,14 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 
       }
 
+
+   VRAY_Procedural::freeGeometry(file_geo_gdp);
+
    return 0;
 }
 
 
 #endif
-
-
-/**********************************************************************************/
-//  $Log: VRAY_clusterThisInstance.C,v $
-//  Revision 1.20  2012-09-09 05:00:54  mstory
-//  More cleanup and testing.
-//
-//  Revision 1.19  2012-09-07 15:39:23  mstory
-//   Removed all volume instancing (used in different project) and continu… …
-//
-//  …ed H12 modifications.
-//
-//  --mstory
-//
-//  Revision 1.18  2012-09-05 23:02:38  mstory
-//  Modifications for H12.
-//
-//  Revision 1.17  2012-09-04 03:25:28  mstory
-//  .
-//
-//  Revision 1.14  2011-02-15 00:59:15  mstory
-//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
-//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
-//
-//
-//  --mstory
-//
-//  Revision 1.13  2011-02-06 22:35:15  mstory
-//  Fixed the exit processing function.
-//
-//  Ready for release 1.5.1
-//
-//  Revision 1.12  2011-02-06 19:49:15  mstory
-//  Modified for Houdini version 11.
-//
-//  Refactored a lot of the attribute code, cleaned up odds and ends.
-//
-//  Revision 1.11  2010-04-12 06:39:42  mstory
-//  Finished CVEX modifications.
-//
-//  Revision 1.10  2010-04-10 10:11:42  mstory
-//  Added additional CVEX processing.  Fixed a few annoying bugs.  Adding external disk geo source.
-//
-//  Revision 1.9  2010-02-26 08:06:32  mstory
-//  Adding more CVEX options.
-//
-//  Revision 1.8  2010-02-23 08:36:22  mstory
-//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
-//
-//  Revision 1.7  2009-11-20 14:59:57  mstory
-//  Release 1.4.7 ready.
-//
-//  Revision 1.6  2009-11-19 16:26:51  mstory
-//  Adding point inst id to child objects (for deferred instancing), need to add to prims as well.
-//
-//  Revision 1.5  2009-11-16 17:47:12  mstory
-//  Fixed the curve instancing, still need to determine all attribites required for the curve (i.e. width)
-//
-//  Revision 1.4  2009-11-16 08:32:45  mstory
-//  Added instance ID for each instance passed to CVEX processing.
-//
-//  Revision 1.3  2009-04-06 17:13:44  mstory
-//  Clean up code a bit.
-//
-//  Revision 1.2  2009-04-06 16:40:58  mstory
-//  Added volume and curve instancing.
-//  Optimized attribute processing.
-//  Added motion blur pass for CVEX processing.
-//  Changed parameter code to use proper functions.
-//  Added verbosity switch for console messages.
-//  Added randomness for when to instance of objects
-//  Using SYSsin() and SYScos () instead of std C functions.
-//  Optimized memory usage for CVEX processing, correct memory allocationfor attributes and objects.
-//  Added user selectable attributes for CVEX processing.
-//
-//  --mstory
-//
-//  Revision 1.1  2009-02-10 21:56:55  mstory
-//  Added seperate files for the CVEX utilities and the instancing methods.
-//
-//  Revision 1.34  2008-11-19 01:27:00  mstory
-//  Added memory useage to status out.
-//
-//  Revision 1.33  2008-11-19 01:11:43  mstory
-//  Added point instancing.  Fixed the file instancing problem.
-//  Most of the shader assignment issues straightened out.
-//
-//  Revision 1.32  2008-10-30 19:51:54  mstory
-//  Added file instancing (still needs work).
-//
-//  Revision 1.31  2008-10-30 07:03:06  mstory
-//  Added deformation motion blur and metaball instancing.
-//
-//  Revision 1.30  2008-10-20 22:51:45  mstory
-//  .
-//
-//  Revision 1.29  2008-10-20 22:43:57  mstory
-//  *** empty log message ***
-//
-//  Revision 1.28  2008-10-20 22:12:14  mstory
-//  Cleaned up unused vars, etc.  Ready for enxt release.
-//
-//  Revision 1.27  2008-10-20 19:35:00  mstory
-//  Added a switch to be able to choose using the addProcedural() method of allocating procedurals.
-//
-//  Revision 1.25  2008-10-11 18:15:06  mstory
-//  .
-//
-//  Revision 1.23  2008-10-06 21:58:40  mstory
-//  .
-//
-//  Revision 1.21  2008-10-06 06:16:52  mstory
-//  .
-//
-//  Revision 1.20  2008-10-06 04:20:04  mstory
-//  Added the beginning of volume instancing, file instancing and almost have multi pass temp file working.
-//
-//  Revision 1.19  2008-10-04 23:33:40  mstory
-//  .
-//
-//  Revision 1.18  2008-10-04 04:42:44  mstory
-//  Added simple exception processing.
-//
-//  Revision 1.17  2008-10-04 04:40:33  mstory
-//  .
-//
-//  Revision 1.16  2008-10-04 00:39:32  mstory
-//  fixed pscale
-//
-//  Revision 1.15  2008-10-03 16:49:10  mstory
-//  .
-//
-//  Revision 1.14  2008-10-03 00:01:00  mstory
-//  Working out motion blur, material assignments, etc.; much more work to do ....
-//
-//  Revision 1.13  2008-10-01 22:18:42  mstory
-//  Changed the "recursion algorythm" ... needs proper design, coming soon to a DSO near you!
-//
-//  Revision 1.12  2008-09-30 21:55:00  mstory
-//  .
-//
-//  Revision 1.11  2008-09-30 21:37:38  mstory
-//  Added a few more status messages to be printed to the console.
-//
-//  Revision 1.10  2008-09-21 17:46:43  mstory
-//  Added recursion and aliging to normals.
-//
-//  Revision 1.3  2008-08-28 03:08:08  mstory
-//  Lots of changes!!!
-//
-/**********************************************************************************/
-
-
-
-
-
 
 
 

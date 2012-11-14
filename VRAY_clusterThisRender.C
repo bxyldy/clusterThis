@@ -349,7 +349,12 @@ void VRAY_clusterThis::render()
 
 
 
-               VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
+
+               if(myPostProcess && myMethod == CLUSTER_INSTANCE_NOW && myPrimType == CLUSTER_POINT) {
+
+                     VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
+
+                  }
 
 
 

@@ -364,6 +364,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myWSUnits;
       fpreal   myFalloff;
       fpreal   myPosInfluence;
+      fpreal   myNormalInfluence;
+      fpreal   myVelInfluence;
 
       int      myVDBMedianFilter;
       int      myVDBMeanFilter;
@@ -372,6 +374,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myVDBOffsetFilter;
       fpreal   myVDBOffsetFilterAmount;
       int      myVDBReNormalizeFilter;
+      int      myVDBWriteDebugFiles;
 
 
 

@@ -44,6 +44,7 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
    cout << "VRAY_clusterThis::createAttributeOffsets() " << endl;
 #endif
 
+
 // TODO: Check all these references with *.isValid() and throw exeception if it fails !!!
 
    if((myPrimType != CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
@@ -260,7 +261,6 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
 
    if(myPrimType == CLUSTER_FILE)
       myPointAttributes.geo_fname = ppt->getString(myPointAttrOffsets.geo_fname) ;
-//     cout << "VRAY_clusterThis::getAttributes() myPointAttributes.geo_fname: " << myPointAttributes.geo_fname << endl;
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::getAttributes() " << "Cd: " << myPointAttributes.Cd << endl;
