@@ -68,8 +68,7 @@ archive_src:
 	tar zcvf mantra_clusterThis_v${SRC_VER}.src.tar.gz \
 		${src} \
 		docs/	\
-		Makefile Doxyfile \
-		README.txt
+		Makefile Doxyfile
 
 clean:
 	rm -f *.o *.so *.dll *.exp *.lib *.dylib
