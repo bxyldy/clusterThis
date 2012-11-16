@@ -1326,6 +1326,7 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
          noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
       }
 
+
 #ifdef DEBUG
    cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
 #endif
