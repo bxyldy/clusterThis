@@ -53,7 +53,6 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
          cout << "VRAY_clusterThis::createAttributeOffsets() Creating primitive attributes" << endl;
 #endif
 
-
          myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
          myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
          myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
@@ -158,7 +157,9 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
          myPointAttrOffsets.Alpha = inst_gdp->findAlphaAttribute(GEO_POINT_DICT);
 
          myPointAttrOffsets.v = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "v", 3);
+         myPointAttrOffsets.backtrack = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "backtrack", 4);
          myPointAttrOffsets.N = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "N", 3);
+         myPointAttrOffsets.up = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "up", 3);
          myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
          myPointAttrOffsets.radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "radius", 1);
          myPointAttrOffsets.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
@@ -199,8 +200,10 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
    cout << "Cd: " << myPointAttrOffsets.Cd.isValid() << endl;
    cout << "Alpha: " << myPointAttrOffsets.Alpha.isValid() << endl;
    cout << "v: " << myPointAttrOffsets.v.isValid() << endl;
+   cout << "backtrack: " << myPointAttrOffsets.backtrack.isValid() << endl;
+   cout << "up: " << myPointAttrOffsets.up.isValid() << endl;
    cout << "N: " << myPointAttrOffsets.N.isValid() << endl;
-//    cout << "orient: " << myPointAttrOffsets.orient.isValid() << endl;
+   cout << "orient: " << myPointAttrOffsets.orient.isValid() << endl;
    cout << "pscale: " << myPointAttrOffsets.pscale.isValid() << endl;
    cout << "id: " << myPointAttrOffsets.id.isValid() << endl;
    cout << "weight: " << myPointAttrOffsets.weight.isValid() << endl;
@@ -238,6 +241,7 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
 inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp)
 {
 
+
 #ifdef DEBUG
    cout << "VRAY_clusterThis::getAttributes() " << endl;
 #endif
@@ -245,6 +249,8 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.Cd, 0));
    myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.Alpha, 0));
    myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.v, 0));
+   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.backtrack, 0));
+   myPointAttributes.up = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.up, 0));
    myPointAttributes.N = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.N, 0));
    myPointAttributes.N.normalize();
 
@@ -273,7 +279,7 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    cout << "VRAY_clusterThis::getAttributes() " << "weight: " << myPointAttributes.weight << endl;
    cout << "VRAY_clusterThis::get_attributes() " << "material: " << myPointAttributes.material << endl;
    cout << "VRAY_clusterThis::get_attributes() " << "geo_fname: " << myPointAttributes.geo_fname << endl;
-// cout << "VRAY_clusterThis::getAttributes() " << "myMaterial: " << myMaterial << endl;
+   cout << "VRAY_clusterThis::getAttributes() " << "myMaterial: " << myMaterial << endl;
 #endif
 
    return 0;
@@ -343,10 +349,14 @@ inline void VRAY_clusterThis::setPointInstanceAttributes(GU_Detail * inst_gdp, G
    cout << "VRAY_clusterThis::setPointInstanceAttributes() " << endl;
 #endif
 
+// TODO: Determine which attibutes are *really* required for point instancing, examine shaders, perhapos add compile time switches
+// user wants to have more attributes passed to the shaders.
+
    ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
    ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
    ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
-//   ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+   ppt->setValue<UT_Vector3>(myInstAttrRefs.pointBacktrack, (const UT_Vector3)myPointAttributes.backtrack);
+   ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
    ppt->setValue<fpreal>(myInstAttrRefs.pointRadius, (const fpreal)myPointAttributes.radius);
    ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)myPointAttributes.pscale);
    ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);

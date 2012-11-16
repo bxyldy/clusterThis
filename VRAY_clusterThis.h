@@ -87,6 +87,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
+         GA_RWAttributeRef backtrack;
          GA_RWAttributeRef N;
          GA_RWAttributeRef up;
          GA_RWAttributeRef orient;
@@ -140,6 +141,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
          GA_RWAttributeRef pointV;
+         GA_RWAttributeRef pointBacktrack;
          GA_RWAttributeRef pointN;
          GA_RWAttributeRef pointMaterial;
          GA_RWAttributeRef pointPscale;
@@ -173,6 +175,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
          GA_RWAttributeRef pointV;
+         GA_RWAttributeRef pointBacktrack;
          GA_RWAttributeRef pointN;
          GA_RWAttributeRef pointMaterial;
          GA_RWAttributeRef pointId;
@@ -217,6 +220,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
          GA_RWAttributeRef pointV;
+         GA_RWAttributeRef pointBacktrack;
          GA_RWAttributeRef pointN;
          GA_RWAttributeRef pointMaterial;
          GA_RWAttributeRef pointWeight;
@@ -250,7 +254,9 @@ class VRAY_clusterThis : public VRAY_Procedural
          UT_Vector3 Cd;
          fpreal Alpha;
          UT_Vector3 v;
+         UT_Vector4 backtrack;
          UT_Vector3 N;
+         UT_Vector3 up;
          UT_Vector4 orient;
          uint32 id;
          fpreal radius;
@@ -288,6 +294,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
       int setFileAttributes(GU_Detail * gdp);
       int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
+
+      // voxel processing
       int convertVDBUnits();
       void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
       void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
@@ -326,13 +334,14 @@ class VRAY_clusterThis : public VRAY_Procedural
       uint32   myDoMotionBlur;
       fpreal   myShutter;
       fpreal   myShutter2;
-      UT_Noise::UT_NoiseType  myNoiseType;
+      int      myNoiseType;
       fpreal   myRough;
       fpreal   myCurrentTime;
       fpreal   myNoiseAmp;
       fpreal   myNoiseAtten;
       UT_Vector3 myNoiseVec;
       UT_Noise myNoise;
+      UT_MersenneTwister myMersenneTwister;
       int      myNoiseSeed;
       int      myFractalDepth;
       bool     myCopyAttrs;
@@ -375,9 +384,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myVDBOffsetFilterAmount;
       int      myVDBReNormalizeFilter;
       int      myVDBWriteDebugFiles;
-
-
-
 
       UT_String myObjectName;
       UT_String myOTLVersion;

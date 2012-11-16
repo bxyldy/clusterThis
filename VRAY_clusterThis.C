@@ -74,6 +74,7 @@
 #include <UT/UT_Matrix4.h>
 #include <UT/UT_XformOrder.h>
 #include <UT/UT_Noise.h>
+#include <UT/UT_MTwister.h>
 #include <UT/UT_BoundingBox.h>
 #include <VRAY/VRAY_Procedural.h>
 #include <VRAY/VRAY_IO.h>
@@ -969,7 +970,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
       myRadius = *flt_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("noise_type"))
-      myNoiseType = static_cast<UT_Noise::UT_NoiseType>(*int_ptr);
+      myNoiseType = *int_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("freq")) {
          myFreqX = *flt_ptr++;
@@ -1305,6 +1306,7 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
 
    // Calculate a new position for the object ...
    fpreal delta = theta * i;
+   fpreal noise_bias;
    fpreal dx, dy, dz = 0.0;
    dx = SYSsin(delta * myFreqX + myOffsetX);
    dy = SYScos(delta * myFreqY + myOffsetY);
@@ -1315,14 +1317,14 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
    cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
 #endif
 
-   myNoise.setSeed(myPointAttributes.id);
-
-   // Calculate a bit of noise to add to the new position ...
-   // TODO:
-   fpreal noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
-
-   // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
-   // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
+   if(myNoiseType < 3) {
+         myNoise.setSeed(myPointAttributes.id);
+         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+      }
+   else {
+         myMersenneTwister.setSeed(myNoiseSeed);
+         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
+      }
 
 #ifdef DEBUG
    cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
@@ -1339,9 +1341,12 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
 //                                    ( ( dz * myRadius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
-         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
-         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] + myPointAttributes.v.x();
+         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] + myPointAttributes.v.y();
+         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] + myPointAttributes.v.z();
+//         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
+//         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
+//         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
       }
 
 #ifdef DEBUG
@@ -1478,6 +1483,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

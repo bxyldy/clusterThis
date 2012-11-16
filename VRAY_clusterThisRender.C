@@ -210,15 +210,13 @@ void VRAY_clusterThis::render()
                         }
                   }
 
-               // init some vars ...
-               myPointAttributes.Cd = (UT_Vector3(1, 1, 1));
-               myPointAttributes.v = (UT_Vector3(0, 0, 0));
-               myPointAttributes.N = (UT_Vector3(0, 1, 0));
-               myPointAttributes.Alpha = 1.0;
-               myPointAttributes.pscale = 1.0;
-               myPointAttributes.id = 0;
 
-               myNoise.initialize(myNoiseSeed, myNoiseType);
+
+               if(myNoiseType < 3)
+                  myNoise.initialize(myNoiseSeed, static_cast<UT_Noise::UT_NoiseType>(myNoiseType));
+
+//myNoiseType = static_cast<UT_Noise::UT_NoiseType>(*int_ptr);
+
 
                // Create the attribute "offsets" for the geometry to be instanced
                VRAY_clusterThis::createAttributeOffsets(inst_gdp, mb_gdp);
