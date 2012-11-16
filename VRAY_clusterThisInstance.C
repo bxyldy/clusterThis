@@ -536,7 +536,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
    for(int copyNum = 0; copyNum < myNumCopies; copyNum++)
       for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
-            calculateNewPosition(theta, copyNum, recursionNum);
+            VRAY_clusterThis::calculateNewPosition(theta, copyNum, recursionNum);
             ppt = myCurve->getVertexElement(myCurvePointNum).getPt();
             ppt->setPos((float)myPointAttributes.myNewPos[0],
                         (float)myPointAttributes.myNewPos[1],

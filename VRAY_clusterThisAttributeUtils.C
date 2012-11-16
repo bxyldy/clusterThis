@@ -162,6 +162,7 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
          myPointAttrOffsets.up = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "up", 3);
          myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
          myPointAttrOffsets.radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "radius", 1);
+         myPointAttrOffsets.vdb_radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "vdb_radius", 1);
          myPointAttrOffsets.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
          myPointAttrOffsets.width = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "width", 1);
          myPointAttrOffsets.id = inst_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
@@ -255,6 +256,7 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    myPointAttributes.N.normalize();
 
    myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.radius, 0));
+   myPointAttributes.vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.vdb_radius, 0));
    myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.pscale, 0));
    myPointAttributes.width = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.width, 0));
    myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myPointAttrOffsets.id, 0));

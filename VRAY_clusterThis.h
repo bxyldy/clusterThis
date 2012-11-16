@@ -97,7 +97,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef radius;
          GA_RWAttributeRef weight;
          GA_RWAttributeRef width;
-         GA_RWAttributeRef prim_type;
+         GA_RWAttributeRef vdb_radius;
          GA_RWAttributeRef geo_fname;
 
          // Optional attributes
@@ -184,6 +184,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointInstId;
          GA_RWAttributeRef pointPscale;
          GA_RWAttributeRef pointRadius;
+         GA_RWAttributeRef pointVDBRadius;
 
          // Optional attributes
          //GA_RWAttributeRef num_neighbors;
@@ -229,6 +230,8 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointInstId;
          GA_RWAttributeRef pointPscale;
          GA_RWAttributeRef pointRadius;
+         GA_RWAttributeRef pointVDBRadius;
+
 
          // Optional attributes
          //GA_RWAttributeRef num_neighbors;
@@ -260,6 +263,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          UT_Vector4 orient;
          uint32 id;
          fpreal radius;
+         fpreal vdb_radius;
          fpreal pscale;
          fpreal weight;
          fpreal width;
@@ -371,6 +375,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myRadiusMin;
       fpreal   myBandWidth;
       int      myWSUnits;
+      fpreal   myVDBVelocityMult;
+      fpreal   myVDBRadiusMult;
       fpreal   myFalloff;
       fpreal   myPosInfluence;
       fpreal   myNormalInfluence;
@@ -421,7 +427,7 @@ class VRAY_clusterThis : public VRAY_Procedural
 
       fpreal   myVelocityScale;
       long int myInstanceNum;
-      fpreal myLOD;
+      fpreal   myLOD;
       static const fpreal myFPS = 24.0;
 
       GU_Detail * myFileGDP;

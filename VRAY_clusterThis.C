@@ -132,9 +132,9 @@ namespace
                       openvdb::Real radiusMult = 1,
                       openvdb::Real velocityMult = 1) :
             mGdp(gdp),
-            mScaleHandle(gdp, GEO_POINT_DICT, "radius"),
+            mVDBRadiusHandle(gdp, GEO_POINT_DICT, "vdb_radius"),
             mVelHandle(gdp, GEO_POINT_DICT, "v"),
-            mHasRadius(mScaleHandle.isValid()),
+            mHasRadius(mVDBRadiusHandle.isValid()),
             mHasVelocity(mVelHandle.isValid()),
             mRadiusMult(radiusMult),
             mVelocityMult(velocityMult) {
@@ -165,7 +165,7 @@ namespace
          openvdb::Real radius(int n) const {
             if(!mHasRadius)
                return mRadiusMult;
-            return mRadiusMult * mScaleHandle.get(this->offset(n));
+            return mRadiusMult * mVDBRadiusHandle.get(this->offset(n));
          }
 
       protected:
@@ -174,7 +174,7 @@ namespace
          }
 
          const GA_Detail  *  mGdp;
-         GA_ROHandleF        mScaleHandle;
+         GA_ROHandleF        mVDBRadiusHandle;
          GA_ROHandleV3       mVelHandle;
          const bool          mHasRadius, mHasVelocity;
          const openvdb::Real mRadiusMult; // multiplier for radius

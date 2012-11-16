@@ -92,7 +92,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          this->convert(outputGrid, paList, settings, boss);
 
          if(myVerbose == CLUSTER_MSG_DEBUG) {
-               std::cout << "VRAY_clusterThis::postProcess() - activeVoxelCount () "
+               std::cout << "VRAY_clusterThis::postProcess() - activeVoxelCount(): "
                          << outputGrid->activeVoxelCount() << std::endl;
                std::cout << "VRAY_clusterThis::postProcess() - background: "
                          << outputGrid->background() << std::endl;
@@ -240,7 +240,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             openvdb::Vec3R theIndex =
                outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
 
-            radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+            radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
 //                                    std::cout << "radius: " << radius << std::endl;
 
 // static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
