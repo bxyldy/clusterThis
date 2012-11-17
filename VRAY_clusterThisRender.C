@@ -211,11 +211,8 @@ void VRAY_clusterThis::render()
                   }
 
 
-
-               if(myNoiseType < 3)
+               if(myNoiseType < 4)
                   myNoise.initialize(myNoiseSeed, static_cast<UT_Noise::UT_NoiseType>(myNoiseType));
-
-//myNoiseType = static_cast<UT_Noise::UT_NoiseType>(*int_ptr);
 
 
                // Create the attribute "offsets" for the geometry to be instanced

@@ -762,7 +762,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myUseGeoFile = false;
    mySrcGeoFname = "";
    myNumCopies = 0;
-   myNoiseType = static_cast<UT_Noise::UT_NoiseType>(0);
+   myNoiseType = 0;
    myFreqX = 0.0;
    myFreqY = 0.0;
    myFreqZ = 0.0;
@@ -1317,13 +1317,15 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
    cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
 #endif
 
-   if(myNoiseType < 3) {
+   if(myNoiseType < 4) {
          myNoise.setSeed(myPointAttributes.id);
          noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+//         cout << "VRAY_clusterThis::calculateNewPosition() turbulence: " << "noise_bias: " << noise_bias << endl;
       }
    else {
-         myMersenneTwister.setSeed(myNoiseSeed);
+         myMersenneTwister.setSeed(myPointAttributes.id);
          noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
+//         cout << "VRAY_clusterThis::calculateNewPosition() myMersenneTwister: " << "noise_bias: " << noise_bias << endl;
       }
 
 
