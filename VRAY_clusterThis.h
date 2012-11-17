@@ -90,7 +90,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef backtrack;
          GA_RWAttributeRef N;
          GA_RWAttributeRef up;
-         GA_RWAttributeRef orient;
+//         GA_RWAttributeRef orient;
          GA_RWAttributeRef material;
          GA_RWAttributeRef id;
          GA_RWAttributeRef pscale;
@@ -163,7 +163,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
          GA_RWAttributeRef N;
-         GA_RWAttributeRef orient;
+//         GA_RWAttributeRef orient;
          GA_RWAttributeRef material;
          GA_RWAttributeRef id;
          GA_RWAttributeRef inst_id;
@@ -177,6 +177,8 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointV;
          GA_RWAttributeRef pointBacktrack;
          GA_RWAttributeRef pointN;
+         GA_RWAttributeRef pointUp;
+//         GA_RWAttributeRef pointOrient;
          GA_RWAttributeRef pointMaterial;
          GA_RWAttributeRef pointId;
          GA_RWAttributeRef pointWeight;
@@ -209,7 +211,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
          GA_RWAttributeRef N;
-         GA_RWAttributeRef orient;
+//         GA_RWAttributeRef orient;
          GA_RWAttributeRef material;
          GA_RWAttributeRef id;
          GA_RWAttributeRef inst_id;
@@ -223,6 +225,8 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointV;
          GA_RWAttributeRef pointBacktrack;
          GA_RWAttributeRef pointN;
+         GA_RWAttributeRef pointUp;
+//         GA_RWAttributeRef pointOrient;
          GA_RWAttributeRef pointMaterial;
          GA_RWAttributeRef pointWeight;
          GA_RWAttributeRef pointWidth;
@@ -231,7 +235,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointPscale;
          GA_RWAttributeRef pointRadius;
          GA_RWAttributeRef pointVDBRadius;
-
 
          // Optional attributes
          //GA_RWAttributeRef num_neighbors;
@@ -260,7 +263,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          UT_Vector4 backtrack;
          UT_Vector3 N;
          UT_Vector3 up;
-         UT_Vector4 orient;
+//         UT_Vector4 orient;
          uint32 id;
          fpreal radius;
          fpreal vdb_radius;
@@ -322,6 +325,10 @@ class VRAY_clusterThis : public VRAY_Procedural
       UT_String myMaterial;
       UT_Matrix3 myXformInverse;
       bool tempFileDeleted;
+      UT_Noise myNoise;
+      UT_MersenneTwister myMersenneTwister;
+      bool myUsePointRadius;
+      bool myUseBacktrackMB;
 
       // Parameters
       uint32   myNumCopies;
@@ -344,8 +351,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myNoiseAmp;
       fpreal   myNoiseAtten;
       UT_Vector3 myNoiseVec;
-      UT_Noise myNoise;
-      UT_MersenneTwister myMersenneTwister;
       int      myNoiseSeed;
       int      myFractalDepth;
       bool     myCopyAttrs;

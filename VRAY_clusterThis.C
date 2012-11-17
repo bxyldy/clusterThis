@@ -359,6 +359,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("birth_prob", "real",  "0.5"),
    VRAY_ProceduralArg("add_proc", "integer", "0"),
    VRAY_ProceduralArg("motion_blur", "integer", "0"),
+   VRAY_ProceduralArg("backtrack_mb", "integer", "0"),
    VRAY_ProceduralArg("mb_shutter", "real", "0.1"),
    VRAY_ProceduralArg("mb_shutter2", "real", "0.9"),
    VRAY_ProceduralArg("verbose", "integer", "0"),
@@ -800,6 +801,9 @@ VRAY_clusterThis::VRAY_clusterThis()
    myUseTempFile = false;
    mySaveTempFile = false;
 
+   myUsePointRadius = false;
+   myUseBacktrackMB = false;
+
    myCVEXPointVars.cvex_Cd_pt = 0;
    myCVEXPointVars.cvex_Alpha_pt = 0;
    myCVEXPointVars.cvex_v_pt = 0;
@@ -960,6 +964,9 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
    if(int_ptr = VRAY_Procedural::getIParm("motion_blur"))
       myDoMotionBlur = *int_ptr;
 
+   if(int_ptr = VRAY_Procedural::getIParm("backtrack_mb"))
+      myUseBacktrackMB = bool(*int_ptr);
+
    if(flt_ptr = VRAY_Procedural::getFParm("mb_shutter"))
       myShutter = *flt_ptr;
 
@@ -983,9 +990,6 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
          myOffsetY = *flt_ptr++;
          myOffsetZ = *flt_ptr;
       }
-
-   if(flt_ptr = VRAY_Procedural::getFParm("radius"))
-      myRadius = *flt_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("noise_rough"))
       myRough = *flt_ptr;
@@ -1308,6 +1312,7 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
    fpreal delta = theta * i;
    fpreal noise_bias;
    fpreal dx, dy, dz = 0.0;
+   fpreal radius;
    dx = SYSsin(delta * myFreqX + myOffsetX);
    dy = SYScos(delta * myFreqY + myOffsetY);
    dz = SYScos(delta * myFreqZ + myOffsetZ);
@@ -1333,23 +1338,37 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
    cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
 #endif
 
+   if(myUsePointRadius)
+      radius = myPointAttributes.radius;
+   else
+      radius = myRadius;
+
+
    // Calculate the new object's position
    myPointAttributes.myNewPos[0] = (fpreal) myPointAttributes.myPos.x() +
-                                   ((dx * myRadius) * noise_bias * SYSsin(static_cast<fpreal>(j + i)));
+                                   ((dx * radius) * noise_bias * SYSsin(static_cast<fpreal>(j + i)));
    myPointAttributes.myNewPos[1] = (fpreal) myPointAttributes.myPos.y() +
-                                   ((dy * myRadius) * noise_bias * SYScos(static_cast<fpreal>(j + i)));
+                                   ((dy * radius) * noise_bias * SYScos(static_cast<fpreal>(j + i)));
    myPointAttributes.myNewPos[2] = (fpreal) myPointAttributes.myPos.z() +
-                                   ((dz * myRadius) * noise_bias * (SYSsin(static_cast<fpreal>(j + i)) + SYScos(static_cast<fpreal>(j + i))));
+                                   ((dz * radius) * noise_bias * (SYSsin(static_cast<fpreal>(j + i)) + SYScos(static_cast<fpreal>(j + i))));
 //   myPointAttributes.myNewPos[2] = ( fpreal ) myPointAttributes.myPos.z() +
-//                                    ( ( dz * myRadius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
+//                                    ( ( dz * radius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] + myPointAttributes.v.x();
-         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] + myPointAttributes.v.y();
-         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] + myPointAttributes.v.z();
-//         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
-//         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
-//         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+//         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] + myPointAttributes.v.x();
+//         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] + myPointAttributes.v.y();
+//         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] + myPointAttributes.v.z();
+
+         if(myUseBacktrackMB) {
+               myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.backtrack.x();
+               myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.backtrack.y();
+               myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.backtrack.z();
+            }
+         else {
+               myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
+               myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
+               myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+            }
       }
 
 #ifdef DEBUG

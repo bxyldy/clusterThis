@@ -345,7 +345,7 @@ void VRAY_clusterThis::render()
 
 
 
-               if(myPostProcess && myMethod == CLUSTER_INSTANCE_NOW && myPrimType == CLUSTER_POINT) {
+               if(myPostProcess && (myMethod == CLUSTER_INSTANCE_NOW) && (myPrimType == CLUSTER_POINT)) {
 
                      VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
 

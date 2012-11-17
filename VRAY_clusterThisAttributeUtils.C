@@ -160,17 +160,20 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
          myPointAttrOffsets.backtrack = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "backtrack", 4);
          myPointAttrOffsets.N = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "N", 3);
          myPointAttrOffsets.up = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "up", 3);
-         myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
+//         myPointAttrOffsets.orient = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "orient", 4);
+
          myPointAttrOffsets.radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "radius", 1);
+         if(myPointAttrOffsets.radius.isValid())
+            myUsePointRadius = true;
+
          myPointAttrOffsets.vdb_radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "vdb_radius", 1);
          myPointAttrOffsets.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
          myPointAttrOffsets.width = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "width", 1);
          myPointAttrOffsets.id = inst_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
+         myPointAttrOffsets.material = inst_gdp->findStringTuple(GA_ATTRIB_POINT, "shop_materialpath");
 
          if(myPrimType == CLUSTER_PRIM_METABALL)
             myPointAttrOffsets.weight = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "weight", 1);
-
-         myPointAttrOffsets.material = inst_gdp->findStringTuple(GA_ATTRIB_POINT, "shop_materialpath");
 
          if(myPrimType == CLUSTER_FILE)
             myPointAttrOffsets.geo_fname = inst_gdp->findStringTuple(GA_ATTRIB_POINT, "geo_fname");
@@ -204,7 +207,7 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
    cout << "backtrack: " << myPointAttrOffsets.backtrack.isValid() << endl;
    cout << "up: " << myPointAttrOffsets.up.isValid() << endl;
    cout << "N: " << myPointAttrOffsets.N.isValid() << endl;
-   cout << "orient: " << myPointAttrOffsets.orient.isValid() << endl;
+//   cout << "orient: " << myPointAttrOffsets.orient.isValid() << endl;
    cout << "pscale: " << myPointAttrOffsets.pscale.isValid() << endl;
    cout << "id: " << myPointAttrOffsets.id.isValid() << endl;
    cout << "weight: " << myPointAttrOffsets.weight.isValid() << endl;
@@ -260,12 +263,11 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.pscale, 0));
    myPointAttributes.width = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.width, 0));
    myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myPointAttrOffsets.id, 0));
+   myPointAttributes.material = ppt->getString(myPointAttrOffsets.material) ;
+//     cout << "VRAY_clusterThis::getAttributes() myPointAttributes.material: " << myPointAttributes.material << endl;
 
    if(myPrimType == CLUSTER_PRIM_METABALL)
       myPointAttributes.weight = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.weight, 0));
-
-   myPointAttributes.material = ppt->getString(myPointAttrOffsets.material) ;
-//     cout << "VRAY_clusterThis::getAttributes() myPointAttributes.material: " << myPointAttributes.material << endl;
 
    if(myPrimType == CLUSTER_FILE)
       myPointAttributes.geo_fname = ppt->getString(myPointAttrOffsets.geo_fname) ;
@@ -275,8 +277,10 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    cout << "VRAY_clusterThis::getAttributes() " << "Alpha: " << myPointAttributes.Alpha << endl;
    cout << "VRAY_clusterThis::getAttributes() " << "v: " << myPointAttributes.v << endl;
    cout << "VRAY_clusterThis::getAttributes() " << "N: " << myPointAttributes.N << endl;
-   cout << "VRAY_clusterThis::getAttributes() " << "orient: " << myPointAttributes.orient << endl;
+//   cout << "VRAY_clusterThis::getAttributes() " << "orient: " << myPointAttributes.orient << endl;
    cout << "VRAY_clusterThis::getAttributes() " << "pscale: " << myPointAttributes.pscale << endl;
+   cout << "VRAY_clusterThis::getAttributes() " << "radius: " << myPointAttributes.radius << endl;
+   cout << "VRAY_clusterThis::getAttributes() " << "vdb_radius: " << myPointAttributes.vdb_radius << endl;
    cout << "VRAY_clusterThis::getAttributes() " << "id: " << myPointAttributes.id << endl;
    cout << "VRAY_clusterThis::getAttributes() " << "weight: " << myPointAttributes.weight << endl;
    cout << "VRAY_clusterThis::get_attributes() " << "material: " << myPointAttributes.material << endl;
@@ -393,7 +397,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.Alpha, (const fpreal)myPointAttributes.Alpha);
    myGeoPrim->setValue<UT_Vector3>(myInstAttrRefs.v, (const UT_Vector3)myPointAttributes.v);
    myGeoPrim->setValue<UT_Vector3>(myInstAttrRefs.N, (const UT_Vector3)myPointAttributes.N);
-//    myGeoPrim->setValue<UT_Vector4>(myInstAttrRefs.orient (const UT_Vector4)myPointAttributes.orient);
+//   myGeoPrim->setValue<UT_Vector4>(myInstAttrRefs.orient, (const UT_Vector4)myPointAttributes.orient);
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.radius, (const fpreal)myPointAttributes.radius);
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
    myGeoPrim->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
@@ -410,6 +414,7 @@ inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
          ppt->setValue<float>(myInstAttrRefs.pointAlpha, (const float)myPointAttributes.Alpha);
          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointN, (const UT_Vector3)myPointAttributes.N);
+//         ppt->setValue<UT_Vector3>(myInstAttrRefs.pointOrient, (const UT_Vector3)myPointAttributes.orient);
          ppt->setValue<float>(myInstAttrRefs.pointRadius, (const float)myPointAttributes.radius);
          ppt->setValue<float>(myInstAttrRefs.pointPscale, (const float)myPointAttributes.pscale);
          ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);

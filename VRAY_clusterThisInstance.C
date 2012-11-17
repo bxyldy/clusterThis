@@ -165,12 +165,12 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-   for(int i = 0; i < myCube->getVertexCount(); i++) {
-         ppt = myCube->getVertexElement(i).getPt();
-         UT_Vector4  P = ppt->getPos();
-         P *= xform;
-         ppt->setPos(P);
-      }
+//   for(int i = 0; i < myCube->getVertexCount(); i++) {
+//         ppt = myCube->getVertexElement(i).getPt();
+//         UT_Vector4  P = ppt->getPos();
+//         P *= xform;
+//         ppt->setPos(P);
+//      }
 
    VRAY_clusterThis::setInstanceAttributes(myCube);
 
@@ -182,13 +182,13 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                                                  myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
                                                  myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                                                  myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
-
-         for(int i = 0; i < myCube->getVertexCount(); i++) {
-               ppt = myCube->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
+//
+//         for(int i = 0; i < myCube->getVertexCount(); i++) {
+//               ppt = myCube->getVertexElement(i).getPt();
+//               UT_Vector4  P = ppt->getPos();
+//               P *= xform;
+//               ppt->setPos(P);
+//            }
 
          VRAY_clusterThis::setInstanceAttributes(myCube);
       }
@@ -241,12 +241,12 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    grid_parms.plane = GU_PLANE_XY;
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-   for(int i = 0; i < myGrid->getVertexCount(); i++) {
-         ppt = myGrid->getVertexElement(i).getPt();
-         UT_Vector4  P = ppt->getPos();
-         P *= xform;
-         ppt->setPos(P);
-      }
+//   for(int i = 0; i < myGrid->getVertexCount(); i++) {
+//         ppt = myGrid->getVertexElement(i).getPt();
+//         UT_Vector4  P = ppt->getPos();
+//         P *= xform;
+//         ppt->setPos(P);
+//      }
 
    VRAY_clusterThis::setInstanceAttributes(myGrid);
 
@@ -257,12 +257,12 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          grid_parms.zcenter = myPointAttributes.myMBPos[2];
          myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-         for(int i = 0; i < myGrid->getVertexCount(); i++) {
-               ppt = myGrid->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
+//         for(int i = 0; i < myGrid->getVertexCount(); i++) {
+//               ppt = myGrid->getVertexElement(i).getPt();
+//               UT_Vector4  P = ppt->getPos();
+//               P *= xform;
+//               ppt->setPos(P);
+//            }
 
          VRAY_clusterThis::setInstanceAttributes(myGrid);
       }
