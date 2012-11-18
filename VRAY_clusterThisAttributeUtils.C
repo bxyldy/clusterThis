@@ -245,15 +245,21 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
 inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp)
 {
 
-
 #ifdef DEBUG
    cout << "VRAY_clusterThis::getAttributes() " << endl;
 #endif
 
    myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.Cd, 0));
    myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.Alpha, 0));
-   myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.v, 0));
-   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.backtrack, 0));
+
+// TODO: Use the backtrack velcity to replace velocity? Not sure ...
+   if(myUseBacktrackMB)
+      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector4>(myPointAttrOffsets.backtrack, 0));
+   else
+      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.v, 0));
+
+//   myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.v, 0));
+   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector4>(myPointAttrOffsets.backtrack, 0));
    myPointAttributes.up = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.up, 0));
    myPointAttributes.N = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.N, 0));
    myPointAttributes.N.normalize();
