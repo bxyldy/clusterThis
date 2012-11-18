@@ -252,7 +252,7 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp
    myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myPointAttrOffsets.Cd, 0));
    myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrOffsets.Alpha, 0));
 
-// TODO: Use the backtrack velcity to replace velocity? Not sure ...
+// TODO: Use the backtrack velocity to replace velocity? Not sure ...
    if(myUseBacktrackMB)
       myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector4>(myPointAttrOffsets.backtrack, 0));
    else

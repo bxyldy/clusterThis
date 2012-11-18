@@ -328,6 +328,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       UT_Noise myNoise;
       UT_MersenneTwister myMersenneTwister;
       bool myUsePointRadius;
+//      bool myUsePointGeoFname;
       bool myUseBacktrackMB;
 
       // Parameters

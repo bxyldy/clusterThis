@@ -666,19 +666,19 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    cout << "VRAY_clusterThis::instanceFile() myPointAttributes.geo_fname: " << myPointAttributes.geo_fname << endl;
 #endif
 
-//   GU_Detail temp_gdp(file_gdp);
+   GU_Detail temp_gdp(file_gdp);
    GU_Detail null_gdp;
-   GU_Detail * file_geo_gdp;
+//   GU_Detail * file_geo_gdp;
    UT_Matrix4 xform(1.0);
    UT_Matrix3 rot_xform(1.0);
 //   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
-   file_geo_gdp = VRAY_Procedural::allocateGeometry();
-
-   if(!file_geo_gdp->load((const char *)myPointAttributes.geo_fname).success())
-      throw VRAY_clusterThis_Exception("VRAY_clusterThis::instanceFile() Failed to load geometry file ", 1);
-
-   GU_Detail temp_gdp(file_geo_gdp);
+//   file_geo_gdp = VRAY_Procedural::allocateGeometry();
+//
+//   if(!file_geo_gdp->load((const char *)myPointAttributes.geo_fname).success())
+//      throw VRAY_clusterThis_Exception("VRAY_clusterThis::instanceFile() Failed to load geometry file ", 1);
+//
+//   GU_Detail temp_gdp(file_geo_gdp);
 
    UT_Vector3 myDir = myPointAttributes.N;
 //   myDir.normalize();
@@ -738,7 +738,7 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
       }
 
 
-   VRAY_Procedural::freeGeometry(file_geo_gdp);
+//   VRAY_Procedural::freeGeometry(file_geo_gdp);
 
    return 0;
 }
