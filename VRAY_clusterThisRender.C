@@ -244,7 +244,7 @@ void VRAY_clusterThis::render()
                                           // generate random number to determine to instance or not
 
                                           dice = SYSfastRandom(seed);
-                                          (dice < myBirthProb) ? skip = true : skip = false;
+                                          bool(dice >= myBirthProb) ? skip = true : skip = false;
 //                  cout << dice << " " << skip << std::endl;
                                           seed = uint(dice * 137);
 
