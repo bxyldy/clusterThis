@@ -130,7 +130,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       virtual ~VRAY_clusterThis();
 
       virtual const char * getClassName();
-      virtual int initialize(const UT_BoundingBox *box);
+      virtual int initialize(const UT_BoundingBox * box);
       virtual void getBoundingBox(UT_BoundingBox & box);
       virtual bool hasVolume() {
          return true;
@@ -414,6 +414,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       static const fpreal myFPS = 24.0;
 
       GU_Detail * myFileGDP;
+      openvdb::ScalarGrid::Ptr myGeoGrid;
+      openvdb::VectorGrid::Ptr myGradientGrid;
 
 
       // Parameters

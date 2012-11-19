@@ -16,7 +16,7 @@
 /* ******************************************************************************
 *  Function Name : preProcess()
 *
-*  Description :   post process the geo
+*  Description :   pre process the geo
 *
 *  Input Arguments : GU_Detail * gdp
 *
@@ -59,16 +59,8 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
 
 
-
-   return;
-
-
-
-
-
-
    if(myVerbose > CLUSTER_MSG_INFO)
-      cout << "VRAY_clusterThis::preProcess() Processing Voxels" << std::endl;
+      cout << "VRAY_clusterThis::preProcess() Pre Processing Voxels" << std::endl;
 
 //   Vec3d voxelDimensions() const { return mTransform->voxelDimensions(); }
 //00257     Vec3d voxelDimensions(const Vec3d& xyz) const { return mTransform->voxelDimensions(xyz); }
@@ -83,25 +75,25 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
 //                     openvdb::ScalarGrid::Accessor accessor;
 //                     openvdb::FloatTree myTree;
-   openvdb::FloatTree::ConstPtr myTreePtr;
-   openvdb::VectorTree::ConstPtr myGradTreePtr;
+   openvdb::FloatTree::ConstPtr myGeoTreePtr;
+   openvdb::VectorTree::ConstPtr myGeoGradTreePtr;
 
-   ParticleList paList(gdp, /* "dR" */ 1.0, /* "dV" */ 1.0);
-   openvdb::tools::PointSampler mySampler, gradSampler;
+   ParticleList paGeoList(gdp, /* "dR" */ 1.0, /* "dV" */ 1.0);
+   openvdb::tools::PointSampler myGeoSampler, geoGradSampler;
 //                     openvdb::tools::GridSampling<openvdb::FloatTree>  myGridSampler;
 
    if(myVerbose == CLUSTER_MSG_DEBUG)
-      std::cout << "VRAY_clusterThis::preProcess() paList.size() ... "  << paList.size() << std::endl;
+      std::cout << "VRAY_clusterThis::preProcess() paGeoList.size() ... "  << paGeoList.size() << std::endl;
 
-   if(paList.size() != 0) {
+   if(paGeoList.size() != 0) {
 
          hvdb::Interrupter boss("VRAY_clusterThis::preProcess() Converting particles to level set");
 
          Settings settings;
-         settings.mRasterizeTrails = myRasterType;
-         settings.mDx = myDx;  // only used for rasterizeTrails()
-         settings.mFogVolume = myFogVolume;
-         settings.mGradientWidth = myGradientWidth;  // only used for fog volume
+         settings.mRasterizeTrails = 0;
+         settings.mDx = 0.5;  // only used for rasterizeTrails()
+         settings.mFogVolume = 0;
+         settings.mGradientWidth = 0.5;  // only used for fog volume
 
          float background;
 
@@ -114,62 +106,36 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
          // Construct a new scalar grid with the specified background value.
          openvdb::math::Transform::Ptr transform =
-            openvdb::math::Transform::createLinearTransform(myVoxelSize);
-         openvdb::ScalarGrid::Ptr outputGrid = openvdb::ScalarGrid::create(background);
-         outputGrid->setTransform(transform);
-         outputGrid->setGridClass(openvdb::GRID_LEVEL_SET);
+            openvdb::math::Transform::createLinearTransform(myVoxelSize * 4);
+//         openvdb::ScalarGrid::Ptr myGeoGrid = openvdb::ScalarGrid::create(background);
+         myGeoGrid = openvdb::ScalarGrid::create(background);
+
+         myGeoGrid->setTransform(transform);
+         myGeoGrid->setGridClass(openvdb::GRID_LEVEL_SET);
 
          // Perform the particle conversion.
-         this->convert(outputGrid, paList, settings, boss);
+         this->convert(myGeoGrid, paGeoList, settings, boss);
 
          if(myVerbose == CLUSTER_MSG_DEBUG) {
                std::cout << "VRAY_clusterThis::preProcess() - activeVoxelCount(): "
-                         << outputGrid->activeVoxelCount() << std::endl;
+                         << myGeoGrid->activeVoxelCount() << std::endl;
                std::cout << "VRAY_clusterThis::preProcess() - background: "
-                         << outputGrid->background() << std::endl;
+                         << myGeoGrid->background() << std::endl;
             }
-
-
-//                           openvdb::FloatGrid::Accessor accessor = outputGrid->getAccessor();
-//
-//                           openvdb::Vec3i anIndex = outputGrid->worldToIndex(openvdb::Vec3d(-0.0168841, -2.81901, 0.0316872));
-//
-//                           openvdb::Coord xyz(1000, -200000000, 30000000);
-//                           openvdb::Coord xyz(anIndex);
-//                           accessor.setValue(xyz, 1.0);
-//                           -0.0168841, -2.81901, 0.0316872
-//                           std::cout << "outputGrid" << xyz << " = " << accessor.getValue(xyz) << std::endl;
-
-
-//
-//                     long int aCounter = 0;
-//
-//                           for(openvdb::ScalarGrid::ValueOnCIter iter = outputGrid->cbeginValueOn(); iter; ++iter)
-//                              {
-//                                 openvdb::Vec3d worldPos = outputGrid->indexToWorld(iter.getCoord());
-//                                 openvdb::CoordBBox bbox;
-//                                 iter.getBoundingBox(bbox);
-//                                 if(((long int)aCounter++ % 100) == 0) {
-//                                       std::cout << "outputGrid" << iter.getCoord() << " = " << *iter << "\t"
-//                                                 << "\tbbox: " << bbox
-//                                                 << "\tworldPos: " << worldPos << std::endl;
-//                                    }
-//                              }
-//
 
          // Insert the new grid into the ouput detail.
          UT_String gridNameStr = "ClusterGrid";
-         outputGrid->insertMeta("float type", openvdb::StringMetadata("averaged_velocity"));
-         outputGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         outputGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
-         outputGrid->insertMeta("background", openvdb::FloatMetadata(background));
+         myGeoGrid->insertMeta("float type", openvdb::StringMetadata("averaged_velocity"));
+         myGeoGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
+         myGeoGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         myGeoGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
-//    hvdb::createVdbPrimitive(*gdp, outputGrid, gridNameStr.toStdString().c_str());
+//    hvdb::createVdbPrimitive(*gdp, myGeoGrid, gridNameStr.toStdString().c_str());
 //    GU_PrimVDB (GU_Detail *gdp, GA_Offset offset=GA_INVALID_OFFSET)
 //    GU_PrimVDB (const GA_MergeMap &map, GA_Detail &detail, GA_Offset offset, const GA_Primitive &src_prim)
 
 
-         UT_Vector3 inst_pos, seed_pos, currVel;
+         UT_Vector3 pos, seed_pos, currVel;
          const GA_PointGroup * sourceGroup = NULL;
          long int pt_counter = 0;
          float radius = 5.0f;
@@ -207,38 +173,39 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          openvdb::FloatTree::ValueType sampleResult;
          openvdb::VectorGrid::ValueType gradResult;
          const openvdb::FloatTree aTree;
-         myTreePtr = outputGrid->tree();
+         myGeoTreePtr = myGeoGrid->tree();
 
-         openvdb::tools::Filter<openvdb::FloatGrid> fooFilter(outputGrid);
-//                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(outputGrid);
+         openvdb::tools::Filter<openvdb::FloatGrid> preProcessFilter(myGeoGrid);
+//                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(myGeoGrid);
 
          if(myVDBMedianFilter)
-            fooFilter.median();
+            preProcessFilter.median();
 
          if(myVDBMeanFilter)
-            fooFilter.mean();
+            preProcessFilter.mean();
 
          if(myVDBMeanCurvatureFilter)
-            fooFilter.meanCurvature();
+            preProcessFilter.meanCurvature();
 
          if(myVDBLaplacianFilter)
-            fooFilter.laplacian();
+            preProcessFilter.laplacian();
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
          if(myVDBOffsetFilter)
-            fooFilter.offset(myVDBOffsetFilterAmount);
+            preProcessFilter.offset(myVDBOffsetFilterAmount);
 
 
-         openvdb::VectorGrid::Ptr gradientGrid = openvdb::VectorGrid::create();
-         gradientGrid->setTransform(transform);
-//               gradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME );
-         gradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
+         myGradientGrid = openvdb::VectorGrid::create();
+//         openvdb::VectorGrid::Ptr myGradientGrid = openvdb::VectorGrid::create();
+         myGradientGrid->setTransform(transform);
+//               myGradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME );
+         myGradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
 
-         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(outputGrid);
-         gradientGrid = myGradient.process();
-         myGradTreePtr = gradientGrid->tree();
+         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(myGeoGrid);
+         myGradientGrid = myGradient.process();
+         myGeoGradTreePtr = myGradientGrid->tree();
 
 
 //void   median (int width=1, bool serial=false)
@@ -252,24 +219,24 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 //    Iterative re-normalization.
 
          gridNameStr = "ClusterGradientGrid";
-         gradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
-         gradientGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         gradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
-         gradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
+         myGradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
+         myGradientGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
+         myGradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         myGradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
          GA_FOR_ALL_GROUP_POINTS(gdp, sourceGroup, ppt) {
 //                              myCurrPtOff = ppt->getMapOffset();
 //                              std::cout << "myCurrPtOff: " << myCurrPtOff << std::endl;
 
-            inst_pos = ppt->getPos();
+            pos = ppt->getPos();
 
 // Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
 
 //                              openvdb::Vec3R theIndex =
-//                                 (openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
+//                                 (openvdb::Vec3R(pos[0], pos[1], pos[2]));
             openvdb::Vec3R theIndex =
-               outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
+               myGeoGrid->worldToIndex(openvdb::Vec3R(pos[0], pos[1], pos[2]));
 
             radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
 //                                    std::cout << "radius: " << radius << std::endl;
@@ -277,11 +244,11 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 // static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
             const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
 
-            bool success = mySampler.sample(*myTreePtr, inst_sample_pos, sampleResult);
+            bool success = myGeoSampler.sample(*myGeoTreePtr, inst_sample_pos, sampleResult);
 
-            gradSampler.sample(*myGradTreePtr, inst_sample_pos, gradResult);
+            geoGradSampler.sample(*myGeoGradTreePtr, inst_sample_pos, gradResult);
 //
-//                              std::cout << "success: " << success << "\tinst_pos: " << inst_pos
+//                              std::cout << "success: " << success << "\tpos: " << pos
 //                                        << "\tinst_sample_pos: " << inst_sample_pos
 //                                        << "\tsampleResult: " << sampleResult << std::endl;
 
@@ -290,7 +257,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
             // if the instanced point is within the vdb volume
             if(success) {
-//                                    std::cout << "inst_pos: " << inst_pos << " inst_sample_pos: "
+//                                    std::cout << "pos: " << pos << " inst_sample_pos: "
 //                                              << inst_sample_pos << " sampleResult: " << sampleResult
 //                                              << " gradResult: " << gradResult << std::endl;
 //                                    float weight;
@@ -301,8 +268,8 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
                   UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
 
-                  ppt->setPos(inst_pos + (myPosInfluence *(sampleResult * gradVect)));
-//                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
+                  ppt->setPos(pos + (myPosInfluence *(sampleResult * gradVect)));
+//                                    ppt->setPos(pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
 
 //                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
                   inst_vel_gah.setV3(currVel + (myVelInfluence *(sampleResult * gradVect)));
@@ -346,19 +313,24 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
                openvdb::GridPtrVec outgrids;
                openvdb::GridPtrVec gradgrids;
 
-               openvdb::io::File outFile("/tmp/cluster_out_grid.vdb");
-               outgrids.push_back(outputGrid);
+               openvdb::io::File outFile("/tmp/cluster_in_grid.vdb");
+               outgrids.push_back(myGeoGrid);
                outFile.write(outgrids);
                outFile.close();
 
-               openvdb::io::File gradientFile("/tmp/cluster_gradient_grid.vdb");
-               gradgrids.push_back(gradientGrid);
+               openvdb::io::File gradientFile("/tmp/cluster_in_gradient_grid.vdb");
+               gradgrids.push_back(myGradientGrid);
                gradientFile.write(gradgrids);
                gradientFile.close();
             }
 
 
-      }   //  if(paList.size() != 0)
+      }   //  if(paGeoList.size() != 0)
+
+
+   return;
+
+
 
 }
 
