@@ -459,6 +459,33 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool     myCVEX_Exec_post;
       int      myVerbose;
 
+      // VDB pre processing parms
+      int      myPreProcess;
+      int      myPreRasterType;
+      fpreal   myPreDx;
+      int      myPreFogVolume;
+      fpreal   myPreGradientWidth;
+      fpreal   myPreVoxelSize;
+      fpreal   myPreRadiusMin;
+      fpreal   myPreBandWidth;
+      int      myPreWSUnits;
+      fpreal   myPreVDBVelocityMult;
+      fpreal   myPreVDBRadiusMult;
+      fpreal   myPreFalloff;
+      fpreal   myPrePosInfluence;
+      fpreal   myPreNormalInfluence;
+      fpreal   myPreVelInfluence;
+
+      int      myPreVDBMedianFilter;
+      int      myPreVDBMeanFilter;
+      int      myPreVDBMeanCurvatureFilter;
+      int      myPreVDBLaplacianFilter;
+      int      myPreVDBOffsetFilter;
+      fpreal   myPreVDBOffsetFilterAmount;
+      int      myPreVDBReNormalizeFilter;
+      int      myPreVDBWriteDebugFiles;
+
+      // VDB post processing parms
       int      myPostProcess;
       int      myRasterType;
       fpreal   myDx;

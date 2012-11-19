@@ -100,7 +100,15 @@ void VRAY_clusterThis::render()
 
 //               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
 
-               VRAY_clusterThis::preProcess(gdp);
+
+               // Dump the user parameters to the console
+               if(myVerbose == CLUSTER_MSG_DEBUG)
+                  VRAY_clusterThis::dumpParameters();
+
+               // If the user wants to build grids for pre processing
+               // TODO: Should this be an option?  There may be functions/features that will depend on this ... discuss!
+               if(myPreProcess)
+                  VRAY_clusterThis::preProcess(gdp);
 
                VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
@@ -137,9 +145,6 @@ void VRAY_clusterThis::render()
 // cout << "scale: " << getFParm ( "scale" ) << std::endl;
 #endif
 
-               // Dump the user parameters to the console
-               if(myVerbose == CLUSTER_MSG_DEBUG)
-                  VRAY_clusterThis::dumpParameters();
 
                switch(myMethod) {
                      case CLUSTER_INSTANCE_NOW:
@@ -366,71 +371,71 @@ void VRAY_clusterThis::render()
 
 //                        if(lod > myParms->myChunkSize && myPointList.entries() > sprite_limit) {
 
-                              std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
+                        std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
 
-                              // Split into further procedurals
-                              xinc = myBox.sizeX();
-                              yinc = myBox.sizeY();
-                              zinc = myBox.sizeZ();
+                        // Split into further procedurals
+                        xinc = myBox.sizeX();
+                        yinc = myBox.sizeY();
+                        zinc = myBox.sizeZ();
 
-                              std::cout << "1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+                        std::cout << "1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
 
-                              max = myBox.sizeMax();
-                              dfactor = (xinc + yinc + zinc) / max;
-                              factor = SYSpow((fpreal)myPointList.entries() / sprite_limit,
-                                              1.0F / dfactor);
-                              if(factor > 4)
-                                 factor = 4;
-                              max /= factor;
+                        max = myBox.sizeMax();
+                        dfactor = (xinc + yinc + zinc) / max;
+                        factor = SYSpow((fpreal)myPointList.entries() / sprite_limit,
+                                        1.0F / dfactor);
+                        if(factor > 4)
+                           factor = 4;
+                        max /= factor;
 
-                              std::cout << "max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
+                        std::cout << "max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
 
-                              std::cout << "Preparing to split " <<  myPointList.entries()
-                                        << " points with lod " << lod << std::endl;
-                              std::cout << "myBox " << myBox << std::endl;
+                        std::cout << "Preparing to split " <<  myPointList.entries()
+                                  << " points with lod " << lod << std::endl;
+                        std::cout << "myBox " << myBox << std::endl;
 
-                              nx = computeDivs(xinc, max);
-                              ny = computeDivs(yinc, max);
-                              nz = computeDivs(zinc, max);
+                        nx = computeDivs(xinc, max);
+                        ny = computeDivs(yinc, max);
+                        nz = computeDivs(zinc, max);
 
-                              std::cout << "1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+                        std::cout << "1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
 
 
-                              if(nx == 1 && ny == 1 && nz == 1) {
-                                    if(xinc > yinc) {
-                                          if(xinc > zinc)
-                                             nx = 2;
-                                          else
-                                             nz = 2;
-                                       }
-                                    else {
-                                          if(yinc > zinc)
-                                             ny = 2;
-                                          else
-                                             nz = 2;
-                                       }
+                        if(nx == 1 && ny == 1 && nz == 1) {
+                              if(xinc > yinc) {
+                                    if(xinc > zinc)
+                                       nx = 2;
+                                    else
+                                       nz = 2;
                                  }
+                              else {
+                                    if(yinc > zinc)
+                                       ny = 2;
+                                    else
+                                       nz = 2;
+                                 }
+                           }
 
-                              std::cout << "2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+                        std::cout << "2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
 
-                              xinc /= (fpreal)nx;
-                              yinc /= (fpreal)ny;
-                              zinc /= (fpreal)nz;
+                        xinc /= (fpreal)nx;
+                        yinc /= (fpreal)ny;
+                        zinc /= (fpreal)nz;
 
-                              std::cout << "2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+                        std::cout << "2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
 
-                              printf("breaking up into: %dx%dx%d\n", nx, ny, nz);
+                        printf("breaking up into: %dx%dx%d\n", nx, ny, nz);
 
-                              for(iz = 0, zv = myBox.vals[2][0]; iz < nz; iz++, zv += zinc) {
-                                    for(iy = 0, yv = myBox.vals[1][0]; iy < ny; iy++, yv += yinc) {
-                                          for(ix = 0, xv = myBox.vals[0][0]; ix < nx; ix++, xv += xinc) {
-                                                kidbox.initBounds(xv, yv, zv);
-                                                kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
-                                                child = new VRAY_clusterThisChild(this);
+                        for(iz = 0, zv = myBox.vals[2][0]; iz < nz; iz++, zv += zinc) {
+                              for(iy = 0, yv = myBox.vals[1][0]; iy < ny; iy++, yv += yinc) {
+                                    for(ix = 0, xv = myBox.vals[0][0]; ix < nx; ix++, xv += xinc) {
+                                          kidbox.initBounds(xv, yv, zv);
+                                          kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
+                                          child = new VRAY_clusterThisChild(this);
 
-                                                std::cout << "iz " <<  iz << " zv " << zv  <<
-                                                          " iy " <<  iy << " yv " << yv  <<
-                                                          " ix " <<  ix << " xv " << xv << std::endl;
+                                          std::cout << "iz " <<  iz << " zv " << zv  <<
+                                                    " iy " <<  iy << " yv " << yv  <<
+                                                    " ix " <<  ix << " xv " << xv << std::endl;
 
 //                                              if(!child->initChild(this, kidbox))
 //                                                   delete child;
@@ -441,9 +446,9 @@ void VRAY_clusterThis::render()
 //                                                         }
 //                                                   }
 
-                                             }
                                        }
                                  }
+                           }
 //                           }
 
 

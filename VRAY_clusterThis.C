@@ -616,7 +616,33 @@ VRAY_clusterThis::VRAY_clusterThis()
    myCVEXPrimVars.cvex_weight_prim = 0;
    myCVEXPrimVars.cvex_width_prim = 0;
 
-// VDB parms
+
+   // VDB pre processing parms
+   myPreProcess = 0;
+   myPreRasterType = 0;
+   myPreDx = 1.0;
+   myPreFogVolume = 0;
+   myPreGradientWidth = 0.5;
+   myPreVoxelSize = 0.025;
+   myPreRadiusMin = 1.5;
+   myPreBandWidth = 0.2;
+   myPreWSUnits = 1;
+   myPreVDBRadiusMult = 1.0;
+   myPreVDBVelocityMult = 1.0;
+   myPreFalloff = 0.5;
+   myPrePosInfluence = 0.1;
+   myPreNormalInfluence = 0.1;
+   myPreVelInfluence = 0.1;
+   myPreVDBMedianFilter = 0;
+   myPreVDBMeanFilter = 0;
+   myPreVDBMeanCurvatureFilter = 0;
+   myPreVDBLaplacianFilter = 0;
+   myPreVDBOffsetFilter = 0;
+   myPreVDBOffsetFilterAmount = 0.1;
+   myPreVDBReNormalizeFilter = 0;
+   myPreVDBWriteDebugFiles = 0;
+
+   // VDB post processing parms
    myPostProcess = 0;
    myRasterType = 0;
    myDx = 1.0;
@@ -626,17 +652,18 @@ VRAY_clusterThis::VRAY_clusterThis()
    myRadiusMin = 1.5;
    myBandWidth = 0.2;
    myWSUnits = 1;
+   myVDBRadiusMult = 1.0;
+   myVDBVelocityMult = 1.0;
    myFalloff = 0.5;
    myPosInfluence = 0.1;
    myNormalInfluence = 0.1;
    myVelInfluence = 0.1;
-
    myVDBMedianFilter = 0;
    myVDBMeanFilter = 0;
    myVDBMeanCurvatureFilter = 0;
    myVDBLaplacianFilter = 0;
    myVDBOffsetFilter = 0;
-   myVDBOffsetFilterAmount = 0.0;
+   myVDBOffsetFilterAmount = 0.1;
    myVDBReNormalizeFilter = 0;
    myVDBWriteDebugFiles = 0;
 
@@ -705,7 +732,7 @@ const char * VRAY_clusterThis::getClassName()
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThis::initialize(const UT_BoundingBox *box)
+int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 {
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
@@ -814,11 +841,6 @@ int VRAY_clusterThis::getOTLParameters()
    const int * int_ptr;
    const fpreal * flt_ptr;
    const char ** char_handle;
-
-
-
-   //    ray_procedural clusterThis minbound -0.699999988079 -0.699999988079 -0.699999988079 maxbound 0.699999988079 0.699999988079 0.699999988079 prim_type 8 num_copy 14 recursion 19 radius 0.5 size 0.20000000298 0.20000000298 0.20000000298 freq 2 3 2 noise_type 3 noise_amp 0 noise_rough 0.391999989748 noise_fractal_depth 7 noise_atten 0.922999978065 temp_file_path "cache/temp_geo.bgeo"
-
 
 
    if(flt_ptr = VRAY_Procedural::getFParm("minbound")) {
@@ -1023,72 +1045,149 @@ int VRAY_clusterThis::getOTLParameters()
       }
 
 
+   // VDB pre processing parms
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_process"))
+      myPreProcess = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("post_process"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_raster_type"))
+      myPreRasterType = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_ws_units"))
+      myPreWSUnits = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_fog_volume"))
+      myPreFogVolume = *int_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_dx"))
+      myPreDx = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_gradient_width"))
+      myPreGradientWidth = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_voxel_size"))
+      myPreVoxelSize = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_radius_min"))
+      myPreRadiusMin = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_radius_mult"))
+      myPreVDBRadiusMult = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_velocity_mult"))
+      myPreVDBVelocityMult = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_bandwidth"))
+      myPreBandWidth = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_falloff"))
+      myPreFalloff = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_pos_influence"))
+      myPrePosInfluence = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_vel_influence"))
+      myPreVelInfluence = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_normal_influence"))
+      myPreNormalInfluence = *flt_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_median_filter"))
+      myPreVDBMedianFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_mean_filter"))
+      myPreVDBMeanFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_mean_curvature_filter"))
+      myPreVDBMeanCurvatureFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_laplacian_filter"))
+      myPreVDBLaplacianFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_offset_filter"))
+      myPreVDBOffsetFilter = *int_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pre_offset_filter_amount"))
+      myPreVDBOffsetFilterAmount = *flt_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_renormalize_filter"))
+      myPreVDBReNormalizeFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_pre_write_debug_file"))
+      myPreVDBWriteDebugFiles = *int_ptr;
+
+
+   // VDB pre processing parms
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_process"))
       myPostProcess = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("raster_type"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_raster_type"))
       myRasterType = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("ws_units"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_ws_units"))
       myWSUnits = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("fog_volume"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_fog_volume"))
       myFogVolume = *int_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("dx"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_dx"))
       myDx = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("gradient_width"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_gradient_width"))
       myGradientWidth = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("voxel_size"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_voxel_size"))
       myVoxelSize = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("radius_min"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_radius_min"))
       myRadiusMin = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("bandwidth"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_radius_mult"))
+      myVDBRadiusMult = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_velocity_mult"))
+      myVDBVelocityMult = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_bandwidth"))
       myBandWidth = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("falloff"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_falloff"))
       myFalloff = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("vdb_pos_influence"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_pos_influence"))
       myPosInfluence = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("vdb_vel_influence"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_vel_influence"))
       myVelInfluence = *flt_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("vdb_normal_influence"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_normal_influence"))
       myNormalInfluence = *flt_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_median_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_median_filter"))
       myVDBMedianFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_mean_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_mean_filter"))
       myVDBMeanFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_mean_curvature_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_mean_curvature_filter"))
       myVDBMeanCurvatureFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_laplacian_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_laplacian_filter"))
       myVDBLaplacianFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_offset_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_offset_filter"))
       myVDBOffsetFilter = *int_ptr;
 
-   if(flt_ptr = VRAY_Procedural::getFParm("vdb_offset_filter_amount"))
+   if(flt_ptr = VRAY_Procedural::getFParm("vdb_post_offset_filter_amount"))
       myVDBOffsetFilterAmount = *flt_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_renormalize_filter"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_renormalize_filter"))
       myVDBReNormalizeFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_write_debug_file"))
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_write_debug_file"))
       myVDBWriteDebugFiles = *int_ptr;
 
 
-return 0;
+   return 0;
 
 }
 
@@ -1279,17 +1378,14 @@ inline void VRAY_clusterThis::calculateNewPosition(fpreal theta, uint32 i, uint3
 void VRAY_clusterThis::dumpParameters()
 {
 
+   cout << "VRAY_clusterThis::dumpParameters() **** SETUP PARAMETERS ****" << endl;
+
    cout << "VRAY_clusterThis::dumpParameters() myPrimType: " << myPrimType << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNumCopies: " << myNumCopies << endl;
    cout << "VRAY_clusterThis::dumpParameters() myUseGeoFile: " << myUseGeoFile << endl;
    cout << "VRAY_clusterThis::dumpParameters() mySrcGeoFname: " << mySrcGeoFname << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRecursion: " << myRecursion << endl;
    cout << "VRAY_clusterThis::dumpParameters() myMethod: " << myMethod << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseType: " << myNoiseType << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseAmp: " << myNoiseAmp << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: " << myNoiseAtten << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myNoiseSeed: " << myNoiseSeed << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myFractalDepth: " << myFractalDepth << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRadius: " << myRadius << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRough: " << myRough << endl;
    cout << "VRAY_clusterThis::dumpParameters() mySize: " << mySize[0] << " " << mySize[1] << " " << mySize[2] << endl;
@@ -1299,14 +1395,23 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myCurrentTime: " << myCurrentTime << endl;
    cout << "VRAY_clusterThis::dumpParameters() myDoMotionBlur: " << myDoMotionBlur << endl;
    cout << "VRAY_clusterThis::dumpParameters() myShutter: " << myShutter << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myFilterType: " << myFilterType << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myFilterAmp: " << myFilterAmp << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myCopyAttrs: " << myCopyAttrs << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myBlendAttrs: " << myBlendAttrs << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVerbose: " << myVerbose << endl;
    cout << "VRAY_clusterThis::dumpParameters() myGeoFile: " << myGeoFile << endl;
    cout << "VRAY_clusterThis::dumpParameters() myTempFname: " << myTempFname << endl;
    cout << "VRAY_clusterThis::dumpParameters() myUseTempFile: " << myUseTempFile << endl;
    cout << "VRAY_clusterThis::dumpParameters() mySaveTempFile: " << mySaveTempFile << endl;
+
+
+   cout << "VRAY_clusterThis::dumpParameters() **** NOISE PARAMETERS ****" << endl;
+
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseType: " << myNoiseType << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseAmp: " << myNoiseAmp << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseAtten: " << myNoiseAtten << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myNoiseSeed: " << myNoiseSeed << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myFractalDepth: " << myFractalDepth << endl;
+
+
+   cout << "VRAY_clusterThis::dumpParameters() **** CVEX PARAMETERS ****" << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXFname: " << myCVEXFname << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEX_Exec: " << myCVEX_Exec << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXFname_prim: " << myCVEXFname_prim << endl;
@@ -1315,7 +1420,6 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myCVEX_Exec_pre: " << myCVEX_Exec_pre << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXFname_post: " << myCVEXFname_post << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEX_Exec_post: " << myCVEX_Exec_post << endl;
-
    cout << "VRAY_clusterThis::dumpParameters() myCVEXPointVars.cvex_Cd_pt: " << myCVEXPointVars.cvex_Cd_pt << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXPointVars.cvex_Alpha_pt: " << myCVEXPointVars.cvex_Alpha_pt << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXPointVars.cvex_N_pt: " << myCVEXPointVars.cvex_Alpha_pt << endl;
@@ -1329,14 +1433,41 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myCVEXPrimVars.cvex_weight_prim: " << myCVEXPrimVars.cvex_weight_prim << endl;
    cout << "VRAY_clusterThis::dumpParameters() myCVEXPrimVars.cvex_width_prim: " << myCVEXPrimVars.cvex_width_prim << endl;
 
-   cout << "VRAY_clusterThis::dumpParameters() myOTLVersion: " << myOTLVersion << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myVelocityScale: " << myVelocityScale << endl;
-   cout << "VRAY_clusterThis::dumpParameters() myVerbose: " << myVerbose << endl;
 
+   cout << "VRAY_clusterThis::dumpParameters() **** PRE PROCESS PARAMETERS ****" << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreProcess: " << myPreProcess << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreRasterType: " << myPreRasterType << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreDx: " << myPreDx << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreFogVolume: " << myPreFogVolume << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreRadiusMin: " << myPreRadiusMin << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBRadiusMult: " << myPreVDBRadiusMult << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBVelocityMult: " << myPreVDBVelocityMult << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreGradientWidth: " << myPreGradientWidth << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVoxelSize: " << myPreVoxelSize << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreBandWidth: " << myPreBandWidth << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreWSUnits: " << myPreWSUnits << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreFalloff: " << myPreFalloff << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPrePosInfluence: " << myPrePosInfluence << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVelInfluence: " << myPreVelInfluence << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreNormalInfluence: " << myPreNormalInfluence << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBMedianFilter: " << myPreVDBMedianFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBMeanFilter: " << myPreVDBMeanFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBMeanCurvatureFilter: " << myPreVDBMeanCurvatureFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBLaplacianFilter: " << myPreVDBLaplacianFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBOffsetFilter: " << myPreVDBOffsetFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBOffsetFilterAmount: " << myPreVDBOffsetFilterAmount << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBReNormalizeFilter: " << myPreVDBReNormalizeFilter << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myPreVDBWriteDebugFiles: " << myPreVDBWriteDebugFiles << endl;
+
+
+   cout << "VRAY_clusterThis::dumpParameters() **** POST PROCESS PARAMETERS ****" << endl;
    cout << "VRAY_clusterThis::dumpParameters() myPostProcess: " << myPostProcess << endl;
    cout << "VRAY_clusterThis::dumpParameters() myRasterType: " << myRasterType << endl;
    cout << "VRAY_clusterThis::dumpParameters() myDx: " << myDx << endl;
    cout << "VRAY_clusterThis::dumpParameters() myFogVolume: " << myFogVolume << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myRadiusMin: " << myRadiusMin << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBVelocityMult: " << myVDBVelocityMult << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVDBRadiusMult: " << myVDBRadiusMult << endl;
    cout << "VRAY_clusterThis::dumpParameters() myGradientWidth: " << myGradientWidth << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVoxelSize: " << myVoxelSize << endl;
    cout << "VRAY_clusterThis::dumpParameters() myBandWidth: " << myBandWidth << endl;
@@ -1345,7 +1476,6 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myPosInfluence: " << myPosInfluence << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVelInfluence: " << myVelInfluence << endl;
    cout << "VRAY_clusterThis::dumpParameters() myNormalInfluence: " << myNormalInfluence << endl;
-
    cout << "VRAY_clusterThis::dumpParameters() myVDBMedianFilter: " << myVDBMedianFilter << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBMeanFilter: " << myVDBMeanFilter << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBMeanCurvatureFilter: " << myVDBMeanCurvatureFilter << endl;
@@ -1355,6 +1485,8 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << endl;
    cout << "VRAY_clusterThis::dumpParameters() myVDBWriteDebugFiles: " << myVDBWriteDebugFiles << endl;
 
+
+   cout << "VRAY_clusterThis::dumpParameters() **** BBOX ****" << endl;
    cout << "VRAY_clusterThis::dumpParameters() myBox:"  << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[1][0] << " " << myBox.vals[1][1] << endl;
@@ -1364,6 +1496,16 @@ void VRAY_clusterThis::dumpParameters()
    cout << "VRAY_clusterThis::dumpParameters() " << bb_x1 << " " << bb_x2 << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << bb_y1 << " " << bb_y2 << endl;
    cout << "VRAY_clusterThis::dumpParameters() " << bb_z1 << " " << bb_z2 << endl;
+
+   cout << "VRAY_clusterThis::dumpParameters() **** MISC PARAMETERS ****" << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myOTLVersion: " << myOTLVersion << endl;
+   cout << "VRAY_clusterThis::dumpParameters() myVelocityScale: " << myVelocityScale << endl;
+//   cout << "VRAY_clusterThis::dumpParameters() myFilterType: " << myFilterType << endl;
+//   cout << "VRAY_clusterThis::dumpParameters() myFilterAmp: " << myFilterAmp << endl;
+//   cout << "VRAY_clusterThis::dumpParameters() myCopyAttrs: " << myCopyAttrs << endl;
+//   cout << "VRAY_clusterThis::dumpParameters() myBlendAttrs: " << myBlendAttrs << endl;
+
+
 }
 
 
@@ -1372,6 +1514,12 @@ void VRAY_clusterThis::dumpParameters()
 *
 *  Description :
 *
+
+
+
+
+
+
 *  Input Arguments : GU_Detail *file_gdp
 *
 *  Return Value : file load status
@@ -1390,6 +1538,8 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
+
 
 
 

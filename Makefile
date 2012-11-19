@@ -63,6 +63,9 @@ ifeq ($(OSTYPE),darwin)
 	cp ${DSONAME}.dylib ${HOME}/houdini${VERSION}/dso/mantra/
 endif
 
+get_OTL:
+	cp $(DCA_COMMON)/lib/houdini/otls/VM_GEO_clusterThis.otl .
+
 archive_src:
 	rm -fr docs
 	doxygen Doxyfile
