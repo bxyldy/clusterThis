@@ -33,7 +33,6 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    long int num_points = (long int) gdp->points().entries();
    long int stat_interval = (long int)(num_points * 0.10) + 1;
 
-   cout << "VRAY_clusterThis::preProcess() Processing Voxels" << std::endl;
 
    for(uint32 i = gdp->points().entries(); i-- > 0;) {
          ppt = gdp->points()(i);
@@ -56,6 +55,16 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
 
       }
+
+
+
+   // If the user wants to build grids for pre processing
+   // TODO: Should this be an option?  There may be functions/features that will depend on this ... discuss!
+   if(!myPreProcess)
+      return;
+
+
+   std::cout << "VRAY_clusterThis::preProcess() Processing Voxels" << std::endl;
 
 
 

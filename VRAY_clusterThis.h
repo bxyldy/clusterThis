@@ -407,7 +407,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool myUseBacktrackMB;
       UT_IntArray myPointList;
       UT_String myObjectName;
-      UT_String myOTLVersion;
+//      UT_String myOTLVersion;
       fpreal   myVelocityScale;
       long int myInstanceNum;
       fpreal   myLOD;

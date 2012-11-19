@@ -105,11 +105,6 @@ void VRAY_clusterThis::render()
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   VRAY_clusterThis::dumpParameters();
 
-               // If the user wants to build grids for pre processing
-               // TODO: Should this be an option?  There may be functions/features that will depend on this ... discuss!
-               if(myPreProcess)
-                  VRAY_clusterThis::preProcess(gdp);
-
                VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
 //         myPointAttributes.material = myMaterial;
@@ -125,6 +120,7 @@ void VRAY_clusterThis::render()
                myLOD = getLevelOfDetail(myBox);
                if(myVerbose > CLUSTER_MSG_INFO)
                   cout << "VRAY_clusterThis::render() myLOD: " << myLOD << std::endl;
+
 
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
@@ -144,6 +140,7 @@ void VRAY_clusterThis::render()
                cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
 // cout << "scale: " << getFParm ( "scale" ) << std::endl;
 #endif
+
 
 
                switch(myMethod) {
@@ -212,6 +209,12 @@ void VRAY_clusterThis::render()
 
 
 
+               // Preproces the incoming point cloud
+               VRAY_clusterThis::preProcess(gdp);
+
+
+
+
                if(myMethod == CLUSTER_INSTANCE_NOW) {
 
 
@@ -241,9 +244,9 @@ void VRAY_clusterThis::render()
                                           // generate random number to determine to instance or not
 
                                           dice = SYSfastRandom(seed);
-                                          (dice > myBirthProb) ? skip = true : skip = false;
+                                          (dice < myBirthProb) ? skip = true : skip = false;
 //                  cout << dice << " " << skip << std::endl;
-                                          seed = uint(dice * 100);
+                                          seed = uint(dice * 137);
 
                                           // Calculate the position for the next instanced object ...
                                           VRAY_clusterThis::calculateNewPosition(theta, copyNum, recursionNum);
@@ -288,28 +291,13 @@ void VRAY_clusterThis::render()
                                                          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Illegal instance type, exiting ...", 1);
                                                          break;
                                                    }
-                                                break;
-
-//                                                   // For the "deferred instance" method, add the procedural now ...
-//                                                case CLUSTER_INSTANCE_DEFERRED:
-//                                                   VRAY_Procedural::openProceduralObject();
-//                                                   VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
-//                                                   VRAY_Procedural::addProcedural(child);
-//                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
-//                                                   VRAY_Procedural::closeObject();
-
-
-//changeSetting("surface", "constant Cd ( 1 0 0 )", "object");
-//   changeSetting("object:geo_velocityblur", "on");
-
-//                                                   break;
-//                                             }
 
                                                 myInstanceNum++;
 
 #ifdef DEBUG
                                                 cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
 #endif
+
                                              }
 
                                        } // for number of recursions ...
@@ -318,7 +306,7 @@ void VRAY_clusterThis::render()
                            }
 
                         // User wants a curve instanced on this point
-                        if((myPrimType == CLUSTER_PRIM_CURVE) && (myMethod == CLUSTER_INSTANCE_NOW) && (!skip))
+                        if((myPrimType == CLUSTER_PRIM_CURVE) && (!skip))
                            VRAY_clusterThis::instanceCurve(inst_gdp, mb_gdp, theta, point_num);
 
                         // Increment our point counter
@@ -382,8 +370,7 @@ void VRAY_clusterThis::render()
 
                         max = myBox.sizeMax();
                         dfactor = (xinc + yinc + zinc) / max;
-                        factor = SYSpow((fpreal)myPointList.entries() / sprite_limit,
-                                        1.0F / dfactor);
+                        factor = SYSpow((fpreal)myPointList.entries() / sprite_limit, 1.0F / dfactor);
                         if(factor > 4)
                            factor = 4;
                         max /= factor;
