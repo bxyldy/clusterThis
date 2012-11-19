@@ -117,210 +117,9 @@
 namespace hvdb = openvdb_houdini;
 namespace hutil = houdini_utils;
 
-class VRAY_clusterThisChild;
-class VRAY_clusterThis_Exception;
-
-
-namespace
-{
-
-// This class is required by openvdb::tools::ParticlesToLeveSet
-   class ParticleList
-   {
-      public:
-         ParticleList(const GA_Detail * gdp,
-                      openvdb::Real radiusMult = 1,
-                      openvdb::Real velocityMult = 1) :
-            mGdp(gdp),
-            mVDBRadiusHandle(gdp, GEO_POINT_DICT, "vdb_radius"),
-            mVelHandle(gdp, GEO_POINT_DICT, "v"),
-            mHasRadius(mVDBRadiusHandle.isValid()),
-            mHasVelocity(mVelHandle.isValid()),
-            mRadiusMult(radiusMult),
-            mVelocityMult(velocityMult) {
-         }
-
-         bool hasRadius()   const {
-            return mHasRadius;
-         }
-         bool hasVelocity() const {
-            return mHasVelocity;
-         }
-
-         // The public methods below are the only ones required
-         // by tools::ParticlesToLevelSet
-         size_t size() const {
-            return mGdp->getNumPoints();
-         }
-         openvdb::Vec3R pos(int n) const {
-            UT_Vector3 p = mGdp->getPos3(this->offset(n));
-            return openvdb::Vec3R(p[0], p[1], p[2]);
-         }
-         openvdb::Vec3R vel(int n) const {
-            if(!mHasVelocity)
-               return openvdb::Vec3R(0, 0, 0);
-            UT_Vector3 v = mVelHandle.get(this->offset(n));
-            return mVelocityMult * openvdb::Vec3R(v[0], v[1], v[2]);
-         }
-         openvdb::Real radius(int n) const {
-            if(!mHasRadius)
-               return mRadiusMult;
-            return mRadiusMult * mVDBRadiusHandle.get(this->offset(n));
-         }
-
-      protected:
-         GA_Offset offset(int n) const {
-            return mGdp->pointOffset(n);
-         }
-
-         const GA_Detail  *  mGdp;
-         GA_ROHandleF        mVDBRadiusHandle;
-         GA_ROHandleV3       mVelHandle;
-         const bool          mHasRadius, mHasVelocity;
-         const openvdb::Real mRadiusMult; // multiplier for radius
-         const openvdb::Real mVelocityMult; // multiplier for velocity
-   };// ParticleList
-
-// Convenient settings struct
-   struct Settings {
-      Settings(): mRasterizeTrails(false), mFogVolume(false), mDx(1.0), mGradientWidth(-1.0) {}
-      bool mRasterizeTrails, mFogVolume;
-      float mDx, mGradientWidth;
-   };
-
-} // unnamed namespace
-
-
-
-
-namespace dca
-{
-
-   static short int myPasses(int mode)
-   {
-      static short int num_passes; // keep track of how many times the DSO gets called
-      if(mode)
-         return num_passes;
-      else
-         num_passes++;
-      return 0;
-
-   }
-
-
-
-   static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
-   {
-#ifdef DEBUG
-      cout << "VRAY_clusterThis::calculateNewPosition() i: " << i << " j: " << j << endl;
-#endif
-
-      // Calculate a new position for the object ...
-//   fpreal delta = theta * i;
-//   fpreal dx, dy, dz = 0.0;
-//   dx = SYSsin(delta * myFreqX + myOffsetX);
-//   dy = SYScos(delta * myFreqY + myOffsetY);
-//   dz = SYScos(delta * myFreqZ + myOffsetZ);
-
-#ifdef DEBUG
-      cout << "VRAY_clusterThis::calculateNewPosition() " << "delta: " << delta << endl;
-      cout << "VRAY_clusterThis::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
-#endif
-
-//   myNoise.setSeed(myPointAttributes.id);
-
-      // Calculate a bit of noise to add to the new position ...
-      // TODO:
-//   fpreal noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
-
-      // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
-      // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
-
-#ifdef DEBUG
-      cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
-#endif
-
-//   // Calculate the new object's position
-//   myPointAttributes.myNewPos[0] = (fpreal) myPointAttributes.myPos.x() +
-//                                   ((dx * myRadius) * noise_bias * SYSsin(static_cast<fpreal>(j + i)));
-//   myPointAttributes.myNewPos[1] = (fpreal) myPointAttributes.myPos.y() +
-//                                   ((dy * myRadius) * noise_bias * SYScos(static_cast<fpreal>(j + i)));
-//   myPointAttributes.myNewPos[2] = (fpreal) myPointAttributes.myPos.z() +
-//                                   ((dz * myRadius) * noise_bias * (SYSsin(static_cast<fpreal>(j + i)) + SYScos(static_cast<fpreal>(j + i))));
-////   myPointAttributes.myNewPos[2] = ( fpreal ) myPointAttributes.myPos.z() +
-////                                    ( ( dz * myRadius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
-//
-//   if (myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
-//      myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
-//      myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
-//      myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
-//   }
-
-#ifdef DEBUG
-      cout << "VRAY_clusterThis::calculateNewPosition() myPos:   "
-           << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
-      cout << "VRAY_clusterThis::calculateNewPosition() newPos: "
-           << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
-#endif
-
-      return 0;
-
-   }
-
-
-
-   static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
-                                  const GEO_Point * point, const UT_Vector3 & sprite_scale,
-                                  const GA_ROAttributeRef & voff,
-                                  fpreal tscale, const UT_Matrix4 & xform)
-   {
-      fpreal     maxradius;
-      static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);
-      UT_Vector3    pt;
-
-      maxradius = SYSmax(sprite_scale.x(), sprite_scale.y()) * isin45 * 0.5F;
-
-      pt = UT_Vector3(-maxradius, -maxradius, 0) * xform;
-      box.initBounds(pt);
-      pt = UT_Vector3(-maxradius,  maxradius, 0) * xform;
-      box.enlargeBounds(pt);
-      pt = UT_Vector3(maxradius, -maxradius, 0) * xform;
-      box.enlargeBounds(pt);
-      pt = UT_Vector3(maxradius,  maxradius, 0) * xform;
-      box.enlargeBounds(pt);
-
-      box.translate(point->getPos());
-      vbox = box;
-
-      if(voff.isValid()) {
-            UT_Vector3  vel;
-            int      i;
-            fpreal      amount;
-
-            vel = point->getValue<UT_Vector3>(voff);
-            for(i = 0; i < 3; i++) {
-                  amount = vel(i) * tscale;
-                  if(amount < 0)
-                     vbox.vals[i][1] -= amount;
-                  else
-                     vbox.vals[i][0] -= amount;
-
-               }
-         }
-   }
-
-
-}
-
-using namespace dca;
-
-
-
-// TODO: Ahh yes, the ol' order of include issues ... figure out the issue with declaring the static(s) & namespace above
-// and how it's interfering with the include files below ... oy!
-
 #include "version.h"
 #include "VRAY_clusterThis.h"
+#include "VRAY_clusterThisUtil.C"
 #include "VRAY_clusterThisChild.h"
 #include "VRAY_clusterThisChild.C"
 #include "VRAY_clusterThisRender.C"
@@ -329,10 +128,10 @@ using namespace dca;
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
 #include "VRAY_clusterThisPostProcess.C"
+#include "VRAY_clusterThisPreProcess.C"
 
-
-
-
+class VRAY_clusterThisChild;
+class VRAY_clusterThis_Exception;
 
 /* ******************************************************************************
 *  Function Name : theArgs()
@@ -906,15 +705,76 @@ const char * VRAY_clusterThis::getClassName()
 *  Return Value : int
 *
 ***************************************************************************** */
-int VRAY_clusterThis::initialize(const UT_BoundingBox *)
+int VRAY_clusterThis::initialize(const UT_BoundingBox *box)
 {
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
 
-//   UT_String geo_fname, temp_fname, cvex_fname, otl_version;
-   const int * int_ptr;
-   const fpreal * flt_ptr;
-   const char ** char_handle;
+
+   void  *  handle;
+   const char  *  name;
+//   GEO_Point  *   ppt;
+//   int         i, first;
+   UT_BoundingBox    tbox, tvbox;
+   GU_Detail  *   gdp;
+   UT_Matrix4     xform;
+   UT_String      str;
+
+
+   // Get the OTL parameters
+   VRAY_clusterThis::getOTLParameters();
+
+   // First, find the geometry object we're supposed to render
+   name = 0;
+   if(import("object", str))
+      name = str.isstring() ? (const char *)str : 0;
+//   handle = queryObject(name);
+   handle = queryObject(0);
+   if(!handle) {
+         VRAYerror("%s couldn't find object '%s'", getClassName(), name);
+         return 0;
+      }
+   name = queryObjectName(handle);
+
+   std::cout << "VRAY_clusterSprite::initialize() name: " << name << std::endl;
+
+   gdp = myGdp = (GU_Detail *)queryGeometry(handle, 0);
+//   gdp = myParms->myGdp = (GU_Detail *)queryGeometry(handle, 0);
+   if(!gdp) {
+         VRAYerror("%s object '%s' has no geometry", getClassName(), name);
+         return 0;
+      }
+
+//   // Retrieve the velocity scale for use in velocity motion blur
+//   // calculations
+//   if(!import("object:velocityscale", &myParms->myTimeScale, 1))
+//      myParms->myTimeScale = 0.5F / 24.0F;
+
+
+
+//   changeSetting("object:geo_velocityblur", "on");
+
+//   int     vblur = 0;
+//   import("object:velocityblur", &vblur, 0);
+//
+//   if(vblur) {
+//         str = 0;
+//         import("velocity", str);
+//         if(str.isstring()) {
+////               const char  *  name;
+////               name = queryObjectName(handle);
+//               VRAYwarning("%s[%s] cannot get %s",
+//                           VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
+//
+//            }
+//      }
+
+
+   myXformInverse = queryTransform(handle, 0);
+   myXformInverse.invert();
+
+
+
 
    // Import the object:velocityscale settings.  This setting stores the
    // shutter time (in seconds) on a per object basis.  It's used primarily
@@ -931,9 +791,35 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
 //const char **   getSParm (int token) const
 
 
-//    ray_procedural clusterThis minbound -0.699999988079 -0.699999988079 -0.699999988079 maxbound 0.699999988079 0.699999988079 0.699999988079 prim_type 8 num_copy 14 recursion 19 radius 0.5 size 0.20000000298 0.20000000298 0.20000000298 freq 2 3 2 noise_type 3 noise_amp 0 noise_rough 0.391999989748 noise_fractal_depth 7 noise_atten 0.922999978065 temp_file_path "cache/temp_geo.bgeo"
 
-   // Get OTL parameters
+   return 1;
+}
+
+
+
+/* ******************************************************************************
+*  Function Name : getOTLParameters
+*
+*  Description : Get OTL parameters
+*
+*  Input Arguments : None
+*
+*  Return Value : None
+*
+***************************************************************************** */
+int VRAY_clusterThis::getOTLParameters()
+{
+
+//   UT_String geo_fname, temp_fname, cvex_fname, otl_version;
+   const int * int_ptr;
+   const fpreal * flt_ptr;
+   const char ** char_handle;
+
+
+
+   //    ray_procedural clusterThis minbound -0.699999988079 -0.699999988079 -0.699999988079 maxbound 0.699999988079 0.699999988079 0.699999988079 prim_type 8 num_copy 14 recursion 19 radius 0.5 size 0.20000000298 0.20000000298 0.20000000298 freq 2 3 2 noise_type 3 noise_amp 0 noise_rough 0.391999989748 noise_fractal_depth 7 noise_atten 0.922999978065 temp_file_path "cache/temp_geo.bgeo"
+
+
 
    if(flt_ptr = VRAY_Procedural::getFParm("minbound")) {
          bb_x1 = *flt_ptr++;
@@ -1202,10 +1088,9 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox *)
       myVDBWriteDebugFiles = *int_ptr;
 
 
-   return 1;
+return 0;
+
 }
-
-
 
 /* ******************************************************************************
 *  Function Name : getBoundingBox
@@ -1505,6 +1390,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

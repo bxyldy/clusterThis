@@ -52,7 +52,7 @@ void VRAY_clusterThis::render()
    tempFileDeleted = false;
 //   cout << "VRAY_clusterThis::render() tempFileDeleted: " << tempFileDeleted << endl;
 
-   dca::myPasses(1);
+   myPasses(1);
 //   std::cout << "VRAY_clusterThis::render() - num_passes: " << dca::myPasses(0) <<  std::endl;
 
    if(myVerbose > CLUSTER_MSG_QUIET) {
@@ -100,6 +100,7 @@ void VRAY_clusterThis::render()
 
 //               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
 
+               VRAY_clusterThis::preProcess(gdp);
 
                VRAY_Procedural::querySurfaceShader(handle, myMaterial);
                myMaterial.harden();
@@ -129,32 +130,6 @@ void VRAY_clusterThis::render()
 
 //      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << std::endl;
 //      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << std::endl;
-
-// DEBUG stuff ...
-
-//   changeSetting("object:geo_velocityblur", "on");
-
-               UT_String      str;
-               int     vblur = 0;
-               import("object:velocityblur", &vblur, 0);
-
-               if(vblur) {
-                     str = 0;
-                     import("velocity", str);
-                     if(str.isstring()) {
-//               const char  *  name;
-//               name = queryObjectName(handle);
-                           VRAYwarning("%s[%s] cannot get %s",
-                                       VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
-
-                        }
-                  }
-
-
-               myXformInverse = queryTransform(handle, 0);
-               myXformInverse.invert();
-
-
 
 
 #ifdef DEBUG
@@ -230,119 +205,251 @@ void VRAY_clusterThis::render()
                      VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
                   }
 
-               /// For each point of the incoming geometry
-               GA_FOR_ALL_GPOINTS(gdp, ppt) {
-                  myPointAttributes.myPos = ppt->getPos();
 
-                  // get the point's attributes
-                  VRAY_clusterThis::getAttributes(ppt, gdp);
+
+               if(myMethod == CLUSTER_INSTANCE_NOW) {
+
+
+                     /// For each point of the incoming geometry
+                     GA_FOR_ALL_GPOINTS(gdp, ppt) {
+                        myPointAttributes.myPos = ppt->getPos();
+
+                        // get the point's attributes
+                        VRAY_clusterThis::getAttributes(ppt, gdp);
 
 #ifdef DEBUG
-                  cout << "VRAY_clusterThis::render() " << "theta: " << theta << std::endl;
+                        cout << "VRAY_clusterThis::render() " << "theta: " << theta << std::endl;
 #endif
 
-                  uint seed = 37;
-                  fpreal dice;
-                  bool skip = false;
+                        uint seed = 37;
+                        fpreal dice;
+                        bool skip = false;
 
-                  if((myPrimType != CLUSTER_PRIM_CURVE) ||
-                        ((myMethod == CLUSTER_INSTANCE_DEFERRED && (myPrimType == CLUSTER_PRIM_CURVE)))) {
+                        if((myPrimType != CLUSTER_PRIM_CURVE) ||
+                              ((myMethod == CLUSTER_INSTANCE_DEFERRED && (myPrimType == CLUSTER_PRIM_CURVE)))) {
 
 
-                        // For each point, make a number of copies of and recurse a number of times for each copy ...
-                        for(int copyNum = 0; copyNum < myNumCopies; copyNum++) {
-                              for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
+                              // For each point, make a number of copies of and recurse a number of times for each copy ...
+                              for(int copyNum = 0; copyNum < myNumCopies; copyNum++) {
+                                    for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
-                                    // generate random number to determine to instance or not
+                                          // generate random number to determine to instance or not
 
-                                    dice = SYSfastRandom(seed);
-                                    (dice > myBirthProb) ? skip = true : skip = false;
+                                          dice = SYSfastRandom(seed);
+                                          (dice > myBirthProb) ? skip = true : skip = false;
 //                  cout << dice << " " << skip << std::endl;
-                                    seed = uint(dice * 100);
+                                          seed = uint(dice * 100);
 
-                                    // Calculate the position for the next instanced object ...
-                                    VRAY_clusterThis::calculateNewPosition(theta, copyNum, recursionNum);
+                                          // Calculate the position for the next instanced object ...
+                                          VRAY_clusterThis::calculateNewPosition(theta, copyNum, recursionNum);
 
-                                    if(!skip) {
+                                          if(!skip) {
 
-                                          // Instance an object ...
-                                          switch(myMethod) {
-                                                   // For the "create all geometry at once" method, instance the object now ...
-                                                case CLUSTER_INSTANCE_NOW:
-                                                   // Create a primitive based upon user's selection
-                                                   // TODO: can later be driven by a point attribute
-                                                   switch(myPrimType) {
-                                                         case CLUSTER_POINT:
-                                                            VRAY_clusterThis::instancePoint(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_SPHERE:
-                                                            VRAY_clusterThis::instanceSphere(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_CUBE:
-                                                            VRAY_clusterThis::instanceCube(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_GRID:
-                                                            VRAY_clusterThis::instanceGrid(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_TUBE:
-                                                            VRAY_clusterThis::instanceTube(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_CIRCLE:
-                                                            VRAY_clusterThis::instanceCircle(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_PRIM_METABALL:
-                                                            VRAY_clusterThis::instanceMetaball(inst_gdp, mb_gdp);
-                                                            break;
-                                                         case CLUSTER_FILE:
-                                                            VRAY_clusterThis::instanceFile(file_gdp, inst_gdp, mb_gdp);
-                                                            break;
-                                                            // In case a instance type comes through that's not "legal", throw exception
-                                                         default:
-                                                            throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Illegal instance type, exiting ...", 1);
-                                                            break;
-                                                      }
-                                                   break;
+//                                          // Instance an object ...
+//                                          switch(myMethod) {
+//                                                   // For the "create all geometry at once" method, instance the object now ...
+//                                                case CLUSTER_INSTANCE_NOW:
 
-                                                   // For the "deferred instance" method, add the procedural now ...
-                                                case CLUSTER_INSTANCE_DEFERRED:
-                                                   VRAY_Procedural::openProceduralObject();
-                                                   VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
-                                                   VRAY_Procedural::addProcedural(child);
-                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
-                                                   VRAY_Procedural::closeObject();
+
+                                                // Create a primitive based upon user's selection
+                                                // TODO: can later be driven by a point attribute
+                                                switch(myPrimType) {
+                                                      case CLUSTER_POINT:
+                                                         VRAY_clusterThis::instancePoint(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_SPHERE:
+                                                         VRAY_clusterThis::instanceSphere(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_CUBE:
+                                                         VRAY_clusterThis::instanceCube(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_GRID:
+                                                         VRAY_clusterThis::instanceGrid(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_TUBE:
+                                                         VRAY_clusterThis::instanceTube(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_CIRCLE:
+                                                         VRAY_clusterThis::instanceCircle(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_PRIM_METABALL:
+                                                         VRAY_clusterThis::instanceMetaball(inst_gdp, mb_gdp);
+                                                         break;
+                                                      case CLUSTER_FILE:
+                                                         VRAY_clusterThis::instanceFile(file_gdp, inst_gdp, mb_gdp);
+                                                         break;
+                                                         // In case a instance type comes through that's not "legal", throw exception
+                                                      default:
+                                                         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Illegal instance type, exiting ...", 1);
+                                                         break;
+                                                   }
+                                                break;
+
+//                                                   // For the "deferred instance" method, add the procedural now ...
+//                                                case CLUSTER_INSTANCE_DEFERRED:
+//                                                   VRAY_Procedural::openProceduralObject();
+//                                                   VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
+//                                                   VRAY_Procedural::addProcedural(child);
+//                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
+//                                                   VRAY_Procedural::closeObject();
+
+
 //changeSetting("surface", "constant Cd ( 1 0 0 )", "object");
 //   changeSetting("object:geo_velocityblur", "on");
 
-                                                   break;
-                                             }
+//                                                   break;
+//                                             }
 
-                                          myInstanceNum++;
+                                                myInstanceNum++;
 
 #ifdef DEBUG
-                                          cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
+                                                cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
 #endif
-                                       }
+                                             }
 
-                                 } // for number of recursions ...
-                           } // for number of copies ...
+                                       } // for number of recursions ...
+                                 } // for number of copies ...
+
+                           }
+
+                        // User wants a curve instanced on this point
+                        if((myPrimType == CLUSTER_PRIM_CURVE) && (myMethod == CLUSTER_INSTANCE_NOW) && (!skip))
+                           VRAY_clusterThis::instanceCurve(inst_gdp, mb_gdp, theta, point_num);
+
+                        // Increment our point counter
+                        point_num++;
+
+                        // Print out stats to the console
+                        if(myVerbose > CLUSTER_MSG_INFO && (myPrimType != CLUSTER_PRIM_CURVE))
+                           if((long int)(point_num % stat_interval) == 0)
+                              cout << "VRAY_clusterThis::render() Number of points processed: " << point_num << " Number of instances: " << myInstanceNum << std::endl;
+
+                     } // for all points ...
+
+                  }
+
+               else
+                  if(myMethod == CLUSTER_INSTANCE_DEFERRED) {
+
+//                                                   // For the "deferred instance" method, add the procedural now ...
+//                                                case CLUSTER_INSTANCE_DEFERRED:
+//                                                   VRAY_Procedural::openProceduralObject();
+//                                                   VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
+//                                                   VRAY_Procedural::addProcedural(child);
+//                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
+//                                                   VRAY_Procedural::closeObject();
+
+
+//                        GU_Detail  *vgdp;
+                        fpreal      max;
+                        UT_BoundingBox    kidbox;
+                        VRAY_clusterThisChild * child;
+                        int         nx, ny, nz;
+                        int         ix, iy, iz;
+                        fpreal      xinc, yinc, zinc, factor;
+                        fpreal      xv, yv, zv;
+                        fpreal      dfactor;
+                        int         sprite_limit = 500;
+                        fpreal      lod;
+
+
+                        // Compute LOD without regards to motion blur
+                        lod = getLevelOfDetail(myBox);
+                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() myChunkSize: " << myParms->myChunkSize << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() myPointList.entries: " << myPointList.entries() << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() sprite_limit: " << sprite_limit << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() myParms->myRefCount: " << myParms->myRefCount << std::endl;
+
+//goto finish;
+
+
+//                        if(lod > myParms->myChunkSize && myPointList.entries() > sprite_limit) {
+
+                              std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
+
+                              // Split into further procedurals
+                              xinc = myBox.sizeX();
+                              yinc = myBox.sizeY();
+                              zinc = myBox.sizeZ();
+
+                              std::cout << "1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+
+                              max = myBox.sizeMax();
+                              dfactor = (xinc + yinc + zinc) / max;
+                              factor = SYSpow((fpreal)myPointList.entries() / sprite_limit,
+                                              1.0F / dfactor);
+                              if(factor > 4)
+                                 factor = 4;
+                              max /= factor;
+
+                              std::cout << "max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
+
+                              std::cout << "Preparing to split " <<  myPointList.entries()
+                                        << " points with lod " << lod << std::endl;
+                              std::cout << "myBox " << myBox << std::endl;
+
+                              nx = computeDivs(xinc, max);
+                              ny = computeDivs(yinc, max);
+                              nz = computeDivs(zinc, max);
+
+                              std::cout << "1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+
+
+                              if(nx == 1 && ny == 1 && nz == 1) {
+                                    if(xinc > yinc) {
+                                          if(xinc > zinc)
+                                             nx = 2;
+                                          else
+                                             nz = 2;
+                                       }
+                                    else {
+                                          if(yinc > zinc)
+                                             ny = 2;
+                                          else
+                                             nz = 2;
+                                       }
+                                 }
+
+                              std::cout << "2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+
+                              xinc /= (fpreal)nx;
+                              yinc /= (fpreal)ny;
+                              zinc /= (fpreal)nz;
+
+                              std::cout << "2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+
+                              printf("breaking up into: %dx%dx%d\n", nx, ny, nz);
+
+                              for(iz = 0, zv = myBox.vals[2][0]; iz < nz; iz++, zv += zinc) {
+                                    for(iy = 0, yv = myBox.vals[1][0]; iy < ny; iy++, yv += yinc) {
+                                          for(ix = 0, xv = myBox.vals[0][0]; ix < nx; ix++, xv += xinc) {
+                                                kidbox.initBounds(xv, yv, zv);
+                                                kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
+                                                child = new VRAY_clusterThisChild(this);
+
+                                                std::cout << "iz " <<  iz << " zv " << zv  <<
+                                                          " iy " <<  iy << " yv " << yv  <<
+                                                          " ix " <<  ix << " xv " << xv << std::endl;
+
+//                                              if(!child->initChild(this, kidbox))
+//                                                   delete child;
+//                                                else {
+//                                                      if(openProceduralObject()) {
+//                                                            addProcedural(child);
+//                                                            closeObject();
+//                                                         }
+//                                                   }
+
+                                             }
+                                       }
+                                 }
+//                           }
+
+
+
 
                      }
-
-                  // User wants a curve instanced on this point
-                  if((myPrimType == CLUSTER_PRIM_CURVE) && (myMethod == CLUSTER_INSTANCE_NOW) && (!skip))
-                     VRAY_clusterThis::instanceCurve(inst_gdp, mb_gdp, theta, point_num);
-
-                  // Increment our point counter
-                  point_num++;
-
-                  // Print out stats to the console
-                  if(myVerbose > CLUSTER_MSG_INFO && (myPrimType != CLUSTER_PRIM_CURVE))
-                     if((long int)(point_num % stat_interval) == 0)
-                        cout << "VRAY_clusterThis::render() Number of points processed: " << point_num << " Number of instances: " << myInstanceNum << std::endl;
-
-               } // for all points ...
-
-
 
 
                if(myPostProcess && (myMethod == CLUSTER_INSTANCE_NOW)) {
@@ -502,6 +609,9 @@ void VRAY_clusterThis::render()
 
 
 #endif
+
+
+
 
 
 

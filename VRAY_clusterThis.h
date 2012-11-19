@@ -15,6 +15,75 @@
 
 //#define DEBUG
 
+namespace
+{
+
+// This class is required by openvdb::tools::ParticlesToLeveSet
+   class ParticleList
+   {
+      public:
+         ParticleList(const GA_Detail * gdp,
+                      openvdb::Real radiusMult = 1,
+                      openvdb::Real velocityMult = 1) :
+            mGdp(gdp),
+            mVDBRadiusHandle(gdp, GEO_POINT_DICT, "vdb_radius"),
+            mVelHandle(gdp, GEO_POINT_DICT, "v"),
+            mHasRadius(mVDBRadiusHandle.isValid()),
+            mHasVelocity(mVelHandle.isValid()),
+            mRadiusMult(radiusMult),
+            mVelocityMult(velocityMult) {
+         }
+
+         bool hasRadius()   const {
+            return mHasRadius;
+         }
+         bool hasVelocity() const {
+            return mHasVelocity;
+         }
+
+         // The public methods below are the only ones required
+         // by tools::ParticlesToLevelSet
+         size_t size() const {
+            return mGdp->getNumPoints();
+         }
+         openvdb::Vec3R pos(int n) const {
+            UT_Vector3 p = mGdp->getPos3(this->offset(n));
+            return openvdb::Vec3R(p[0], p[1], p[2]);
+         }
+         openvdb::Vec3R vel(int n) const {
+            if(!mHasVelocity)
+               return openvdb::Vec3R(0, 0, 0);
+            UT_Vector3 v = mVelHandle.get(this->offset(n));
+            return mVelocityMult * openvdb::Vec3R(v[0], v[1], v[2]);
+         }
+         openvdb::Real radius(int n) const {
+            if(!mHasRadius)
+               return mRadiusMult;
+            return mRadiusMult * mVDBRadiusHandle.get(this->offset(n));
+         }
+
+      protected:
+         GA_Offset offset(int n) const {
+            return mGdp->pointOffset(n);
+         }
+
+         const GA_Detail  *  mGdp;
+         GA_ROHandleF        mVDBRadiusHandle;
+         GA_ROHandleV3       mVelHandle;
+         const bool          mHasRadius, mHasVelocity;
+         const openvdb::Real mRadiusMult; // multiplier for radius
+         const openvdb::Real mVelocityMult; // multiplier for velocity
+   };// ParticleList
+
+// Convenient settings struct
+   struct Settings {
+      Settings(): mRasterizeTrails(false), mFogVolume(false), mDx(1.0), mGradientWidth(-1.0) {}
+      bool mRasterizeTrails, mFogVolume;
+      float mDx, mGradientWidth;
+   };
+
+} // unnamed namespace
+
 
 /* ******************************************************************************
 *  Class Name : VRAY_clusterThis_Exception()
@@ -61,7 +130,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       virtual ~VRAY_clusterThis();
 
       virtual const char * getClassName();
-      virtual int initialize(const UT_BoundingBox *);
+      virtual int initialize(const UT_BoundingBox *box);
       virtual void getBoundingBox(UT_BoundingBox & box);
       virtual bool hasVolume() {
          return true;
@@ -80,6 +149,8 @@ class VRAY_clusterThis : public VRAY_Procedural
 
 
    private:
+
+      friend class VRAY_clusterThisChild;
 
       struct pt_attr_offset_struct {
 
@@ -300,11 +371,13 @@ class VRAY_clusterThis : public VRAY_Procedural
       void setInstanceAttributes(GEO_Primitive * myGeoPrim);
       void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
       int setFileAttributes(GU_Detail * gdp);
+      int getOTLParameters();
       int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
 
       // voxel processing
       int convertVDBUnits();
       void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void preProcess(GU_Detail * gdp);
       void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
 
@@ -319,6 +392,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
+      // member variables
+      GU_Detail * myGdp;
       UT_BoundingBox myBox;
       UT_BoundingBox myVelBox;
       fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
@@ -330,6 +405,16 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool myUsePointRadius;
 //      bool myUsePointGeoFname;
       bool myUseBacktrackMB;
+      UT_IntArray myPointList;
+      UT_String myObjectName;
+      UT_String myOTLVersion;
+      fpreal   myVelocityScale;
+      long int myInstanceNum;
+      fpreal   myLOD;
+      static const fpreal myFPS = 24.0;
+
+      GU_Detail * myFileGDP;
+
 
       // Parameters
       uint32   myNumCopies;
@@ -397,9 +482,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myVDBReNormalizeFilter;
       int      myVDBWriteDebugFiles;
 
-      UT_String myObjectName;
-      UT_String myOTLVersion;
-
       // A struct to keep track os CVEX vars to pass to the CVEX code
       struct cvex_pt_vars_struct {
       uint  cvex_Cd_pt:
@@ -431,14 +513,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          1;
       } myCVEXPrimVars;
 
-      fpreal   myVelocityScale;
-      long int myInstanceNum;
-      fpreal   myLOD;
-      static const fpreal myFPS = 24.0;
-
-      GU_Detail * myFileGDP;
-
-      friend class VRAY_clusterThisChild;
 
       enum clusterPrimTypeEnum {
          CLUSTER_POINT = 0,
