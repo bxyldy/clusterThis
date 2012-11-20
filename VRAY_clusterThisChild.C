@@ -80,11 +80,11 @@ int VRAY_clusterThisChild::initialize(const UT_BoundingBox *)
 ***************************************************************************** */
 void VRAY_clusterThisChild::getBoundingBox(UT_BoundingBox & box)
 {
-   box.initBounds(myPointAttributes.myNewPos);
+//   box.initBounds(myPointAttributes.myNewPos);
 
 //       box.enlargeBounds(mySize[0], mySize[1], mySize[2]);
 
-   box.enlargeBounds(mySize[0] * 2, mySize[1] * 2);
+//   box.enlargeBounds(mySize[0] * 2, mySize[1] * 2);
 
 //   fpreal size = mySize[0];
 //   if (size < mySize[1])
@@ -94,10 +94,15 @@ void VRAY_clusterThisChild::getBoundingBox(UT_BoundingBox & box)
 
 //   box.enlargeBounds(0, (size));
 
+   box = myBox;
 
-//#ifdef DEBUG
-//   std::cout << "VRAY_clusterThisChild::getBoundingBox() box: " << box << std::endl;
-//#endif
+
+#ifdef DEBUG
+   std::cout << "VRAY_clusterThisChild::getBoundingBox() box: " << box << std::endl;
+#endif
+
+
+
 
 // FROM THE VRAY_DemoMountain example:
 //
@@ -133,13 +138,13 @@ void VRAY_clusterThisChild::render()
    std::cout << "VRAY_clusterThisChild::render()" << std::endl;
 #endif
 
-   if(myLOD < 0.1) {
-//      std::cout << "VRAY_clusterThisChild::render() - LOD culled" << std::endl;
-         return;
-      }
+//   if(myLOD < 0.1) {
+//         std::cout << "VRAY_clusterThisChild::render() - LOD culled" << std::endl;
+//         return;
+//      }
 
 
-   // // Create a primitive based upon user's selection
+   // Create a primitive based upon user's selection
    switch(myPrimType) {
          case CLUSTER_POINT:
             VRAY_clusterThisChild::instancePoint();
@@ -168,10 +173,6 @@ void VRAY_clusterThisChild::render()
          case CLUSTER_FILE:
             VRAY_clusterThisChild::instanceFile();
             break;
-            // In case a prim type comes through that's not "legal", throw exception
-         default:
-            throw VRAY_clusterThis_Exception("VRAY_clusterThisChild::render() Illegal primitive type, exiting ...", 1);
-            break;
       }
 
 }
@@ -191,108 +192,157 @@ void VRAY_clusterThisChild::render()
 int VRAY_clusterThisChild::instancePoint()
 {
 
-   std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
-
 #ifdef DEBUG
    std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
 #endif
 
    GU_Detail * gdp, *mb_gdp;
-   GEO_Point * ppt;
-   GA_RWAttributeRef attrRef;
-   GA_RWHandleI attrIntHandle;
-   GA_RWHandleF attrFloatHandle;
-   GA_RWHandleV3 attrVector3Handle;
+   GEO_Point * ppt, * inst_ppt;
+//   GA_RWAttributeRef attrRef;
+//   GA_RWHandleI attrIntHandle;
+//   GA_RWHandleF attrFloatHandle;
+//   GA_RWHandleV3 attrVector3Handle;
 
-
-   int         first, idx;
-   UT_Matrix4     xform;
+   int idx;
+   UT_Matrix4 xform;
    UT_Vector3 scale(0.1, 0.1, 0.1);
+   UT_Vector4 pos;
    UT_BoundingBox  tbox, tvbox;
-   fpreal myTimeScale = 1 / 24.0;
+   UT_IntArray instPointList;
 
-
-//   myPointList.resize(sprite->myPointList.entries());
-
-   for(uint32 i = myPointList.entries(); i-- > 0;) {
-         idx = myPointList(i);
-         ppt = gdp->points()(idx);
-         if(myBox.isInside(ppt->getPos())) {
-               myPointList.append(idx);
-            }
-      }
-
-   myPointList.resize(myPointList.entries());
-
-   first = 1;
-   xform = myXformInverse;
-
-   for(uint32 i = myPointList.entries(); i-- > 0;) {
-         idx = myPointList(i);
-         ppt = gdp->points()(idx);
-
-         fpreal pscale = ppt->getValue<fpreal>(myParent->myPointAttrOffsets.pscale);
-         scale = UT_Vector3(pscale, pscale, pscale);
-
-         getRoughSpriteBox(tbox, tvbox, ppt, scale, myParent->myPointAttrOffsets.v, myTimeScale, xform);
-      }
-
-
-
+   fpreal myTimeScale = 1 / myFPS;
 
 
    gdp = allocateGeometry();
 
-
-   GA_RWAttributeRef pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_vel = gdp->addVelocityAttribute(GEO_POINT_DICT);
-//   GA_RWAttributeRef pt_N = gdp->addNormalAttribute(GEO_POINT_DICT);
-   GA_RWAttributeRef pt_pscale = gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-//   GA_RWAttributeRef pt_id = gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-//   GA_RWAttributeRef pt_inst_id = gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
-//   GA_RWAttributeRef pt_material = gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
-
-   ppt = gdp->appendPointElement();
-   ppt->setPos((float)myPointAttributes.myNewPos[0],
-               (float)myPointAttributes.myNewPos[1],
-               (float)myPointAttributes.myNewPos[2], 1.0);
-
-   ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-   ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-   ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-//   ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-   ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
-//   ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-//   ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-//   ppt->setString(pt_material, myPointAttributes.material);
+   if(!gdp) {
+         std::cout << "VRAY_clusterThisChild::instancePoint() gdp invalid! "  << std::endl;
+         return 1;
+      }
 
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          mb_gdp = allocateGeometry();
+         if(!mb_gdp) {
+               std::cout << "VRAY_clusterThisChild::instancePoint() mb_gdp invalid! "  << std::endl;
+               return 1;
+            }
+      }
 
-         pt_Cd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
-         pt_Alpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
-         pt_vel = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
-//         pt_N = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
-//         pt_pscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-//         pt_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-//         pt_inst_id = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
-//      GA_RWAttributeRef pt_material = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+   VRAY_clusterThisChild::createAttributeOffsets(gdp, mb_gdp);
 
-         ppt = mb_gdp->appendPointElement();
-         ppt->setPos((float)myPointAttributes.myMBPos[0],
-                     (float)myPointAttributes.myMBPos[1],
-                     (float)myPointAttributes.myMBPos[2], 1.0);
-         ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-         ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-         ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
-//   ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-         ppt->setValue<fpreal>(pt_pscale, (const fpreal)myPointAttributes.pscale);
-//   ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
-//   ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
-//   ppt->setString(pt_material, myPointAttributes.material);
+
+   std::cout << "VRAY_clusterThisChild::instancePoint() myBox " << myBox << std::endl;
+//   std::cout << "VRAY_clusterThisChild::instancePoint() myPointList.entries() " << myPointList.entries() << std::endl;
+
+   for(uint32 i = myPointList.entries(); i-- > 0;) {
+         idx = myPointList(i);
+         ppt = myGdp->points()(idx);
+
+//         std::cout << "VRAY_clusterThisChild::instancePoint() ppt->getPos() " << ppt->getPos() << std::endl;
+
+         if(myBox.isInside(ppt->getPos())) {
+               instPointList.append(idx);
+//               std::cout << "VRAY_clusterThisChild::instancePoint() idx " << idx << std::endl;
+
+            }
+      }
+
+
+   std::cout << "VRAY_clusterThisChild::instancePoint() instPointList.entries() " << instPointList.entries() << std::endl;
+
+   xform = myXformInverse;
+
+   fpreal theta = (2.0 * M_PI) / myNumCopies;
+   uint seed = 37;
+   fpreal dice;
+   bool skip = false;
+
+//   std::cout << "VRAY_clusterThisChild::instancePoint() myNumCopies: " << myNumCopies << " myRecursion: " << myRecursion << std::endl;
+
+   for(uint32 i = instPointList.entries(); i-- > 0;) {
+
+         idx = instPointList(i);
+         ppt = myGdp->points()(idx);
+         myPointAttributes.myPos = ppt->getPos();
+
+//         std::cout << "VRAY_clusterThisChild::instancePoint() i " << i
+//                   << " myPointAttributes.myPos: " << myPointAttributes.myPos << std::endl;
+
+         // For each point, make a number of copies of and recurse a number of times for each copy ...
+         for(int copyNum = 0; copyNum < myNumCopies; copyNum++) {
+               for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
+
+//                     std::cout << "VRAY_clusterThisChild::instancePoint() copyNum "
+//                           << copyNum << " recursionNum: " << recursionNum << std::endl;
+
+                     // generate random number to determine to instance or not
+                     dice = SYSfastRandom(seed);
+                     bool(dice >= myBirthProb) ? skip = true : skip = false;
+//                  cout << dice << " " << skip << std::endl;
+                     seed = uint(dice * 137);
+
+                     if(!skip) {
+
+//                           std::cout << "VRAY_clusterThisChild::instancePoint() i " << i << std::endl;
+
+                           // Calculate the position for the next instanced object ...
+                           VRAY_clusterThisChild::calculateNewPosition(theta, copyNum, recursionNum);
+
+//                           calculateNewInstPosition(theta, copyNum, recursionNum);
+
+
+//         fpreal pscale = ppt->getValue<fpreal>(myParent->myInstAttrRefs.pscale);
+//         scale = UT_Vector3(pscale, pscale, pscale);
+
+//         getRoughSpriteBox(tbox, tvbox, ppt, scale, myParent->myInstAttrRefs.v, myTimeScale, xform);
+
+
+                           inst_ppt = gdp->appendPointElement();
+                           inst_ppt->setPos(myPointAttributes.myNewPos[0],
+                                            myPointAttributes.myNewPos[1],
+                                            myPointAttributes.myNewPos[2], 1.0);
+
+                           VRAY_clusterThisChild::getAttributes(ppt);
+
+//   std::cout << "VRAY_clusterThisChild::instancePoint() myNumCopies: " << myNumCopies << " myRecursion: " << myRecursion << std::endl;
+
+//                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, UT_Vector3(0.0, 1.0, 0.0));
+                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+//                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)0.3);
+                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//   inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.N, (const UT_Vector3)myPointAttributes.N);
+                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)0.005f);
+//                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
+//   inst_ppt->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
+//   inst_ppt->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
+//   inst_ppt->setString(myInstAttrRefs.material, myPointAttributes.material);
+
+
+                           if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+
+                                 inst_ppt = mb_gdp->appendPointElement();
+                                 inst_ppt->setPos(myPointAttributes.myMBPos[0],
+                                                  myPointAttributes.myMBPos[1],
+                                                  myPointAttributes.myMBPos[2], 1.0);
+
+//                                 VRAY_clusterThisChild::getAttributes(inst_ppt);
+
+                                 inst_ppt->setValue<UT_Vector3>(myInstMBAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+                                 inst_ppt->setValue<fpreal>(myInstMBAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+                                 inst_ppt->setValue<UT_Vector3>(myInstMBAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//   inst_ppt->setValue<UT_Vector3>(myInstMBAttrRefs.N, (const UT_Vector3)myPointAttributes.N);
+                                 inst_ppt->setValue<fpreal>(myInstMBAttrRefs.pointPscale, (const fpreal)myPointAttributes.pscale);
+//   inst_ppt->setValue<int>(myInstMBAttrRefs.id, (const int)myPointAttributes.id);
+//   inst_ppt->setValue<int>(myInstMBAttrRefs.inst_id, (const int)myInstanceNum);
+//   inst_ppt->setString(myInstMBAttrRefs.material, myPointAttributes.material);
+
+                              }
+                        }
+                  }
+            }
 
       }
 
@@ -841,7 +891,7 @@ int VRAY_clusterThisChild::instanceCurve()
 
          myCurve->setValue<int>(pt_mb_id, (const int)myPointAttributes.id);
 
-//        UT_String* mat = myMBCurve->castAttribData<UT_String> ( myInstMBAttrOffsets.material );
+//        UT_String* mat = myMBCurve->castAttribData<UT_String> ( myInstMBAttrRefs.material );
 //        *mat = myPointAttributes.material;
 
       }
@@ -1170,6 +1220,248 @@ int VRAY_clusterThisChild::instanceFile()
 
 
 /* ******************************************************************************
+*  Function Name : getAttributes()
+*
+*  Description :
+*
+*  Input Arguments : GEO_Point *ppt
+*
+*  Return Value : int
+*
+***************************************************************************** */
+inline int VRAY_clusterThisChild::getAttributes(GEO_Point * ppt)
+{
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::getAttributes() " << endl;
+#endif
+
+   cout << "VRAY_clusterThisChild::getAttributes() " << endl;
+
+   myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.Cd, 0));
+   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
+   myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.Alpha, 0));
+   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Alpha: " << myPointAttributes.Alpha << endl;
+
+
+// TODO: Use the backtrack velocity to replace velocity? Not sure ...
+   if(myUseBacktrackMB)
+      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector4>(myParent->myPointAttrOffsets.backtrack, 0));
+   else
+      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.v, 0));
+
+//   myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myInstAttrRefs.v, 0));
+   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector4>(myParent->myPointAttrOffsets.backtrack, 0));
+   myPointAttributes.up = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.up, 0));
+   myPointAttributes.N = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.N, 0));
+   myPointAttributes.N.normalize();
+
+   myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.radius, 0));
+   myPointAttributes.vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.vdb_radius, 0));
+   myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.pscale, 0));
+   myPointAttributes.width = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.width, 0));
+   myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myParent->myPointAttrOffsets.id, 0));
+   myPointAttributes.material = ppt->getString(myParent->myPointAttrOffsets.material) ;
+//     cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.material: " << myPointAttributes.material << endl;
+
+   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
+
+
+   if(myPrimType == CLUSTER_PRIM_METABALL)
+      myPointAttributes.weight = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.weight, 0));
+
+   if(myPrimType == CLUSTER_FILE)
+      myPointAttributes.geo_fname = ppt->getString(myParent->myPointAttrOffsets.geo_fname) ;
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::getAttributes() " << "Cd: " << myPointAttributes.Cd << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "Alpha: " << myPointAttributes.Alpha << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "v: " << myPointAttributes.v << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "N: " << myPointAttributes.N << endl;
+//   cout << "VRAY_clusterThisChild::getAttributes() " << "orient: " << myPointAttributes.orient << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "pscale: " << myPointAttributes.pscale << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "radius: " << myPointAttributes.radius << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "vdb_radius: " << myPointAttributes.vdb_radius << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "id: " << myPointAttributes.id << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "weight: " << myPointAttributes.weight << endl;
+   cout << "VRAY_clusterThisChild::get_attributes() " << "material: " << myPointAttributes.material << endl;
+   cout << "VRAY_clusterThisChild::get_attributes() " << "geo_fname: " << myPointAttributes.geo_fname << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() " << "myMaterial: " << myMaterial << endl;
+#endif
+
+   return 0;
+
+}
+
+
+/* ******************************************************************************
+*  Function Name : calculateNewPosition()
+*
+*  Description :   Calculate the position of the new instance
+*
+*  Input Arguments : int i, int j
+*
+*  Return Value : None
+*
+***************************************************************************** */
+inline void VRAY_clusterThisChild::calculateNewPosition(fpreal theta, uint32 i, uint32 j)
+{
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::calculateNewPosition() i: " << i << " j: " << j << endl;
+#endif
+
+
+   // Calculate a new position for the object ...
+   fpreal delta = theta * i;
+   fpreal noise_bias;
+   fpreal dx, dy, dz = 0.0;
+   fpreal radius;
+   dx = SYSsin(delta * myFreqX + myOffsetX);
+   dy = SYScos(delta * myFreqY + myOffsetY);
+   dz = SYScos(delta * myFreqZ + myOffsetZ);
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::calculateNewPosition() " << "delta: " << delta << endl;
+   cout << "VRAY_clusterThisChild::calculateNewPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
+#endif
+
+   if(myNoiseType < 4) {
+         myNoise.setSeed(myPointAttributes.id);
+         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+//         cout << "VRAY_clusterThisChild::calculateNewPosition() turbulence: " << "noise_bias: " << noise_bias << endl;
+      }
+   else {
+         myMersenneTwister.setSeed(myPointAttributes.id);
+         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
+//         cout << "VRAY_clusterThisChild::calculateNewPosition() myMersenneTwister: " << "noise_bias: " << noise_bias << endl;
+      }
+
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
+#endif
+
+   if(myUsePointRadius)
+      radius = myPointAttributes.radius;
+   else
+      radius = myRadius;
+
+
+   // Calculate the new object's position
+   myPointAttributes.myNewPos[0] = (fpreal) myPointAttributes.myPos.x() +
+                                   ((dx * radius) * noise_bias * SYSsin(static_cast<fpreal>(j + i)));
+   myPointAttributes.myNewPos[1] = (fpreal) myPointAttributes.myPos.y() +
+                                   ((dy * radius) * noise_bias * SYScos(static_cast<fpreal>(j + i)));
+   myPointAttributes.myNewPos[2] = (fpreal) myPointAttributes.myPos.z() +
+                                   ((dz * radius) * noise_bias * (SYSsin(static_cast<fpreal>(j + i)) + SYScos(static_cast<fpreal>(j + i))));
+//   myPointAttributes.myNewPos[2] = ( fpreal ) myPointAttributes.myPos.z() +
+//                                    ( ( dz * radius ) * noise_bias * ( SYScos ( static_cast<fpreal>(j + i)) ) );
+
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+//         myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] + myPointAttributes.v.x();
+//         myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] + myPointAttributes.v.y();
+//         myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] + myPointAttributes.v.z();
+
+         if(myUseBacktrackMB) {
+               myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.backtrack.x();
+               myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.backtrack.y();
+               myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.backtrack.z();
+            }
+         else {
+               myPointAttributes.myMBPos[0] = myPointAttributes.myNewPos[0] - myPointAttributes.v.x();
+               myPointAttributes.myMBPos[1] = myPointAttributes.myNewPos[1] - myPointAttributes.v.y();
+               myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
+            }
+      }
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::calculateNewPosition() myPos:   "
+        << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
+   cout << "VRAY_clusterThisChild::calculateNewPosition() newPos: "
+        << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
+#endif
+
+}
+
+
+
+
+/* ******************************************************************************
+*  Function Name : createAttributeOffsets()
+*
+*  Description :   Create the attribute the offsets for the instanced objects
+*
+*  Input Arguments : GU_Detail *inst_gdp, GU_Detail * mb_gdp
+*
+*  Return Value : void
+*
+***************************************************************************** */
+void VRAY_clusterThisChild::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
+{
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::createAttributeOffsets() " << endl;
+#endif
+
+
+// TODO: Check all these references with *.isValid() and throw exeception if it fails !!!
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThisChild::createAttributeOffsets() Creating primitive attributes" << endl;
+#endif
+
+   myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+   if(!myInstAttrRefs.Cd.isValid())
+      throw VRAY_clusterThis_Exception("VRAY_clusterThisChild::createAttributeOffsets() no Cd attribute!", 1);
+   myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+   myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+   myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+   myInstAttrRefs.radius = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "radius", 1);
+   myInstAttrRefs.pscale = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+   myInstAttrRefs.weight = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "weight", 1);
+   myInstAttrRefs.width = inst_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "width", 1);
+   myInstAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+   myInstAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+   myInstAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
+
+   myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+   myInstAttrRefs.pointAlpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
+   myInstAttrRefs.pointV = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
+   myInstAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
+   myInstAttrRefs.pointRadius = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "radius", 1);
+   myInstAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+   myInstAttrRefs.pointWeight = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "weight", 1);
+   myInstAttrRefs.pointWidth = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "width", 1);
+   myInstAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+   myInstAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+   myInstAttrRefs.pointMaterial = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+
+   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+         myInstMBAttrRefs.Cd = mb_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrRefs.Alpha = mb_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrRefs.v = mb_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrRefs.N = mb_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
+         myInstMBAttrRefs.radius = mb_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "radius", 1);
+         myInstMBAttrRefs.pscale = mb_gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "pscale", 1);
+         myInstMBAttrRefs.id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+         myInstMBAttrRefs.inst_id = mb_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+         myInstMBAttrRefs.material = mb_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
+
+         myInstMBAttrRefs.pointCd = mb_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+         myInstMBAttrRefs.pointAlpha = mb_gdp->addAlphaAttribute(GEO_POINT_DICT);
+         myInstMBAttrRefs.pointV = mb_gdp->addVelocityAttribute(GEO_POINT_DICT);
+         myInstMBAttrRefs.pointN = mb_gdp->addNormalAttribute(GEO_POINT_DICT);
+         myInstMBAttrRefs.pointRadius = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "radius", 1);
+         myInstMBAttrRefs.pointPscale = mb_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+         myInstMBAttrRefs.pointId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+         myInstMBAttrRefs.pointInstId = mb_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+         myInstMBAttrRefs.pointMaterial = mb_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+      }
+
+}
+
+
+/* ******************************************************************************
 *  Function Name : setInstanceAttributes()
 *
 *  Description :
@@ -1247,10 +1539,16 @@ inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail * gdp, GEO_Pr
 ***************************************************************************** */
 void VRAY_clusterThisChild::dumpParameters()
 {
-
    cout << "VRAY_clusterThisChild::dumpParameters() myPrimType: " << myPrimType << endl;
    cout << "VRAY_clusterThisChild::dumpParameters() myRadius: " << myRadius << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myNumCopies: " << myNumCopies << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myRecursion: " << myRecursion << endl;
    cout << "VRAY_clusterThisChild::dumpParameters() mySize: " << mySize[0] << mySize[1] << mySize[2] << " " << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myBirthProb: " << myBirthProb << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myDoMotionBlur: " << myDoMotionBlur << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myShutter: " << myShutter << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myShutter2: " << myShutter2 << endl;
+   cout << "VRAY_clusterThisChild::dumpParameters() myInstanceNum: " << myInstanceNum << endl;
    cout << "VRAY_clusterThisChild::dumpParameters() myGeoFile: " << myGeoFile << endl;
 }
 
@@ -1259,94 +1557,9 @@ void VRAY_clusterThisChild::dumpParameters()
 
 
 
-/**********************************************************************************/
-//  $Log: VRAY_clusterThisChild.C,v $
-//  Revision 1.25  2012-09-09 05:00:54  mstory
-//  More cleanup and testing.
-//
-//  Revision 1.24  2012-09-07 15:39:22  mstory
-//   Removed all volume instancing (used in different project) and continu… …
-//
-//  …ed H12 modifications.
-//
-//  --mstory
-//
-//  Revision 1.23  2012-09-05 23:02:38  mstory
-//  Modifications for H12.
-//
-//  Revision 1.22  2012-09-04 03:25:28  mstory
-//  .
-//
-//  Revision 1.19  2011-02-15 00:59:15  mstory
-//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
-//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
-//
-//
-//  --mstory
-//
-//  Revision 1.18  2011-02-06 19:49:15  mstory
-//  Modified for Houdini version 11.
-//
-//  Refactored a lot of the attribute code, cleaned up odds and ends.
-//
-//  Revision 1.17  2010-02-23 08:36:22  mstory
-//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
-//
-//  Revision 1.16  2009-11-20 14:59:57  mstory
-//  Release 1.4.7 ready.
-//
-//  Revision 1.15  2009-11-19 16:26:51  mstory
-//  Adding point inst id to child objects (for deferred instancing), need to add to prims as well.
-//
-//  Revision 1.14  2009-04-06 17:13:44  mstory
-//  Clean up code a bit.
-//
-//  Revision 1.13  2009-04-06 16:40:58  mstory
-//  Added volume and curve instancing.
-//  Optimized attribute processing.
-//  Added motion blur pass for CVEX processing.
-//  Changed parameter code to use proper functions.
-//  Added verbosity switch for console messages.
-//  Added randomness for when to instance of objects
-//  Using SYSsin() and SYScos () instead of std C functions.
-//  Optimized memory usage for CVEX processing, correct memory allocationfor attributes and objects.
-//  Added user selectable attributes for CVEX processing.
-//
-//  --mstory
-//
-//  Revision 1.12  2009-02-10 21:55:59  mstory
-//  Added all attributes for the CVEX processing of instanced geo.
-//  Added OTL version checking.
-//
-//  Revision 1.11  2008-12-04 05:37:41  mstory
-//  .
-//
-//  Revision 1.10  2008-11-27 05:32:39  mstory
-//  Added Alpha attribute and fixed bug where it crashes mantra if the weight attr wasn't in the input geo.
-//
-//  Revision 1.9  2008-11-19 01:11:43  mstory
-//  Added point instancing.  Fixed the file instancing problem.
-//  Most of the shader assignment issues straightened out.
-//
-//  Revision 1.8  2008-10-30 19:51:54  mstory
-//  Added file instancing (still needs work).
-//
-//  Revision 1.7  2008-10-30 07:03:06  mstory
-//  Added deformation motion blur and metaball instancing.
-//
-//  Revision 1.6  2008-10-20 22:43:57  mstory
-//  *** empty log message ***
-//
-//  Revision 1.5  2008-10-20 22:12:14  mstory
-//  Cleaned up unused vars, etc.  Ready for enxt release.
-//
-//  Revision 1.4  2008-10-20 19:35:00  mstory
-//  Added a switch to be able to choose using the addProcedural() method of allocating procedurals.
-//
-//  Revision 1.2  2008-10-11 18:15:06  mstory
-//  .
-//
-//
-/**********************************************************************************/
+
+
+
+
 
 

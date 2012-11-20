@@ -237,12 +237,12 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
 *
 *  Description :
 *
-*  Input Arguments : GEO_Point *ppt, GU_Detail *inst_gdp
+*  Input Arguments : GEO_Point *ppt
 *
 *  Return Value : int
 *
 ***************************************************************************** */
-inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt, GU_Detail * inst_gdp)
+inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt)
 {
 
 #ifdef DEBUG

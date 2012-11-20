@@ -365,7 +365,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int preLoadGeoFile(GU_Detail * file_gdp);
       void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       int getAttributeOffsets(GU_Detail * gdp);
-      int getAttributes(GEO_Point * ppt, GU_Detail * gdp);
+      int getAttributes(GEO_Point * ppt);
       void checkRequiredAttributes();
       int addFileAttributeOffsets(GU_Detail * gdp);
       void setInstanceAttributes(GEO_Primitive * myGeoPrim);

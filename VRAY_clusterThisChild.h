@@ -28,19 +28,21 @@
 class VRAY_clusterThisChild : public VRAY_Procedural
 {
    public:
-      VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj)
+      VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj, UT_BoundingBox & box)
          :
          myPrimType(theClusterObj->myPrimType),
-         myGdp(theClusterObj->myGdp),
-         myPointList(theClusterObj->myPointList),
          myRadius(theClusterObj->myRadius),
          myNumCopies(theClusterObj->myNumCopies),
          myRecursion(theClusterObj->myRecursion),
          myBirthProb(theClusterObj->myBirthProb),
          myDoMotionBlur(theClusterObj->myDoMotionBlur),
          myShutter(theClusterObj->myShutter),
+         myShutter2(theClusterObj->myShutter2),
          myInstanceNum(theClusterObj->myInstanceNum),
          myGeoFile(theClusterObj->myGeoFile),
+
+         myGdp(theClusterObj->myGdp),
+         myPointList(theClusterObj->myPointList),
          myParent(theClusterObj)
 
       {
@@ -48,17 +50,27 @@ class VRAY_clusterThisChild : public VRAY_Procedural
          std::cout << "VRAY_clusterThisChild::VRAY_clusterThisChild() - Constructor" << std::endl;
 #endif
 
-         myBox     = theClusterObj->myBox;
-         bb_x1     = theClusterObj->bb_x1;
-         bb_x2     = theClusterObj->bb_x2;
-         bb_y1     = theClusterObj->bb_y1;
-         bb_y2     = theClusterObj->bb_y2;
-         bb_z1     = theClusterObj->bb_z1;
-         bb_z2     = theClusterObj->bb_z2;
+//         std::cout << "VRAY_clusterThisChild::VRAY_clusterThisChild() - box: " << box << std::endl;
+
+//         myBox     = theClusterObj->myBox;
+         myBox     = box;
 
          mySize[0] = theClusterObj->mySize[0];
          mySize[1] = theClusterObj->mySize[1];
          mySize[2] = theClusterObj->mySize[2];
+
+         myFreqX = theClusterObj->myFreqX;
+         myFreqY = theClusterObj->myFreqY;
+         myFreqZ = theClusterObj->myFreqZ;
+         myOffsetX = theClusterObj->myOffsetX;
+         myOffsetY = theClusterObj->myOffsetY;
+         myOffsetZ = theClusterObj->myOffsetZ;
+
+         myNoiseType = theClusterObj->myNoiseType;
+         myFractalDepth = theClusterObj->myFractalDepth;
+         myRough = theClusterObj->myRough;
+         myNoiseAtten = theClusterObj->myNoiseAtten;
+         myNoiseAmp = theClusterObj->myNoiseAmp;
 
          myCVEXFname = theClusterObj->myCVEXFname;
          myCVEX_Exec = theClusterObj->myCVEX_Exec;
@@ -69,18 +81,18 @@ class VRAY_clusterThisChild : public VRAY_Procedural
          myCVEXFname_post = theClusterObj->myCVEXFname_post;
          myCVEX_Exec_post = theClusterObj->myCVEX_Exec_post;
 
-//    myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
-         myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
-         myPointAttributes.myMBPos = theClusterObj->myPointAttributes.myMBPos;
-         myPointAttributes.Cd = theClusterObj->myPointAttributes.Cd;
-         myPointAttributes.Alpha = theClusterObj->myPointAttributes.Alpha;
-         myPointAttributes.v = theClusterObj->myPointAttributes.v;
-         myPointAttributes.N = theClusterObj->myPointAttributes.N;
-         myPointAttributes.id = theClusterObj->myPointAttributes.id;
-         myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
-         myPointAttributes.width = theClusterObj->myPointAttributes.width;
-         myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
-         myPointAttributes.material = theClusterObj->myPointAttributes.material;
+//         myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
+//         myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
+//         myPointAttributes.myMBPos = theClusterObj->myPointAttributes.myMBPos;
+//         myPointAttributes.Cd = theClusterObj->myPointAttributes.Cd;
+//         myPointAttributes.Alpha = theClusterObj->myPointAttributes.Alpha;
+//         myPointAttributes.v = theClusterObj->myPointAttributes.v;
+//         myPointAttributes.N = theClusterObj->myPointAttributes.N;
+//         myPointAttributes.id = theClusterObj->myPointAttributes.id;
+//         myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
+//         myPointAttributes.width = theClusterObj->myPointAttributes.width;
+//         myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
+//         myPointAttributes.material = theClusterObj->myPointAttributes.material;
 
 //      myInstAttrRefs.Cd = theClusterObj->myInstAttrRefs.Cd;
 //      myInstAttrRefs.Alpha = theClusterObj->myInstAttrRefs.Alpha;
@@ -114,7 +126,6 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       virtual int initialize(const UT_BoundingBox *);
       virtual void getBoundingBox(UT_BoundingBox & box);
       virtual void render();
-      void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
 
    private:
 
@@ -128,19 +139,28 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       int instanceCurve();
       int instanceFile();
       int instanceMetaball();
+      void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       void setInstanceAttributes(GU_Detail * gdp, GEO_Primitive * myGeoPrim);
+      int getAttributes(GEO_Point * ppt);
+      void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
       void dumpParameters();
 
       // Point attribute structure
       struct attribute_struct {
          // Required attributes
-//      UT_Vector4 myPos;
+         UT_Vector4 myPos;
          UT_Vector4 myNewPos;
          UT_Vector4 myMBPos;
          UT_Vector3 Cd;
          fpreal Alpha;
          UT_Vector3 v;
          UT_Vector3 N;
+         UT_Vector4 backtrack;
+         UT_Vector3 up;
+//         UT_Vector4 orient;
+         fpreal radius;
+         fpreal vdb_radius;
+         UT_String geo_fname;
          int id;
          fpreal pscale;
          fpreal width;
@@ -162,79 +182,101 @@ class VRAY_clusterThisChild : public VRAY_Procedural
 
 
 
-//   struct inst_attr_offset_struct {
+      struct inst_attr_offset_struct {
+
+         // Required attributes
+         GA_RWAttributeRef Cd;
+         GA_RWAttributeRef Alpha;
+         GA_RWAttributeRef v;
+         GA_RWAttributeRef backtrack;
+         GA_RWAttributeRef N;
+         GA_RWAttributeRef up;
+         GA_RWAttributeRef material;
+         GA_RWAttributeRef id;
+         GA_RWAttributeRef vdb_radius;
+         GA_RWAttributeRef inst_id;
+         GA_RWAttributeRef pscale;
+         GA_RWAttributeRef radius;
+         GA_RWAttributeRef weight;
+         GA_RWAttributeRef width;
+         GA_RWAttributeRef geo_fname;
+
+
+         GA_RWAttributeRef pointCd;
+         GA_RWAttributeRef pointAlpha;
+         GA_RWAttributeRef pointV;
+         GA_RWAttributeRef pointN;
+         GA_RWAttributeRef pointMaterial;
+         GA_RWAttributeRef pointId;
+         GA_RWAttributeRef pointInstId;
+         GA_RWAttributeRef pointPscale;
+         GA_RWAttributeRef pointWeight;
+         GA_RWAttributeRef pointWidth;
+         GA_RWAttributeRef pointRadius;
+         GA_RWAttributeRef pointVDBRadius;
+
 //
-//      // Required attributes
-//      GA_RWAttributeRef Cd;
-//      GA_RWAttributeRef Alpha;
-//      GA_RWAttributeRef v;
-//      GA_RWAttributeRef N;
-//      GA_RWAttributeRef material;
-//      GA_RWAttributeRef id;
-//      GA_RWAttributeRef inst_id;
-//      GA_RWAttributeRef pscale;
-//      GA_RWAttributeRef weight;
-//      GA_RWAttributeRef width;
-//
-//      GA_RWAttributeRef pointCd;
-//      GA_RWAttributeRef pointAlpha;
-//      GA_RWAttributeRef pointV;
-//      GA_RWAttributeRef pointN;
-//      GA_RWAttributeRef pointMaterial;
-//      GA_RWAttributeRef pointId;
-//      GA_RWAttributeRef pointInstId;
-//      GA_RWAttributeRef pointPscale;
-//
-//      // Optional attributes
-//      /*        GA_RWAttributeRef num_neighbors;
-//              GA_RWAttributeRef force;
-//              GA_RWAttributeRef vorticity;
-//              GA_RWAttributeRef uv;
-//              GA_RWAttributeRef age;
-//              GA_RWAttributeRef viscosity;
-//              GA_RWAttributeRef density;
-//              GA_RWAttributeRef pressure;
-//              GA_RWAttributeRef mass;
-//              GA_RWAttributeRef temperature;*/
-//
-//   } myInstAttrRefs;
-//
-//   struct inst_mb_attr_offset_struct {
-//
-//      // Required attributes
-//      GA_RWAttributeRef Cd;
-//      GA_RWAttributeRef Alpha;
-//      GA_RWAttributeRef v;
-//      GA_RWAttributeRef N;
-//      GA_RWAttributeRef material;
-//      GA_RWAttributeRef id;
-//      GA_RWAttributeRef pscale;
-//      GA_RWAttributeRef weight;
-//      GA_RWAttributeRef width;
-//
-//      GA_RWAttributeRef pointCd;
-//      GA_RWAttributeRef pointAlpha;
-//      GA_RWAttributeRef pointV;
-//      GA_RWAttributeRef pointN;
-//      GA_RWAttributeRef pointMaterial;
-//      GA_RWAttributeRef pointId;
-//      GA_RWAttributeRef pointInstId;
-//      GA_RWAttributeRef pointPscale;
-//
-//      // Optional attributes
-//      /*        GA_RWAttributeRef num_neighbors;
-//              GA_RWAttributeRef force;
-//              GA_RWAttributeRef vorticity;
-//              GA_RWAttributeRef uv;
-//              GA_RWAttributeRef age;
-//              GA_RWAttributeRef viscosity;
-//              GA_RWAttributeRef density;
-//              GA_RWAttributeRef pressure;
-//              GA_RWAttributeRef mass;
-//              GA_RWAttributeRef temperature;*/
-//
-//   } myInstMBAttrOffsets;
-//
+//         // Optional attributes
+//         GA_RWAttributeRef num_neighbors;
+//         GA_RWAttributeRef force;
+//         GA_RWAttributeRef vorticity;
+//         GA_RWAttributeRef uv;
+//         GA_RWAttributeRef age;
+//         GA_RWAttributeRef viscosity;
+//         GA_RWAttributeRef density;
+//         GA_RWAttributeRef pressure;
+//         GA_RWAttributeRef mass;
+//         GA_RWAttributeRef temperature;
+
+      } myInstAttrRefs;
+
+      struct inst_mb_attr_offset_struct {
+
+         // Required attributes
+         GA_RWAttributeRef Cd;
+         GA_RWAttributeRef Alpha;
+         GA_RWAttributeRef v;
+         GA_RWAttributeRef backtrack;
+         GA_RWAttributeRef N;
+         GA_RWAttributeRef up;
+         GA_RWAttributeRef material;
+         GA_RWAttributeRef id;
+         GA_RWAttributeRef vdb_radius;
+         GA_RWAttributeRef inst_id;
+         GA_RWAttributeRef pscale;
+         GA_RWAttributeRef radius;
+         GA_RWAttributeRef weight;
+         GA_RWAttributeRef width;
+         GA_RWAttributeRef geo_fname;
+
+
+         GA_RWAttributeRef pointCd;
+         GA_RWAttributeRef pointAlpha;
+         GA_RWAttributeRef pointV;
+         GA_RWAttributeRef pointN;
+         GA_RWAttributeRef pointMaterial;
+         GA_RWAttributeRef pointId;
+         GA_RWAttributeRef pointInstId;
+         GA_RWAttributeRef pointPscale;
+         GA_RWAttributeRef pointWeight;
+         GA_RWAttributeRef pointWidth;
+         GA_RWAttributeRef pointRadius;
+         GA_RWAttributeRef pointVDBRadius;
+
+//         // Optional attributes
+//         GA_RWAttributeRef num_neighbors;
+//         GA_RWAttributeRef force;
+//         GA_RWAttributeRef vorticity;
+//         GA_RWAttributeRef uv;
+//         GA_RWAttributeRef age;
+//         GA_RWAttributeRef viscosity;
+//         GA_RWAttributeRef density;
+//         GA_RWAttributeRef pressure;
+//         GA_RWAttributeRef mass;
+//         GA_RWAttributeRef temperature;
+
+      } myInstMBAttrRefs;
+
 
 
       // Parameters
@@ -258,12 +300,19 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       bool     myCVEX_Exec_post;
 
 
-      // Member vars ...
+      // Member variables
       VRAY_clusterThis * myParent;
       GU_Detail * myGdp;
       UT_BoundingBox myBox;
       UT_BoundingBox myVelBox;
-      fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
+      fpreal   myFreqX, myFreqY, myFreqZ;
+      fpreal   myOffsetX, myOffsetY, myOffsetZ;
+      int        myNoiseType;
+      fpreal  myFractalDepth;
+      fpreal  myRough;
+      fpreal  myNoiseAtten;
+      fpreal  myNoiseAmp;
+
       UT_String myMaterial;
       UT_Matrix3 myXformInverse;
       UT_Noise myNoise;
