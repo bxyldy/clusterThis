@@ -1270,32 +1270,32 @@ void VRAY_clusterThis::checkRequiredAttributes()
 {
 //   std::cout << "VRAY_clusterThis::checkRequiredAttributes()" << std::endl;
    // Check for required attributes
-   if(myPointAttrOffsets.Cd.isInvalid()) {
+   if(myPointAttrRefs.Cd.isInvalid()) {
          cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
       }
 
-   if(myPointAttrOffsets.Alpha.isInvalid()) {
+   if(myPointAttrRefs.Alpha.isInvalid()) {
          cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
       }
 
-   if(myPointAttrOffsets.v.isInvalid()) {
+   if(myPointAttrRefs.v.isInvalid()) {
          cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
       }
 
-   if(myPointAttrOffsets.N.isInvalid()) {
+   if(myPointAttrRefs.N.isInvalid()) {
          cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
       }
 
-   if(myPointAttrOffsets.pscale.isInvalid()) {
+   if(myPointAttrRefs.pscale.isInvalid()) {
          cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
       }
 
-   if(myPointAttrOffsets.id.isInvalid()) {
+   if(myPointAttrRefs.id.isInvalid()) {
          cout << "Incoming points must have id attribute Throwing exception ..." << endl;
          throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
       }

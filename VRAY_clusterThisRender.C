@@ -166,7 +166,7 @@ void VRAY_clusterThis::render()
                VRAY_clusterThis::checkRequiredAttributes();
 
                // Check for weight attribute if the user wants metaballs
-               if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrOffsets.weight.isInvalid())) {
+               if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
 
                      cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
                      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1);
@@ -325,28 +325,26 @@ void VRAY_clusterThis::render()
                // Is the user wants to break up the point cloud into a grid and instance those when mantra encounters their bounding boxes
                if(myMethod == CLUSTER_INSTANCE_DEFERRED) {
 
+                     // Get the point's attribute offsets
+                     VRAY_clusterThis::getAttributeOffsets(gdp);
 
-               // Get the point's attribute offsets
-               VRAY_clusterThis::getAttributeOffsets(gdp);
+                     // Check for required attributes
+                     VRAY_clusterThis::checkRequiredAttributes();
 
-               // Check for required attributes
-               VRAY_clusterThis::checkRequiredAttributes();
+                     if(myNoiseType < 4)
+                        myNoise.initialize(myNoiseSeed, static_cast<UT_Noise::UT_NoiseType>(myNoiseType));
 
+                     myInstanceNum = 0;
 
-               if(myNoiseType < 4)
-                  myNoise.initialize(myNoiseSeed, static_cast<UT_Noise::UT_NoiseType>(myNoiseType));
-
-               myInstanceNum = 0;
-
-               if(myCVEX_Exec_pre) {
-                     if(myVerbose > CLUSTER_MSG_INFO)
-                        cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << std::endl;
-                     VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
-                  }
+                     if(myCVEX_Exec_pre) {
+                           if(myVerbose > CLUSTER_MSG_INFO)
+                              cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << std::endl;
+                           VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+                        }
 
 
-               // Preprocess the incoming point cloud
-               VRAY_clusterThis::preProcess(gdp);
+                     // Preprocess the incoming point cloud
+                     VRAY_clusterThis::preProcess(gdp);
 
 
 //                                                   // For the "deferred instance" method, add the procedural now ...
@@ -378,19 +376,15 @@ void VRAY_clusterThis::render()
 //                        std::cout << "VRAY_clusterThis::render() myGridPointLimit: " << myGridPointLimit << std::endl;
 //                        std::cout << "VRAY_clusterThis::render() myParms->myRefCount: " << myParms->myRefCount << std::endl;
 
-//goto finish;
 
 
-//                        if(lod > myParms->myChunkSize && myPointList.entries() > myGridPointLimit) {
-
+//                   if(lod > myParms->myChunkSize && myPointList.entries() > myGridPointLimit) {
 //                        std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
 
                      // Split into further procedurals
                      xinc = myBox.sizeX();
                      yinc = myBox.sizeY();
                      zinc = myBox.sizeZ();
-
-//                        std::cout << "VRAY_clusterThis::render() 1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
 
                      max = myBox.sizeMax();
                      dfactor = (xinc + yinc + zinc) / max;
@@ -407,9 +401,6 @@ void VRAY_clusterThis::render()
                      ny = computeDivs(yinc, max);
                      nz = computeDivs(zinc, max);
 
-//                        std::cout << "VRAY_clusterThis::render() 1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
-
-
                      if(nx == 1 && ny == 1 && nz == 1) {
                            if(xinc > yinc) {
                                  if(xinc > zinc)
@@ -425,14 +416,9 @@ void VRAY_clusterThis::render()
                               }
                         }
 
-//                        std::cout << "VRAY_clusterThis::render() 2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
-
                      xinc /= (fpreal)nx;
                      yinc /= (fpreal)ny;
                      zinc /= (fpreal)nz;
-
-//                        std::cout << "VRAY_clusterThis::render() 2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
-
 
                      if(myVerbose > CLUSTER_MSG_INFO)
                         printf("VRAY_clusterThis::render() Breaking up into: %dx%dx%d\n", nx, ny, nz);
@@ -452,7 +438,6 @@ void VRAY_clusterThis::render()
                                        if(openProceduralObject()) {
                                              addProcedural(child);
                                              closeObject();
-//                                             std::cout << "added child " << std::endl;
                                           }
 
                                     }

@@ -81,41 +81,38 @@ class VRAY_clusterThisChild : public VRAY_Procedural
          myCVEXFname_post = theClusterObj->myCVEXFname_post;
          myCVEX_Exec_post = theClusterObj->myCVEX_Exec_post;
 
-//         myPointAttributes.myPos = theClusterObj->myPointAttributes.myPos;
-//         myPointAttributes.myNewPos = theClusterObj->myPointAttributes.myNewPos;
-//         myPointAttributes.myMBPos = theClusterObj->myPointAttributes.myMBPos;
-//         myPointAttributes.Cd = theClusterObj->myPointAttributes.Cd;
-//         myPointAttributes.Alpha = theClusterObj->myPointAttributes.Alpha;
-//         myPointAttributes.v = theClusterObj->myPointAttributes.v;
-//         myPointAttributes.N = theClusterObj->myPointAttributes.N;
-//         myPointAttributes.id = theClusterObj->myPointAttributes.id;
-//         myPointAttributes.pscale = theClusterObj->myPointAttributes.pscale;
-//         myPointAttributes.width = theClusterObj->myPointAttributes.width;
-//         myPointAttributes.weight = theClusterObj->myPointAttributes.weight;
-//         myPointAttributes.material = theClusterObj->myPointAttributes.material;
 
-//      myInstAttrRefs.Cd = theClusterObj->myInstAttrRefs.Cd;
-//      myInstAttrRefs.Alpha = theClusterObj->myInstAttrRefs.Alpha;
-//      myInstAttrRefs.v = theClusterObj->myInstAttrRefs.v;
-//      myInstAttrRefs.N = theClusterObj->myInstAttrRefs.N;
-//      myInstAttrRefs.pscale = theClusterObj->myInstAttrRefs.pscale;
-//      myInstAttrRefs.id = theClusterObj->myInstAttrRefs.id;
-//      myInstAttrRefs.width = theClusterObj->myInstAttrRefs.width;
-//      myInstAttrRefs.weight = theClusterObj->myInstAttrRefs.weight;
-//      myInstAttrRefs.material = theClusterObj->myInstAttrRefs.material;
+         myParentPointAttrRefs.Cd = theClusterObj->myPointAttrRefs.Cd;
+         myParentPointAttrRefs.Alpha = theClusterObj->myPointAttrRefs.Alpha;
+         myParentPointAttrRefs.v = theClusterObj->myPointAttrRefs.v;
+         myParentPointAttrRefs.N = theClusterObj->myPointAttrRefs.N;
+         myParentPointAttrRefs.pscale = theClusterObj->myPointAttrRefs.pscale;
+         myParentPointAttrRefs.id = theClusterObj->myPointAttrRefs.id;
+
+
+
+//         myInstAttrRefs.Cd = theClusterObj->myInstAttrRefs.Cd;
+//         myInstAttrRefs.Alpha = theClusterObj->myInstAttrRefs.Alpha;
+//         myInstAttrRefs.v = theClusterObj->myInstAttrRefs.v;
+//         myInstAttrRefs.N = theClusterObj->myInstAttrRefs.N;
+//         myInstAttrRefs.pscale = theClusterObj->myInstAttrRefs.pscale;
+//         myInstAttrRefs.id = theClusterObj->myInstAttrRefs.id;
+//         myInstAttrRefs.width = theClusterObj->myInstAttrRefs.width;
+//         myInstAttrRefs.weight = theClusterObj->myInstAttrRefs.weight;
+//         myInstAttrRefs.material = theClusterObj->myInstAttrRefs.material;
 //
-//      myInstMBAttrOffsets.Cd = theClusterObj->myInstMBAttrOffsets.Cd;
-//      myInstMBAttrOffsets.Alpha = theClusterObj->myInstMBAttrOffsets.Alpha;
-//      myInstMBAttrOffsets.v = theClusterObj->myInstMBAttrOffsets.v;
-//      myInstMBAttrOffsets.N = theClusterObj->myInstMBAttrOffsets.N;
-//      myInstMBAttrOffsets.pscale = theClusterObj->myInstMBAttrOffsets.pscale;
-//      myInstMBAttrOffsets.id = theClusterObj->myInstMBAttrOffsets.id;
-//      myInstMBAttrOffsets.width = theClusterObj->myInstMBAttrOffsets.width;
-//      myInstMBAttrOffsets.weight = theClusterObj->myInstMBAttrOffsets.weight;
-//      myInstMBAttrOffsets.material = theClusterObj->myInstMBAttrOffsets.material;
+//         myInstMBAttrRefs.Cd = theClusterObj->myInstMBAttrRefs.Cd;
+//         myInstMBAttrRefs.Alpha = theClusterObj->myInstMBAttrRefs.Alpha;
+//         myInstMBAttrRefs.v = theClusterObj->myInstMBAttrRefs.v;
+//         myInstMBAttrRefs.N = theClusterObj->myInstMBAttrRefs.N;
+//         myInstMBAttrRefs.pscale = theClusterObj->myInstMBAttrRefs.pscale;
+//         myInstMBAttrRefs.id = theClusterObj->myInstMBAttrRefs.id;
+//         myInstMBAttrRefs.width = theClusterObj->myInstMBAttrRefs.width;
+//         myInstMBAttrRefs.weight = theClusterObj->myInstMBAttrRefs.weight;
+//         myInstMBAttrRefs.material = theClusterObj->myInstMBAttrRefs.material;
 
 
-//    dumpParameters();
+//         VRAY_clusterThisChild::dumpParameters();
 
          myLOD = 0;
       }
@@ -181,8 +178,41 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       } myPointAttributes;
 
 
+      struct pt_attr_ref_struct {
 
-      struct inst_attr_offset_struct {
+         // Required attributes
+         GA_RWAttributeRef Cd;
+         GA_RWAttributeRef Alpha;
+         GA_RWAttributeRef v;
+         GA_RWAttributeRef backtrack;
+         GA_RWAttributeRef N;
+         GA_RWAttributeRef up;
+//         GA_RWAttributeRef orient;
+         GA_RWAttributeRef material;
+         GA_RWAttributeRef id;
+         GA_RWAttributeRef pscale;
+         GA_RWAttributeRef radius;
+         GA_RWAttributeRef weight;
+         GA_RWAttributeRef width;
+         GA_RWAttributeRef vdb_radius;
+         GA_RWAttributeRef geo_fname;
+
+         // Optional attributes
+         /*        GA_RWAttributeRef num_neighbors;
+                 GA_RWAttributeRef force;
+                 GA_RWAttributeRef vorticity;
+                 GA_RWAttributeRef uv;
+                 GA_RWAttributeRef age;
+                 GA_RWAttributeRef viscosity;
+                 GA_RWAttributeRef density;
+                 GA_RWAttributeRef pressure;
+                 GA_RWAttributeRef mass;
+                 GA_RWAttributeRef temperature;*/
+
+      } myParentPointAttrRefs;
+
+
+      struct inst_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -200,7 +230,6 @@ class VRAY_clusterThisChild : public VRAY_Procedural
          GA_RWAttributeRef weight;
          GA_RWAttributeRef width;
          GA_RWAttributeRef geo_fname;
-
 
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
@@ -230,7 +259,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
 
       } myInstAttrRefs;
 
-      struct inst_mb_attr_offset_struct {
+      struct inst_mb_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -307,7 +336,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       UT_BoundingBox myVelBox;
       fpreal   myFreqX, myFreqY, myFreqZ;
       fpreal   myOffsetX, myOffsetY, myOffsetZ;
-      int        myNoiseType;
+      int      myNoiseType;
       fpreal  myFractalDepth;
       fpreal  myRough;
       fpreal  myNoiseAtten;
@@ -331,8 +360,8 @@ class VRAY_clusterThisChild : public VRAY_Procedural
 //   UT_String myMaterial;
 //   fpreal myTheta;
 
-      openvdb::ScalarGrid::Ptr myGeoGrid;
-      openvdb::VectorGrid::Ptr myGradientGrid;
+//      openvdb::ScalarGrid::Ptr myGeoGrid;
+//      openvdb::VectorGrid::Ptr myGradientGrid;
 
 
 

@@ -196,7 +196,7 @@ int VRAY_clusterThisChild::instancePoint()
    std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
 #endif
 
-   GU_Detail * gdp, *mb_gdp;
+   GU_Detail * inst_gdp, *mb_gdp;
    GEO_Point * ppt, * inst_ppt;
 //   GA_RWAttributeRef attrRef;
 //   GA_RWHandleI attrIntHandle;
@@ -210,13 +210,13 @@ int VRAY_clusterThisChild::instancePoint()
    UT_BoundingBox  tbox, tvbox;
    UT_IntArray instPointList;
 
-   fpreal myTimeScale = 1 / myFPS;
+//   fpreal myTimeScale = 1 / myFPS;
 
 
-   gdp = allocateGeometry();
+   inst_gdp = allocateGeometry();
 
-   if(!gdp) {
-         std::cout << "VRAY_clusterThisChild::instancePoint() gdp invalid! "  << std::endl;
+   if(!inst_gdp) {
+         std::cout << "VRAY_clusterThisChild::instancePoint() inst_gdp invalid! "  << std::endl;
          return 1;
       }
 
@@ -230,7 +230,18 @@ int VRAY_clusterThisChild::instancePoint()
       }
 
 
-   VRAY_clusterThisChild::createAttributeOffsets(gdp, mb_gdp);
+//   VRAY_clusterThisChild::createAttributeOffsets(inst_gdp, mb_gdp);
+
+
+   GA_RWAttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_Alpha = inst_gdp->addAlphaAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_vel = inst_gdp->addVelocityAttribute(GEO_POINT_DICT);
+//   GA_RWAttributeRef pt_N = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pt_pscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+//   GA_RWAttributeRef pt_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+//   GA_RWAttributeRef pt_inst_id = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+//   GA_RWAttributeRef pt_material = inst_gdp->addStringTuple(GA_ATTRIB_POINT, "shop_materialpath", 1);
+
 
 
    std::cout << "VRAY_clusterThisChild::instancePoint() myBox " << myBox << std::endl;
@@ -259,6 +270,27 @@ int VRAY_clusterThisChild::instancePoint()
    fpreal dice;
    bool skip = false;
 
+
+//   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.Cd.isValid: "
+//        << myParentPointAttrRefs.Cd.isValid() << endl;
+//   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.Alpha.isValid: "
+//        << myParentPointAttrRefs.Alpha.isValid() << endl;
+//   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.pscale.isValid: "
+//        << myParentPointAttrRefs.pscale.isValid() << endl;
+//
+//   myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParentPointAttrRefs.Cd, 0));
+//
+//   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
+
+
+   GA_RWAttributeRef CdRef = myGdp->findDiffuseAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef AlphaRef = myGdp->findAlphaAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef velRef = myGdp->findVelocityAttribute(GEO_POINT_DICT);
+//   GA_RWAttributeRef pt_N = myGdp->findNormalAttribute(GEO_POINT_DICT);
+   GA_RWAttributeRef pscaleRef = myGdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
+
+
+
 //   std::cout << "VRAY_clusterThisChild::instancePoint() myNumCopies: " << myNumCopies << " myRecursion: " << myRecursion << std::endl;
 
    for(uint32 i = instPointList.entries(); i-- > 0;) {
@@ -267,8 +299,20 @@ int VRAY_clusterThisChild::instancePoint()
          ppt = myGdp->points()(idx);
          myPointAttributes.myPos = ppt->getPos();
 
+//         VRAY_clusterThisChild::getAttributes(ppt);
+
 //         std::cout << "VRAY_clusterThisChild::instancePoint() i " << i
 //                   << " myPointAttributes.myPos: " << myPointAttributes.myPos << std::endl;
+
+         myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(CdRef, 0));
+         myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(AlphaRef, 0));
+         myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(pscaleRef, 0));
+         myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(velRef, 0));
+
+
+//         cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
+
+
 
          // For each point, make a number of copies of and recurse a number of times for each copy ...
          for(int copyNum = 0; copyNum < myNumCopies; copyNum++) {
@@ -289,32 +333,40 @@ int VRAY_clusterThisChild::instancePoint()
 
                            // Calculate the position for the next instanced object ...
                            VRAY_clusterThisChild::calculateNewPosition(theta, copyNum, recursionNum);
-
 //                           calculateNewInstPosition(theta, copyNum, recursionNum);
 
-
-//         fpreal pscale = ppt->getValue<fpreal>(myParent->myInstAttrRefs.pscale);
-//         scale = UT_Vector3(pscale, pscale, pscale);
 
 //         getRoughSpriteBox(tbox, tvbox, ppt, scale, myParent->myInstAttrRefs.v, myTimeScale, xform);
 
 
-                           inst_ppt = gdp->appendPointElement();
+                           inst_ppt = inst_gdp->appendPointElement();
                            inst_ppt->setPos(myPointAttributes.myNewPos[0],
                                             myPointAttributes.myNewPos[1],
                                             myPointAttributes.myNewPos[2], 1.0);
 
-                           VRAY_clusterThisChild::getAttributes(ppt);
+
+
+                           inst_ppt->setValue<UT_Vector3>(pt_Cd, myPointAttributes.Cd);
+                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)0.3);
+                           inst_ppt->setValue<UT_Vector3>(pt_vel, UT_Vector3(0.0, 1.0, 0.0));
+//                           inst_ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
+//                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+//                           inst_ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
+//   inst_ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
+                           inst_ppt->setValue<fpreal>(pt_pscale, (const fpreal)0.005f);
+//   inst_ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
+//   inst_ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
+//   inst_ppt->setString(pt_material, myPointAttributes.material);
 
 //   std::cout << "VRAY_clusterThisChild::instancePoint() myNumCopies: " << myNumCopies << " myRecursion: " << myRecursion << std::endl;
 
 //                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, UT_Vector3(0.0, 1.0, 0.0));
-                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
+//                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
 //                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)0.3);
-                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
-                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
+//                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointAlpha, (const fpreal)myPointAttributes.Alpha);
+//                           inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)myPointAttributes.v);
 //   inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.N, (const UT_Vector3)myPointAttributes.N);
-                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)0.005f);
+//                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pointPscale, (const fpreal)0.005f);
 //                           inst_ppt->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
 //   inst_ppt->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
 //   inst_ppt->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
@@ -346,15 +398,22 @@ int VRAY_clusterThisChild::instancePoint()
 
       }
 
+
+   if(myParent->myPostProcess) {
+         myParent->postProcess(myGdp, inst_gdp, mb_gdp);
+      }
+
+
    openGeometryObject();
-   addGeometry(gdp, 0.0);
+   addGeometry(inst_gdp, 0.0);
    if(myDoMotionBlur == CLUSTER_MB_VELOCITY)
-      addVelocityBlurGeometry(gdp, myShutter, myShutter2);
+      addVelocityBlurGeometry(inst_gdp, myShutter, myShutter2);
    else
       if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
          addGeometry(mb_gdp, myShutter);
    setSurface((const char *)myPointAttributes.material);
    closeObject();
+
 
 //   std::cout << "VRAY_clusterThisChild::instancePoint() : myInstanceNum: " << myInstanceNum << std::endl;
 
@@ -1238,40 +1297,64 @@ inline int VRAY_clusterThisChild::getAttributes(GEO_Point * ppt)
 
    cout << "VRAY_clusterThisChild::getAttributes() " << endl;
 
-   myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.Cd, 0));
+
+
+   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.Cd.isValid: "
+        << myParentPointAttrRefs.Cd.isValid() << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.Alpha.isValid: "
+        << myParentPointAttrRefs.Alpha.isValid() << endl;
+   cout << "VRAY_clusterThisChild::getAttributes() myParentPointAttrRefs.pscale.isValid: "
+        << myParentPointAttrRefs.pscale.isValid() << endl;
+
+   myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParentPointAttrRefs.Cd, 0));
+
    cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
-   myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.Alpha, 0));
+
+   myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myParentPointAttrRefs.Alpha, 0));
+
    cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Alpha: " << myPointAttributes.Alpha << endl;
 
-
-// TODO: Use the backtrack velocity to replace velocity? Not sure ...
-   if(myUseBacktrackMB)
-      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector4>(myParent->myPointAttrOffsets.backtrack, 0));
-   else
-      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.v, 0));
-
-//   myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myInstAttrRefs.v, 0));
-   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector4>(myParent->myPointAttrOffsets.backtrack, 0));
-   myPointAttributes.up = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.up, 0));
-   myPointAttributes.N = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrOffsets.N, 0));
-   myPointAttributes.N.normalize();
-
-   myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.radius, 0));
-   myPointAttributes.vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.vdb_radius, 0));
-   myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.pscale, 0));
-   myPointAttributes.width = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.width, 0));
-   myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myParent->myPointAttrOffsets.id, 0));
-   myPointAttributes.material = ppt->getString(myParent->myPointAttrOffsets.material) ;
-//     cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.material: " << myPointAttributes.material << endl;
+   myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myParentPointAttrRefs.pscale, 0));
 
    cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
 
+//   myPointAttributes.Cd = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrRefs.Cd, 0));
+//   cout << "VRAY_clusterThisChild::getAttributes() Cd: "
+//        << static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrRefs.Cd, 0)) << endl;
+//   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
+//
+//   myPointAttributes.Alpha = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.Alpha, 0));
+//   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Alpha: " << myPointAttributes.Alpha << endl;
 
-   if(myPrimType == CLUSTER_PRIM_METABALL)
-      myPointAttributes.weight = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrOffsets.weight, 0));
 
-   if(myPrimType == CLUSTER_FILE)
-      myPointAttributes.geo_fname = ppt->getString(myParent->myPointAttrOffsets.geo_fname) ;
+// TODO: Use the backtrack velocity to replace velocity? Not sure ...
+//   if(myUseBacktrackMB)
+//      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector4>(myParent->myPointAttrRefs.backtrack, 0));
+//   else
+//      myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrRefs.v, 0));
+//
+////   myPointAttributes.v = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myInstAttrRefs.v, 0));
+//   myPointAttributes.backtrack = static_cast<UT_Vector4>(ppt->getValue<UT_Vector4>(myParent->myPointAttrRefs.backtrack, 0));
+//   myPointAttributes.up = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrRefs.up, 0));
+//   myPointAttributes.N = static_cast<UT_Vector3>(ppt->getValue<UT_Vector3>(myParent->myPointAttrRefs.N, 0));
+//   myPointAttributes.N.normalize();
+//
+//   myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.radius, 0));
+//   myPointAttributes.vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.vdb_radius, 0));
+//   myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.pscale, 0));
+//   myPointAttributes.width = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.width, 0));
+//   myPointAttributes.id = static_cast<int>(ppt->getValue<int>(myParent->myPointAttrRefs.id, 0));
+//   myPointAttributes.material = ppt->getString(myParent->myPointAttrRefs.material) ;
+////     cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.material: " << myPointAttributes.material << endl;
+//
+//   cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
+//
+//
+//   if(myPrimType == CLUSTER_PRIM_METABALL)
+//      myPointAttributes.weight = static_cast<fpreal>(ppt->getValue<fpreal>(myParent->myPointAttrRefs.weight, 0));
+//
+//   if(myPrimType == CLUSTER_FILE)
+//      myPointAttributes.geo_fname = ppt->getString(myParent->myPointAttrRefs.geo_fname) ;
 
 #ifdef DEBUG
    cout << "VRAY_clusterThisChild::getAttributes() " << "Cd: " << myPointAttributes.Cd << endl;
@@ -1524,7 +1607,6 @@ inline void VRAY_clusterThisChild::setInstanceAttributes(GU_Detail * gdp, GEO_Pr
       }
 
 }
-
 
 
 /* ******************************************************************************

@@ -152,7 +152,7 @@ class VRAY_clusterThis : public VRAY_Procedural
 
       friend class VRAY_clusterThisChild;
 
-      struct pt_attr_offset_struct {
+      struct pt_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -183,10 +183,10 @@ class VRAY_clusterThis : public VRAY_Procedural
                  GA_RWAttributeRef mass;
                  GA_RWAttributeRef temperature;*/
 
-      } myPointAttrOffsets;
+      } myPointAttrRefs;
 
 
-      struct file_attr_offset_struct {
+      struct file_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -224,10 +224,10 @@ class VRAY_clusterThis : public VRAY_Procedural
 //      GA_RWAttributeRef pointOffset;
 //      GA_RWAttributeRef pointAmp;
 
-      } myFileAttrOffsets;
+      } myFileAttrRefs;
 
 
-      struct inst_attr_offset_struct {
+      struct inst_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -275,7 +275,7 @@ class VRAY_clusterThis : public VRAY_Procedural
 
 
 
-      struct inst_mb_attr_offset_struct {
+      struct inst_mb_attr_ref_struct {
 
          // Required attributes
          GA_RWAttributeRef Cd;
@@ -319,7 +319,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          //GA_RWAttributeRef mass;
          //GA_RWAttributeRef temperature;
 
-      } myInstMBAttrOffsets;
+      } myInstMBAttrRefs;
 
 
       struct pt_attr_struct {
