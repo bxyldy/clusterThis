@@ -140,7 +140,6 @@ void VRAY_clusterThisChild::render()
 
 
    // // Create a primitive based upon user's selection
-   // // TODO: can later be driven by a point attribute
    switch(myPrimType) {
          case CLUSTER_POINT:
             VRAY_clusterThisChild::instancePoint();
@@ -192,6 +191,8 @@ void VRAY_clusterThisChild::render()
 int VRAY_clusterThisChild::instancePoint()
 {
 
+   std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
+
 #ifdef DEBUG
    std::cout << "VRAY_clusterThisChild::instancePoint()" << std::endl;
 #endif
@@ -203,11 +204,45 @@ int VRAY_clusterThisChild::instancePoint()
    GA_RWHandleF attrFloatHandle;
    GA_RWHandleV3 attrVector3Handle;
 
+
+   int         first, idx;
+   UT_Matrix4     xform;
+   UT_Vector3 scale(0.1, 0.1, 0.1);
+   UT_BoundingBox  tbox, tvbox;
+   fpreal myTimeScale = 1 / 24.0;
+
+
+//   myPointList.resize(sprite->myPointList.entries());
+
+   for(uint32 i = myPointList.entries(); i-- > 0;) {
+         idx = myPointList(i);
+         ppt = gdp->points()(idx);
+         if(myBox.isInside(ppt->getPos())) {
+               myPointList.append(idx);
+            }
+      }
+
+   myPointList.resize(myPointList.entries());
+
+   first = 1;
+   xform = myXformInverse;
+
+   for(uint32 i = myPointList.entries(); i-- > 0;) {
+         idx = myPointList(i);
+         ppt = gdp->points()(idx);
+
+         fpreal pscale = ppt->getValue<fpreal>(myParent->myPointAttrOffsets.pscale);
+         scale = UT_Vector3(pscale, pscale, pscale);
+
+         getRoughSpriteBox(tbox, tvbox, ppt, scale, myParent->myPointAttrOffsets.v, myTimeScale, xform);
+      }
+
+
+
+
+
    gdp = allocateGeometry();
 
-// TODO:
-// TODO:  Why oh why ... do I have to create the attributes here ... INVESTIGATE!
-// TODO:
 
    GA_RWAttributeRef pt_Cd = gdp->addDiffuseAttribute(GEO_POINT_DICT);
    GA_RWAttributeRef pt_Alpha = gdp->addAlphaAttribute(GEO_POINT_DICT);
@@ -1026,7 +1061,7 @@ int VRAY_clusterThisChild::instanceFile()
    GA_RWAttributeRef Alpha = file_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
    GA_RWAttributeRef v = file_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
 //   GA_RWAttributeRef N = file_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
-//   GA_RWAttributeRef id = file_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+   GA_RWAttributeRef id = file_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
 //   GA_RWAttributeRef inst_id = file_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
 
    GA_RWAttributeRef material = file_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
@@ -1037,7 +1072,7 @@ int VRAY_clusterThisChild::instanceFile()
    GA_RWAttributeRef pointV = file_gdp->addVelocityAttribute(GEO_POINT_DICT);
 
 //   GA_RWAttributeRef pointPscale = file_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-//   GA_RWAttributeRef pointId = file_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+   GA_RWAttributeRef pointId = file_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
 //   GA_RWAttributeRef pointInstId = file_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 //   GA_RWAttributeRef lod = file_gdp->addIntTuple(GA_ATTRIB_POINT, "lod", 1);
 
@@ -1050,7 +1085,7 @@ int VRAY_clusterThisChild::instanceFile()
       ppt->setValue<UT_Vector3>(pointCd, (const UT_Vector3)myPointAttributes.Cd);
       ppt->setValue<float>(pointAlpha, (const float)myPointAttributes.Alpha);
       ppt->setValue<UT_Vector3>(pointV, (const UT_Vector3)myPointAttributes.v);
-//      ppt->setValue<int>(pointId, (const int)myPointAttributes.id);
+      ppt->setValue<int>(pointId, (const int)myPointAttributes.id);
    }
 
 
@@ -1061,7 +1096,7 @@ int VRAY_clusterThisChild::instanceFile()
       prim->setValue<UT_Vector3>(Cd, (const UT_Vector3)myPointAttributes.Cd);
       prim->setValue<fpreal>(Alpha, (const fpreal)myPointAttributes.Alpha);
       prim->setValue<UT_Vector3>(v, (const UT_Vector3)myPointAttributes.v);
-//      prim->setValue<int>(id, (const int)myPointAttributes.id);
+      prim->setValue<int>(id, (const int)myPointAttributes.id);
 
       prim->setString(material, myPointAttributes.material);
    }

@@ -423,7 +423,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool     myUseGeoFile;
       UT_String mySrcGeoFname;
       uint32   myPrimType;
-      uint32   myMethod;
+      uint32   myMethod;  // Instance now or deferred
+      uint32   myGridPointLimit;
       fpreal   mySize[3];
       uint32   myRecursion;
       fpreal   myFreqX, myFreqY, myFreqZ;

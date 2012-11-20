@@ -361,7 +361,7 @@ inline void VRAY_clusterThis::setPointInstanceAttributes(GU_Detail * inst_gdp, G
    cout << "VRAY_clusterThis::setPointInstanceAttributes() " << endl;
 #endif
 
-// TODO: Determine which attibutes are *really* required for point instancing, examine shaders, perhapos add compile time switches
+// TODO: Determine which attibutes are *really* required for point instancing, examine shaders, perhaps add compile time switches
 // user wants to have more attributes passed to the shaders.
 
    ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);

@@ -31,6 +31,8 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       VRAY_clusterThisChild(VRAY_clusterThis * theClusterObj)
          :
          myPrimType(theClusterObj->myPrimType),
+         myGdp(theClusterObj->myGdp),
+         myPointList(theClusterObj->myPointList),
          myRadius(theClusterObj->myRadius),
          myNumCopies(theClusterObj->myNumCopies),
          myRecursion(theClusterObj->myRecursion),
@@ -234,7 +236,6 @@ class VRAY_clusterThisChild : public VRAY_Procedural
 //   } myInstMBAttrOffsets;
 //
 
-      VRAY_clusterThis * myParent;
 
       // Parameters
       int     myPrimType;
@@ -244,7 +245,6 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       fpreal  myShutter;
       fpreal  myShutter2;
       UT_String myGeoFile;
-      UT_String myObjectName;
       uint32   myNumCopies;
       uint32   myRecursion;
       fpreal   myBirthProb;
@@ -257,16 +257,35 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       UT_String myCVEXFname_post;
       bool     myCVEX_Exec_post;
 
-      // Other vars ...
+
+      // Member vars ...
+      VRAY_clusterThis * myParent;
+      GU_Detail * myGdp;
+      UT_BoundingBox myBox;
+      UT_BoundingBox myVelBox;
+      fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
+      UT_String myMaterial;
+      UT_Matrix3 myXformInverse;
+      UT_Noise myNoise;
+      UT_MersenneTwister myMersenneTwister;
+      bool myUsePointRadius;
+//      bool myUsePointGeoFname;
+      bool myUseBacktrackMB;
+      UT_IntArray myPointList;
+      UT_String myObjectName;
+//      UT_String myOTLVersion;
+      fpreal   myVelocityScale;
+      long int myInstanceNum;
+      fpreal   myLOD;
+      static const fpreal myFPS = 24.0;
+      GU_Detail * myFileGDP;
 //   UT_String myMaterial;
 //   fpreal myTheta;
 
-      UT_BoundingBox myBox;
-      fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
+      openvdb::ScalarGrid::Ptr myGeoGrid;
+      openvdb::VectorGrid::Ptr myGradientGrid;
 
-//   GU_Detail * myFileGDP;
-      fpreal myLOD;
-      long int myInstanceNum;
+
 
       enum clusterPrimTypeEnum {
          CLUSTER_POINT = 0,

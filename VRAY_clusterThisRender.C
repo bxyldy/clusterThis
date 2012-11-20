@@ -214,7 +214,7 @@ void VRAY_clusterThis::render()
 
 
 
-
+               // If the user wants to instance all the geometry immediately
                if(myMethod == CLUSTER_INSTANCE_NOW) {
 
 
@@ -260,7 +260,6 @@ void VRAY_clusterThis::render()
 
 
                                                 // Create a primitive based upon user's selection
-                                                // TODO: can later be driven by a point attribute
                                                 switch(myPrimType) {
                                                       case CLUSTER_POINT:
                                                          VRAY_clusterThis::instancePoint(inst_gdp, mb_gdp);
@@ -319,9 +318,11 @@ void VRAY_clusterThis::render()
 
                      } // for all points ...
 
-                  }
+                  } // if(myMethod == CLUSTER_INSTANCE_NOW)
 
-               else
+
+
+                  // Is the user wants to break up the point cloud into a grid and instance those when mantra encounters their bounding boxes
                   if(myMethod == CLUSTER_INSTANCE_DEFERRED) {
 
 //                                                   // For the "deferred instance" method, add the procedural now ...
@@ -333,7 +334,7 @@ void VRAY_clusterThis::render()
 //                                                   VRAY_Procedural::closeObject();
 
 
-//                        GU_Detail  *vgdp;
+                        GU_Detail  *vgdp;
                         fpreal      max;
                         UT_BoundingBox    kidbox;
                         VRAY_clusterThisChild * child;
@@ -342,50 +343,47 @@ void VRAY_clusterThis::render()
                         fpreal      xinc, yinc, zinc, factor;
                         fpreal      xv, yv, zv;
                         fpreal      dfactor;
-                        int         sprite_limit = 500;
                         fpreal      lod;
 
 
                         // Compute LOD without regards to motion blur
                         lod = getLevelOfDetail(myBox);
-                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
 //                        std::cout << "VRAY_clusterThis::render() myChunkSize: " << myParms->myChunkSize << std::endl;
 //                        std::cout << "VRAY_clusterThis::render() myPointList.entries: " << myPointList.entries() << std::endl;
-//                        std::cout << "VRAY_clusterThis::render() sprite_limit: " << sprite_limit << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() myGridPointLimit: " << myGridPointLimit << std::endl;
 //                        std::cout << "VRAY_clusterThis::render() myParms->myRefCount: " << myParms->myRefCount << std::endl;
 
 //goto finish;
 
 
-//                        if(lod > myParms->myChunkSize && myPointList.entries() > sprite_limit) {
+//                        if(lod > myParms->myChunkSize && myPointList.entries() > myGridPointLimit) {
 
-                        std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
 
                         // Split into further procedurals
                         xinc = myBox.sizeX();
                         yinc = myBox.sizeY();
                         zinc = myBox.sizeZ();
 
-                        std::cout << "1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() 1: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
 
                         max = myBox.sizeMax();
                         dfactor = (xinc + yinc + zinc) / max;
-                        factor = SYSpow((fpreal)myPointList.entries() / sprite_limit, 1.0F / dfactor);
+                        factor = SYSpow((fpreal)myPointList.entries() / myGridPointLimit, 1.0F / dfactor);
                         if(factor > 4)
                            factor = 4;
                         max /= factor;
 
-                        std::cout << "max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
-
-                        std::cout << "Preparing to split " <<  myPointList.entries()
-                                  << " points with lod " << lod << std::endl;
-                        std::cout << "myBox " << myBox << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() Preparing to split " <<  myPointList.entries() << " points with lod " << lod << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() myBox " << myBox << std::endl;
 
                         nx = computeDivs(xinc, max);
                         ny = computeDivs(yinc, max);
                         nz = computeDivs(zinc, max);
 
-                        std::cout << "1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() 1: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
 
 
                         if(nx == 1 && ny == 1 && nz == 1) {
@@ -403,15 +401,15 @@ void VRAY_clusterThis::render()
                                  }
                            }
 
-                        std::cout << "2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() 2: nx " <<  nx << " ny " << ny << " nz " << nz << std::endl;
 
                         xinc /= (fpreal)nx;
                         yinc /= (fpreal)ny;
                         zinc /= (fpreal)nz;
 
-                        std::cout << "2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() 2: xinc " <<  xinc << " yinc " << yinc << " zinc " << zinc << std::endl;
 
-                        printf("breaking up into: %dx%dx%d\n", nx, ny, nz);
+                        printf("VRAY_clusterThis::render() Breaking up into: %dx%dx%d\n", nx, ny, nz);
 
                         for(iz = 0, zv = myBox.vals[2][0]; iz < nz; iz++, zv += zinc) {
                               for(iy = 0, yv = myBox.vals[1][0]; iy < ny; iy++, yv += yinc) {
@@ -420,17 +418,17 @@ void VRAY_clusterThis::render()
                                           kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
                                           child = new VRAY_clusterThisChild(this);
 
-                                          std::cout << "iz " <<  iz << " zv " << zv  <<
-                                                    " iy " <<  iy << " yv " << yv  <<
-                                                    " ix " <<  ix << " xv " << xv << std::endl;
+////                                          std::cout << "iz " <<  iz << " zv " << zv  <<
+////                                                    " iy " <<  iy << " yv " << yv  <<
+////                                                    " ix " <<  ix << " xv " << xv << std::endl;
 
 //                                              if(!child->initChild(this, kidbox))
 //                                                   delete child;
 //                                                else {
-//                                                      if(openProceduralObject()) {
-//                                                            addProcedural(child);
-//                                                            closeObject();
-//                                                         }
+                                                      if(openProceduralObject()) {
+                                                            addProcedural(child);
+                                                            closeObject();
+                                                         }
 //                                                   }
 
                                        }
@@ -440,8 +438,9 @@ void VRAY_clusterThis::render()
 
 
 
+                     } // if(myMethod == CLUSTER_INSTANCE_DEFERRED)
 
-                     }
+
 
 
                if(myPostProcess && (myMethod == CLUSTER_INSTANCE_NOW)) {

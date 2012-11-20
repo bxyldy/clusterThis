@@ -157,6 +157,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("offset",    "real",  "0.0 0.0 0.0"),
    VRAY_ProceduralArg("birth_prob", "real",  "0.5"),
    VRAY_ProceduralArg("add_proc", "integer", "0"),
+   VRAY_ProceduralArg("grid_point_limit", "integer", "100"),
    VRAY_ProceduralArg("motion_blur", "integer", "0"),
    VRAY_ProceduralArg("backtrack_mb", "integer", "0"),
    VRAY_ProceduralArg("mb_shutter", "real", "0.1"),
@@ -183,9 +184,6 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("CVEX_exec_post", "integer", "0"),
    VRAY_ProceduralArg("filter_type", "integer", "0"),
    VRAY_ProceduralArg("filter_amp", "real", "0.0"),
-   VRAY_ProceduralArg("volume_data_1", "string", "file.vol"),
-   VRAY_ProceduralArg("volume_data_2", "string", "file.vol"),
-   VRAY_ProceduralArg("volume_data_3", "string", "file.vol"),
    VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
    VRAY_ProceduralArg("temp_file", "integer", "0"),
    VRAY_ProceduralArg("save_temp_file", "integer", "0"),
@@ -621,6 +619,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myCVEXFname_post = "";
    myBlendAttrs = false;
    myMethod = CLUSTER_INSTANCE_NOW;
+   myGridPointLimit = 100;
    myVerbose = CLUSTER_MSG_QUIET;
    myUseTempFile = false;
    mySaveTempFile = false;
@@ -893,6 +892,9 @@ int VRAY_clusterThis::getOTLParameters()
 
    if(int_ptr = VRAY_Procedural::getIParm("add_proc"))
       myMethod = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("grid_point_limit"))
+      myGridPointLimit = *int_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("motion_blur"))
       myDoMotionBlur = *int_ptr;
@@ -1413,6 +1415,7 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() mySrcGeoFname: " << mySrcGeoFname << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myRecursion: " << myRecursion << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myMethod: " << myMethod << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myGridPointLimit: " << myGridPointLimit << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myRadius: " << myRadius << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myRough: " << myRough << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() mySize: " << mySize[0] << " " << mySize[1] << " " << mySize[2] << std::endl;
