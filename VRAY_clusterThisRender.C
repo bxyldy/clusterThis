@@ -442,7 +442,7 @@ void VRAY_clusterThis::render()
                                        kidbox.initBounds(xv, yv, zv);
                                        kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
                                        child = new VRAY_clusterThisChild(this, kidbox);
-                                       child->initChild();
+                                       child->initChild(kidbox);
 
                                        std::cout << "iz " <<  iz << " zv " << zv  <<
                                                  " iy " <<  iy << " yv " << yv  <<
@@ -470,6 +470,20 @@ void VRAY_clusterThis::render()
 
                      VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
 
+                  }
+
+
+
+ // DEBUG
+               if(myMethod == CLUSTER_INSTANCE_NOW) {
+                     gdp->getBBox(&tmpBox);
+                     std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                     inst_gdp->getBBox(&tmpBox);
+                     std::cout << "VRAY_clusterThis::render() - inst_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                     if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+                           mb_gdp->getBBox(&tmpBox);
+                           std::cout << "VRAY_clusterThis::render() - mb_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                        }
                   }
 
 

@@ -575,12 +575,7 @@ VRAY_clusterThis::VRAY_clusterThis()
 
    // Init member variables
    myBox.initBounds(0, 0, 0);
-   bb_x1 = 0.0;
-   bb_y1 = 0.0;
-   bb_z1 = 0.0;
-   bb_x2 = 0.0;
-   bb_y2 = 0.0;
-   bb_z2 = 0.0;
+   myVelBox.initBounds(0, 0, 0);
    myPrimType = CLUSTER_PRIM_SPHERE;
    myUseGeoFile = false;
    mySrcGeoFname = "";
@@ -772,11 +767,11 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    UT_String      str;
 
 
-   std::cout << "VRAY_clusterThis::initialize() box: " << box << std::endl;
-   if(box) {
-         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
-         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
-      }
+//   std::cout << "VRAY_clusterThis::initialize() box: " << box << std::endl;
+//   if(box) {
+//         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
+//         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
+//      }
 
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
@@ -801,7 +796,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
    name = queryObjectName(handle);
 
-   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
+//   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
 
    gdp = myGdp = (GU_Detail *)queryGeometry(handle, 0);
 //   gdp = myParms->myGdp = (GU_Detail *)queryGeometry(handle, 0);
@@ -810,26 +805,12 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          return 0;
       }
 
-
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
 
-
-   // Import the object:velocityscale settings.  This setting stores the
-   // shutter time (in seconds) on a per object basis.  It's used primarily
-   // for velocity blur.
-
-   if(!import("object:velocityscale", &myVelocityScale, 1)) {
-         myVelocityScale = 0;
-         std::cout << "VRAY_clusterThis::initialize() did not find object:velocityscale, setting myVelocityScale to 0.0"  << std::endl;
-      }
-   else {
-         std::cout << "VRAY_clusterThis::initialize() found object:velocityscale. myVelocityScale: " << myVelocityScale << std::endl;
-      }
-
    UT_Vector3 scale(0.1, 0.1, 0.1);
 
-   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+//   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
    int first = 1;
    xform = myXformInverse;
@@ -855,9 +836,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          return 0;
       }
 
-
-   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
-
+//   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
 
    if(box) {
@@ -871,12 +850,12 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
             }
       }
 
-   std::cout << "VRAY_clusterThis::initialize() 3 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
-
-   if(box) {
-         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
-         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
-      }
+//   std::cout << "VRAY_clusterThis::initialize() 3 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+//
+//   if(box) {
+//         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
+//         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
+//      }
 
 
    return 1;
@@ -901,21 +880,6 @@ int VRAY_clusterThis::getOTLParameters()
    const int * int_ptr;
    const fpreal * flt_ptr;
    const char ** char_handle;
-
-
-   if(flt_ptr = VRAY_Procedural::getFParm("minbound")) {
-         bb_x1 = *flt_ptr++;
-         bb_y1 = *flt_ptr++;
-         bb_z1 = *flt_ptr;
-         myBox.initBounds(bb_x1, bb_y1, bb_z1);
-      }
-
-   if(flt_ptr = VRAY_Procedural::getFParm("maxbound")) {
-         bb_x2 = *flt_ptr++;
-         bb_y2 = *flt_ptr++;
-         bb_z2 = *flt_ptr;
-         myBox.enlargeBounds(bb_x2, bb_y2, bb_z2);
-      }
 
    if(int_ptr = VRAY_Procedural::getIParm("prim_type"))
       myPrimType = *int_ptr;
@@ -1535,18 +1499,6 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myVDBOffsetFilterAmount: " << myVDBOffsetFilterAmount << std::endl;
 //   std::cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myVDBWriteDebugFiles: " << myVDBWriteDebugFiles << std::endl;
-
-
-   std::cout << "VRAY_clusterThis::dumpParameters() **** BBOX ****" << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() myBox:"  << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[0][0] << " " << myBox.vals[0][1] << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[1][0] << " " << myBox.vals[1][1] << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << myBox.vals[2][0] << " " << myBox.vals[2][1] << std::endl;
-
-   std::cout << "VRAY_clusterThis::dumpParameters() Bounding Box Parms:"  << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << bb_x1 << " " << bb_x2 << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << bb_y1 << " " << bb_y2 << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() " << bb_z1 << " " << bb_z2 << std::endl;
 
    std::cout << "VRAY_clusterThis::dumpParameters() **** MISC PARAMETERS ****" << std::endl;
 //   std::cout << "VRAY_clusterThis::dumpParameters() myOTLVersion: " << myOTLVersion << std::endl;

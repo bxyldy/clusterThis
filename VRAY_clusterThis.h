@@ -396,7 +396,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       GU_Detail * myGdp;
       UT_BoundingBox myBox;
       UT_BoundingBox myVelBox;
-      fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
       UT_String myMaterial;
       UT_Matrix3 myXformInverse;
       bool tempFileDeleted;

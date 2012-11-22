@@ -37,22 +37,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    for(uint32 i = gdp->points().entries(); i-- > 0;) {
          ppt = gdp->points()(i);
 
-
-//         getRoughSpriteBox(tbox, tvbox, ppt, sprite_scale,
-//                           myParms->myVelOff, myParms->myTimeScale, xform);
-
          myPointList.append(i);
-
-//         if(first) {
-//               myBox = tbox;
-//               myVelBox = tvbox;
-//               first = 0;
-//            }
-//         else {
-//               myBox.enlargeBounds(tbox);
-//               myVelBox.enlargeBounds(tvbox);
-//            }
-
 
       }
 
@@ -63,24 +48,8 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    if(!myPreProcess)
       return;
 
-
-   std::cout << "VRAY_clusterThis::preProcess() Processing Voxels" << std::endl;
-
-
-
    if(myVerbose > CLUSTER_MSG_INFO)
       cout << "VRAY_clusterThis::preProcess() Pre Processing Voxels" << std::endl;
-
-//   Vec3d voxelDimensions() const { return mTransform->voxelDimensions(); }
-//00257     Vec3d voxelDimensions(const Vec3d& xyz) const { return mTransform->voxelDimensions(xyz); }
-//00259     bool hasUniformVoxels() const { return mTransform->hasUniformScale(); }
-//00261
-//00262     Vec3d indexToWorld(const Vec3d& xyz) const { return mTransform->indexToWorld(xyz); }
-//00263     Vec3d indexToWorld(const Coord& ijk) const { return mTransform->indexToWorld(ijk); }
-//00265
-//00266     Vec3d worldToIndex(const Vec3d& xyz) const { return mTransform->worldToIndex(xyz); }
-
-// Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
 
 //                     openvdb::ScalarGrid::Accessor accessor;
 //                     openvdb::FloatTree myTree;
@@ -138,10 +107,6 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          myGeoGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
          myGeoGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
          myGeoGrid->insertMeta("background", openvdb::FloatMetadata(background));
-
-//    hvdb::createVdbPrimitive(*gdp, myGeoGrid, gridNameStr.toStdString().c_str());
-//    GU_PrimVDB (GU_Detail *gdp, GA_Offset offset=GA_INVALID_OFFSET)
-//    GU_PrimVDB (const GA_MergeMap &map, GA_Detail &detail, GA_Offset offset, const GA_Primitive &src_prim)
 
 
          UT_Vector3 pos, seed_pos, currVel;
@@ -215,17 +180,6 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(myGeoGrid);
          myGradientGrid = myGradient.process();
          myGeoGradTreePtr = myGradientGrid->tree();
-
-
-//void   median (int width=1, bool serial=false)
-//void   mean (int width=1, bool serial=false)
-//void   meanCurvature (bool serial=false)
-//void   laplacian (bool serial=false)
-//void   offset (float offset, bool serial=false)
-
-//template<bool UseWENO>
-//float  renormalize (size_t maxSteps, float epsilon, bool verbose=false, bool serial=false)
-//    Iterative re-normalization.
 
          gridNameStr = "ClusterGradientGrid";
          myGradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));

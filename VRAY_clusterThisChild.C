@@ -77,15 +77,16 @@ int VRAY_clusterThisChild::initialize(const UT_BoundingBox *)
 *  Return Value : int
 *
 ***************************************************************************** */
-void VRAY_clusterThisChild::initChild()
+void VRAY_clusterThisChild::initChild(const UT_BoundingBox & box)
 {
 #ifdef DEBUG
    std::cout << "VRAY_clusterThisChild::initChild()" << std::endl;
 #endif
 
+   myBox = box;
+   myVelBox = box;
 
-
-
+   std::cout << "VRAY_clusterThisChild::initChild()" << std::endl;
 
 }
 
@@ -102,21 +103,8 @@ void VRAY_clusterThisChild::initChild()
 ***************************************************************************** */
 void VRAY_clusterThisChild::getBoundingBox(UT_BoundingBox & box)
 {
-//   box.initBounds(myPointAttributes.myNewPos);
 
-//       box.enlargeBounds(mySize[0], mySize[1], mySize[2]);
-
-//   box.enlargeBounds(mySize[0] * 2, mySize[1] * 2);
-
-//   fpreal size = mySize[0];
-//   if (size < mySize[1])
-//      size = mySize[1];
-//   if (size < mySize[2])
-//      size = mySize[2];
-
-//   box.enlargeBounds(0, (size));
-
-   box = myBox;
+   box = myVelBox;
 
 
 #ifdef DEBUG
@@ -124,22 +112,10 @@ void VRAY_clusterThisChild::getBoundingBox(UT_BoundingBox & box)
 #endif
 
 
-
-
-// FROM THE VRAY_DemoMountain example:
-//
-   // Invoke the measuring code on the bounding box to determine the level of
-   // detail.  The level of detail is the square root of the number of pixels
-   // covered by the bounding box (with all shading factors considered).
-   // However, for computing LOD, we do *not* want to include displacement
-   // bounds
-//    computeBounds(box, false);
-//    lod = getLevelOfDetail(box);
-
 // set the LOD for this child instance
    myLOD = getLevelOfDetail(box);
 
-//      std::cout << "VRAY_clusterThisChild::getBoundingBox() box: " << box << " myLOD: " << myLOD << std::endl;
+      std::cout << "VRAY_clusterThisChild::getBoundingBox() box: " << box << " myLOD: " << myLOD << std::endl;
 
 }
 

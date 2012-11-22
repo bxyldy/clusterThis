@@ -123,7 +123,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       virtual int initialize(const UT_BoundingBox *);
       virtual void getBoundingBox(UT_BoundingBox & box);
       virtual void render();
-      void initChild();
+      void initChild(const UT_BoundingBox & box);
 
    private:
 
