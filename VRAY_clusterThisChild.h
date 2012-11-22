@@ -123,6 +123,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       virtual int initialize(const UT_BoundingBox *);
       virtual void getBoundingBox(UT_BoundingBox & box);
       virtual void render();
+      void initChild();
 
    private:
 
@@ -136,6 +137,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       int instanceCurve();
       int instanceFile();
       int instanceMetaball();
+
       void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       void setInstanceAttributes(GU_Detail * gdp, GEO_Primitive * myGeoPrim);
       int getAttributes(GEO_Point * ppt);

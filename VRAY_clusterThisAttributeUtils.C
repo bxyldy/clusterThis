@@ -28,7 +28,7 @@
 
 
 /* ******************************************************************************
-*  Function Name : createAttributeOffsets()
+*  Function Name : createAttributeRefs()
 *
 *  Description :   Create the attribute the offsets for the instanced objects
 *
@@ -37,11 +37,11 @@
 *  Return Value : void
 *
 ***************************************************************************** */
-void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
+void VRAY_clusterThis::createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 {
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::createAttributeOffsets() " << endl;
+   cout << "VRAY_clusterThis::createAttributeRefs() " << endl;
 #endif
 
 
@@ -50,7 +50,7 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
    if((myPrimType != CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
 
 #ifdef DEBUG
-         cout << "VRAY_clusterThis::createAttributeOffsets() Creating primitive attributes" << endl;
+         cout << "VRAY_clusterThis::createAttributeRefs() Creating primitive attributes" << endl;
 #endif
 
          myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
@@ -105,7 +105,7 @@ void VRAY_clusterThis::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * 
 
    if((myPrimType == CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
 #ifdef DEBUG
-         cout << "VRAY_clusterThis::createAttributeOffsets() Creating Point attributes" << endl;
+         cout << "VRAY_clusterThis::createAttributeRefs() Creating Point attributes" << endl;
 #endif
 
          myInstAttrRefs.pointCd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);

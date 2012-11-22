@@ -67,6 +67,28 @@ int VRAY_clusterThisChild::initialize(const UT_BoundingBox *)
    return 0;
 }
 
+/* ******************************************************************************
+*  Function Name : initChild()
+*
+*  Description :
+*
+*  Input Arguments :
+*
+*  Return Value : int
+*
+***************************************************************************** */
+void VRAY_clusterThisChild::initChild()
+{
+#ifdef DEBUG
+   std::cout << "VRAY_clusterThisChild::initChild()" << std::endl;
+#endif
+
+
+
+
+
+}
+
 
 /* ******************************************************************************
 *  Function Name : getBoundingBox()
@@ -311,6 +333,9 @@ int VRAY_clusterThisChild::instancePoint()
 
 
 //         cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Cd: " << myPointAttributes.Cd << endl;
+//         cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.Alpha: " << myPointAttributes.Alpha << endl;
+//         cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.pscale: " << myPointAttributes.pscale << endl;
+//         cout << "VRAY_clusterThisChild::getAttributes() myPointAttributes.v: " << myPointAttributes.v << endl;
 
 
 
@@ -346,14 +371,14 @@ int VRAY_clusterThisChild::instancePoint()
 
 
 
-                           inst_ppt->setValue<UT_Vector3>(pt_Cd, myPointAttributes.Cd);
-                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)0.3);
-                           inst_ppt->setValue<UT_Vector3>(pt_vel, UT_Vector3(0.0, 1.0, 0.0));
-//                           inst_ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
-//                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
-//                           inst_ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
+                           inst_ppt->setValue<UT_Vector3>(pt_Cd, (const UT_Vector3)myPointAttributes.Cd);
+//                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)0.3);
+//                           inst_ppt->setValue<UT_Vector3>(pt_vel, UT_Vector3(0.0, 1.0, 0.0));
+                           inst_ppt->setValue<fpreal>(pt_Alpha, (const fpreal)myPointAttributes.Alpha);
+                           inst_ppt->setValue<UT_Vector3>(pt_vel, (const UT_Vector3)myPointAttributes.v);
 //   inst_ppt->setValue<UT_Vector3>(pt_N, (const UT_Vector3)myPointAttributes.N);
-                           inst_ppt->setValue<fpreal>(pt_pscale, (const fpreal)0.005f);
+//                           inst_ppt->setValue<fpreal>(pt_pscale, (const fpreal)0.005f);
+                           inst_ppt->setValue<fpreal>(pt_pscale, myPointAttributes.pscale);
 //   inst_ppt->setValue<int>(pt_id, (const int)myPointAttributes.id);
 //   inst_ppt->setValue<int>(pt_inst_id, (const int)myInstanceNum);
 //   inst_ppt->setString(pt_material, myPointAttributes.material);

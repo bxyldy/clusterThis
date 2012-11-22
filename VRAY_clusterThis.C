@@ -695,6 +695,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    VRAY_clusterThis::exitData.exitCode = 3;
 
    myInstanceNum = 0;
+   myTimeScale = 0.5F / myFPS;
 
    int exitCallBackStatus = -1;
    exitCallBackStatus = UT_Exit::addExitCallback(VRAY_clusterThis::exitClusterThis, (void *)this);
@@ -761,7 +762,6 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
 
-
    void  *  handle;
    const char  *  name;
 //   GEO_Point  *   ppt;
@@ -772,8 +772,22 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    UT_String      str;
 
 
+   std::cout << "VRAY_clusterThis::initialize() box: " << box << std::endl;
+   if(box) {
+         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
+         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
+      }
+
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
+
+   if(myVerbose > CLUSTER_MSG_QUIET) {
+         std::cout << "VRAY_clusterThis::initialize() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
+         std::cout << "VRAY_clusterThis::initialize() - Built for Houdini Version: " << UT_MAJOR_VERSION
+                   << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
+         std::cout << "VRAY_clusterThis::initialize() - Initializing ..." <<  std::endl;
+      }
+
 
    // First, find the geometry object we're supposed to render
    name = 0;
@@ -787,7 +801,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
    name = queryObjectName(handle);
 
-   std::cout << "VRAY_clusterSprite::initialize() name: " << name << std::endl;
+   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
 
    gdp = myGdp = (GU_Detail *)queryGeometry(handle, 0);
 //   gdp = myParms->myGdp = (GU_Detail *)queryGeometry(handle, 0);
@@ -796,51 +810,73 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          return 0;
       }
 
-//   // Retrieve the velocity scale for use in velocity motion blur
-//   // calculations
-//   if(!import("object:velocityscale", &myParms->myTimeScale, 1))
-//      myParms->myTimeScale = 0.5F / 24.0F;
-
-
-
-//   changeSetting("object:geo_velocityblur", "on");
-
-//   int     vblur = 0;
-//   import("object:velocityblur", &vblur, 0);
-//
-//   if(vblur) {
-//         str = 0;
-//         import("velocity", str);
-//         if(str.isstring()) {
-////               const char  *  name;
-////               name = queryObjectName(handle);
-//               VRAYwarning("%s[%s] cannot get %s",
-//                           VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
-//
-//            }
-//      }
-
 
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
-
-
 
 
    // Import the object:velocityscale settings.  This setting stores the
    // shutter time (in seconds) on a per object basis.  It's used primarily
    // for velocity blur.
 
-   if(!import("object:velocityscale", &myVelocityScale, 1))
-      myVelocityScale = 0;
+   if(!import("object:velocityscale", &myVelocityScale, 1)) {
+         myVelocityScale = 0;
+         std::cout << "VRAY_clusterThis::initialize() did not find object:velocityscale, setting myVelocityScale to 0.0"  << std::endl;
+      }
+   else {
+         std::cout << "VRAY_clusterThis::initialize() found object:velocityscale. myVelocityScale: " << myVelocityScale << std::endl;
+      }
 
-//const int *  getIParm (const char *name) const
-//const fpreal *  getFParm (const char *name) const
-//const char **   getSParm (const char *name) const
-//const int *  getIParm (int token) const
-//const fpreal *  getFParm (int token) const
-//const char **   getSParm (int token) const
+   UT_Vector3 scale(0.1, 0.1, 0.1);
 
+   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+
+   int first = 1;
+   xform = myXformInverse;
+   for(uint32 i = gdp->points().entries(); i-- > 0;) {
+         GEO_Point * ppt = gdp->points()(i);
+
+         getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
+         myPointList.append(i);
+         if(first) {
+               myBox = tbox;
+               myVelBox = tvbox;
+               first = 0;
+            }
+         else {
+               myBox.enlargeBounds(tbox);
+               myVelBox.enlargeBounds(tvbox);
+            }
+      }
+
+   if(first) {
+         std::cout << "VRAY_clusterThis::initialize() " << getClassName() << " found no points in: " << name << std::endl;
+         VRAYwarning("%s found no points in %s", getClassName(), name);
+         return 0;
+      }
+
+
+   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+
+
+
+   if(box) {
+         if(myPointAttrRefs.v.isValid()) {
+               if(testClampBox(myBox, *box) || testClampBox(myVelBox, *box))
+                  VRAYwarning("%s[%s] cannot render a partial box %s", getClassName(), name, "with motion blur");
+            }
+         else {
+               clampBox(myBox, *box);
+               clampBox(myVelBox, *box);
+            }
+      }
+
+   std::cout << "VRAY_clusterThis::initialize() 3 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+
+   if(box) {
+         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
+         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
+      }
 
 
    return 1;
@@ -1230,24 +1266,9 @@ int VRAY_clusterThis::getOTLParameters()
 ***************************************************************************** */
 void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 {
-//   std::cout << "VRAY_clusterThis::getBoundingBox()" << std::endl;
-   fpreal     maxradius;
-   static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);
-   UT_Vector3    pt;
 
-   maxradius = SYSmax(mySize[0], mySize[1] * isin45 * 0.5F);
-
-   box = myBox;
-   box.translate(myPointAttributes.myNewPos);
-//    box.enlargeBounds(mySize[0] * 10, mySize[1] * 10, mySize[2] * 10);
-   fpreal size = mySize[0];
-   if(size < mySize[1])
-      size = mySize[1];
-   if(size < mySize[2])
-      size = mySize[2];
-
-   box.enlargeBounds(0, size * maxradius);
-
+   box = myVelBox;
+   std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
 
 #ifdef DEBUG
    std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
@@ -1257,9 +1278,9 @@ void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
 
 
 /* ******************************************************************************
-*  Function Name : getBoundingBox
+*  Function Name : checkRequiredAttributes
 *
-*  Description :  Get the bounding box for this VRAY_clusterThis object
+*  Description :  Check that all the required attributes are in the point cloud
 *
 *  Input Arguments : None
 *
@@ -1570,6 +1591,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

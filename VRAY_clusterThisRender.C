@@ -40,6 +40,7 @@ void VRAY_clusterThis::render()
 {
    GU_Detail * gdp, *inst_gdp, *mb_gdp, *file_gdp;
    GEO_Point * ppt;
+   UT_BoundingBox tmpBox;
 
 //   GEO_AttributeHandle attrHandleVelocity, attrHandleForce, attrHandleVorticity, attrHandleNormal, attrHandleNumNeighbors,
 //   attrHandleTextureUV, attrHandleMass, attrHandleAge, attrHandleTemperature, attrHandleID,
@@ -56,9 +57,6 @@ void VRAY_clusterThis::render()
 //   std::cout << "VRAY_clusterThis::render() - num_passes: " << dca::myPasses(0) <<  std::endl;
 
    if(myVerbose > CLUSTER_MSG_QUIET) {
-         std::cout << "VRAY_clusterThis::render() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
-         std::cout << "VRAY_clusterThis::render() - Built for Houdini Version: " << UT_MAJOR_VERSION
-                   << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
          std::cout << "VRAY_clusterThis::render() - Instancing ..." <<  std::endl;
       }
 
@@ -96,9 +94,53 @@ void VRAY_clusterThis::render()
                   }
 
 
-               gdp->getBBox(&myBox);
+               gdp->getBBox(&tmpBox);
 
-//               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&myBox): " << myBox << std::endl;
+               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+
+               // Get the point's attribute offsets
+               VRAY_clusterThis::getAttributeOffsets(gdp);
+
+               // Check for required attributes
+               VRAY_clusterThis::checkRequiredAttributes();
+
+               // Check for weight attribute if the user wants metaballs
+               if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
+                     cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
+                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1);
+                  }
+
+
+               // Import the object:velocityscale settings.  This setting stores the
+               // shutter time (in seconds) on a per object basis.  It's used primarily
+               // for velocity blur.
+               if(!import("object:velocityscale", &myVelocityScale, 1)) {
+                     myVelocityScale = 0.5F / myFPS;
+                     std::cout << "VRAY_clusterThis::render() did not find object:velocityscale, setting myVelocityScale to 0.0"  << std::endl;
+                  }
+               else {
+                     if(myVerbose == CLUSTER_MSG_DEBUG)
+                        std::cout << "VRAY_clusterThis::render() found object:velocityscale. myVelocityScale: " << myVelocityScale << std::endl;
+                  }
+
+
+
+//   changeSetting("object:geo_velocityblur", "on");
+
+//   int     vblur = 0;
+//   import("object:velocityblur", &vblur, 0);
+//
+//   if(vblur) {
+//         str = 0;
+//         import("velocity", str);
+//         if(str.isstring()) {
+////               const char  *  name;
+////               name = queryObjectName(handle);
+//               VRAYwarning("%s[%s] cannot get %s",
+//                           VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
+//
+//            }
+//      }
 
 
                // Dump the user parameters to the console
@@ -109,9 +151,6 @@ void VRAY_clusterThis::render()
                myMaterial.harden();
 //         myPointAttributes.material = myMaterial;
 
-//         const char **        getSParm (int token) const
-//         cout << "VRAY_clusterThis::render() getSParm: " << *getSParm (0) << std::endl;
-
 
 #ifdef DEBUG
                cout << "VRAY_clusterThis::render() myMaterial: " << myMaterial << std::endl;
@@ -120,8 +159,6 @@ void VRAY_clusterThis::render()
                myLOD = getLevelOfDetail(myBox);
                if(myVerbose > CLUSTER_MSG_INFO)
                   cout << "VRAY_clusterThis::render() myLOD: " << myLOD << std::endl;
-
-
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
                long int num_points = (long int) gdp->points().entries();
@@ -159,19 +196,6 @@ void VRAY_clusterThis::render()
 
                rendered = true;
 
-               // Get the point's attribute offsets
-               VRAY_clusterThis::getAttributeOffsets(gdp);
-
-               // Check for required attributes
-               VRAY_clusterThis::checkRequiredAttributes();
-
-               // Check for weight attribute if the user wants metaballs
-               if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
-
-                     cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
-                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1);
-                  }
-
 
                if(myPrimType == CLUSTER_FILE) {
                      file_gdp = VRAY_Procedural::allocateGeometry();
@@ -193,7 +217,7 @@ void VRAY_clusterThis::render()
 
 
                // Create the attribute "offsets" for the geometry to be instanced
-               VRAY_clusterThis::createAttributeOffsets(inst_gdp, mb_gdp);
+               VRAY_clusterThis::createAttributeRefs(inst_gdp, mb_gdp);
 
 //changeSetting("surface", "constant Cd ( 1 0 0 )", "object");
 
@@ -208,15 +232,12 @@ void VRAY_clusterThis::render()
                   }
 
 
-
                // Preprocess the incoming point cloud
                VRAY_clusterThis::preProcess(gdp);
 
 
-
                // If the user wants to instance all the geometry immediately
                if(myMethod == CLUSTER_INSTANCE_NOW) {
-
 
                      /// For each point of the incoming geometry
                      GA_FOR_ALL_GPOINTS(gdp, ppt) {
@@ -347,15 +368,6 @@ void VRAY_clusterThis::render()
                      VRAY_clusterThis::preProcess(gdp);
 
 
-//                                                   // For the "deferred instance" method, add the procedural now ...
-//                                                case CLUSTER_INSTANCE_DEFERRED:
-//                                                   VRAY_Procedural::openProceduralObject();
-//                                                   VRAY_clusterThisChild * child = new VRAY_clusterThisChild::VRAY_clusterThisChild(this);
-//                                                   VRAY_Procedural::addProcedural(child);
-//                                                   VRAY_Procedural::changeSetting("object:geo_velocityblur", "on");
-//                                                   VRAY_Procedural::closeObject();
-
-
 //                     GU_Detail * vgdp;
                      fpreal      max;
                      UT_BoundingBox    kidbox;
@@ -430,10 +442,11 @@ void VRAY_clusterThis::render()
                                        kidbox.initBounds(xv, yv, zv);
                                        kidbox.enlargeBounds(xv + xinc, yv + yinc, zv + zinc);
                                        child = new VRAY_clusterThisChild(this, kidbox);
+                                       child->initChild();
 
-//                                       std::cout << "iz " <<  iz << " zv " << zv  <<
-//                                                 " iy " <<  iy << " yv " << yv  <<
-//                                                 " ix " <<  ix << " xv " << xv << std::endl;
+                                       std::cout << "iz " <<  iz << " zv " << zv  <<
+                                                 " iy " <<  iy << " yv " << yv  <<
+                                                 " ix " <<  ix << " xv " << xv << std::endl;
 
                                        if(openProceduralObject()) {
                                              addProcedural(child);

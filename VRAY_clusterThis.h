@@ -363,7 +363,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
       void dumpParameters();
       int preLoadGeoFile(GU_Detail * file_gdp);
-      void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      void createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       int getAttributeOffsets(GU_Detail * gdp);
       int getAttributes(GEO_Point * ppt);
       void checkRequiredAttributes();
@@ -412,6 +412,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       long int myInstanceNum;
       fpreal   myLOD;
       static const fpreal myFPS = 24.0;
+      fpreal myTimeScale;
 
       GU_Detail * myFileGDP;
       openvdb::ScalarGrid::Ptr myGeoGrid;
