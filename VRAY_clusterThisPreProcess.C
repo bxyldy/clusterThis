@@ -56,7 +56,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    openvdb::FloatTree::ConstPtr myGeoTreePtr;
    openvdb::VectorTree::ConstPtr myGeoGradTreePtr;
 
-   ParticleList paGeoList(gdp, /* "dR" */ 1.0, /* "dV" */ 1.0);
+   ParticleList paGeoList(gdp, myPreVDBRadiusMult, myPreVDBVelocityMult);
    openvdb::tools::PointSampler myGeoSampler, geoGradSampler;
 //                     openvdb::tools::GridSampling<openvdb::FloatTree>  myGridSampler;
 
@@ -68,23 +68,24 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          hvdb::Interrupter boss("VRAY_clusterThis::preProcess() Converting particles to level set");
 
          Settings settings;
-         settings.mRasterizeTrails = 0;
-         settings.mDx = 0.5;  // only used for rasterizeTrails()
-         settings.mFogVolume = 0;
-         settings.mGradientWidth = 0.5;  // only used for fog volume
+         settings.mRadiusMin = myPreRadiusMin;
+         settings.mRasterizeTrails = myPreRasterType;
+         settings.mDx = myPreDx;  // only used for rasterizeTrails()
+         settings.mFogVolume = myPreFogVolume;
+         settings.mGradientWidth = myPreGradientWidth;  // only used for fog volume
 
          float background;
 
          // background in WS units
-         if(myWSUnits)
-            background = myBandWidth;
+         if(myPreWSUnits)
+            background = myPreBandWidth;
          // background NOT in WS units
          else
-            background = myVoxelSize * myBandWidth;
+            background = myPreVoxelSize * myPreBandWidth;
 
          // Construct a new scalar grid with the specified background value.
          openvdb::math::Transform::Ptr transform =
-            openvdb::math::Transform::createLinearTransform(myVoxelSize * 4);
+            openvdb::math::Transform::createLinearTransform(myPreVoxelSize);
 //         openvdb::ScalarGrid::Ptr myGeoGrid = openvdb::ScalarGrid::create(background);
          myGeoGrid = openvdb::ScalarGrid::create(background);
 
@@ -105,7 +106,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          UT_String gridNameStr = "ClusterGrid";
          myGeoGrid->insertMeta("float type", openvdb::StringMetadata("averaged_velocity"));
          myGeoGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         myGeoGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         myGeoGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPreVoxelSize));
          myGeoGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
@@ -152,23 +153,23 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          openvdb::tools::Filter<openvdb::FloatGrid> preProcessFilter(myGeoGrid);
 //                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(myGeoGrid);
 
-         if(myVDBMedianFilter)
+         if(myPreVDBMedianFilter)
             preProcessFilter.median();
 
-         if(myVDBMeanFilter)
+         if(myPreVDBMeanFilter)
             preProcessFilter.mean();
 
-         if(myVDBMeanCurvatureFilter)
+         if(myPreVDBMeanCurvatureFilter)
             preProcessFilter.meanCurvature();
 
-         if(myVDBLaplacianFilter)
+         if(myPreVDBLaplacianFilter)
             preProcessFilter.laplacian();
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
-         if(myVDBOffsetFilter)
-            preProcessFilter.offset(myVDBOffsetFilterAmount);
+         if(myPreVDBOffsetFilter)
+            preProcessFilter.offset(myPreVDBOffsetFilterAmount);
 
 
          myGradientGrid = openvdb::VectorGrid::create();
@@ -184,7 +185,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          gridNameStr = "ClusterGradientGrid";
          myGradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
          myGradientGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         myGradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         myGradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPreVoxelSize));
          myGradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
@@ -231,16 +232,16 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
                   UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
 
-                  ppt->setPos(pos + (myPosInfluence *(sampleResult * gradVect)));
+                  ppt->setPos(pos + (myPrePosInfluence *(sampleResult * gradVect)));
 //                                    ppt->setPos(pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
 
 //                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
-                  inst_vel_gah.setV3(currVel + (myVelInfluence *(sampleResult * gradVect)));
+                  inst_vel_gah.setV3(currVel + (myPreVelInfluence *(sampleResult * gradVect)));
 
 //                                    std::cout << "currVel: " << currVel << " sampleResult " << sampleResult
 //                                              << " new vel: " <<  currVel * sampleResult << std::endl;
 
-                  inst_N_gah.setV3(inst_N_gah.getV3() + (myNormalInfluence *(sampleResult * gradVect)));
+                  inst_N_gah.setV3(inst_N_gah.getV3() + (myPreNormalInfluence *(sampleResult * gradVect)));
 
 //                        inst_Cd_gah.setElement(ppt);
 //                        inst_Cd_gah.setV3(inst_Cd_gah.getV3() * abs(sampleResult));
@@ -254,7 +255,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
             if(myVerbose == CLUSTER_MSG_DEBUG) {
                   pt_counter++;
                   if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
-                        cout << "VRAY_clusterThis::preProcess() Number of points post processed: " << pt_counter
+                        cout << "VRAY_clusterThis::preProcess() Number of points pre processed: " << pt_counter
                              << "\t - Number of points found in vdb grid: " << pointsFound << std::endl;
                      }
                }
@@ -264,14 +265,14 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
          if(myVerbose == CLUSTER_MSG_DEBUG) {
                if(!pointsFound)
-                  cout << "VRAY_clusterThis::preProcess() NO POINTS POST PROCESSED!!! " << std::endl;
+                  cout << "VRAY_clusterThis::preProcess() NO POINTS PRE PROCESSED!!! " << std::endl;
                else
-                  cout << "VRAY_clusterThis::preProcess() Average instanced points post processed: "
+                  cout << "VRAY_clusterThis::preProcess() Average instanced points pre processed: "
                        << float((float(pointsFound) / float(pt_counter) * 100.0f)) << "%" << std::endl;
             }
 
 
-         if(myVDBWriteDebugFiles) {
+         if(myPreVDBWriteDebugFiles) {
 
                openvdb::GridPtrVec outgrids;
                openvdb::GridPtrVec gradgrids;

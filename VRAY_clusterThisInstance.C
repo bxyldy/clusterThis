@@ -698,7 +698,7 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    temp_gdp.transform(xform);
 
 //   GU_Detail theFileGDP(theFiles[myPointAttributes.lod][myPointAttributes.anim_frame]);
-   addFileAttributeOffsets(&temp_gdp);
+   addFileAttributeRefs(&temp_gdp);
    setFileAttributes(&temp_gdp);
 
    // Run CVEX function on this instance

@@ -205,7 +205,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 
 
 
-      // Retrieve the attribute offsets
+      // Retrieve the attribute references
       for (uint32 pass = 0; pass < num_passes; pass++) {
 
          if (pass == 0) {
@@ -242,7 +242,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
             ptInstId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 
          } else {
-            // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
+            // If we're not processing the points of the prims, get the attr's references for the attrs the user wants to use
             if (method != CLUSTER_CVEX_POINT) {
 
                if (myCVEXPrimVars.cvex_Cd_prim) {
@@ -272,7 +272,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 
             }
 
-            // Get the offset for id attr
+            // Get the references for id attr
             ptId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "id", 1);
             ptInstId_ref = cvex_gdp->findIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
          }
@@ -280,7 +280,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 
 
 #ifdef DEBUG
-         std::cout << "VRAY_clusterThis::runCVEX() - Retrieved attribute offsets" << std::endl;
+         std::cout << "VRAY_clusterThis::runCVEX() - Retrieved attribute references" << std::endl;
 #endif
 
          // Set the values of the incoming arrays
@@ -361,7 +361,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
 //                    cout << "IN - P: " << P[num] << "\tN: " << N[num]<< "\tCd: " << Cd[num] << "\tpscale: " << pscale[num] << endl;
 
          } else {
-            // If we're not processing the points of the prims, get the attr's offset for the attrs the user wants to use
+            // If we're not processing the points of the prims, get the attr's reference for the attrs the user wants to use
             if (method == CLUSTER_CVEX_POINT) {
                num = 0;
                GA_FOR_ALL_GPOINTS(cvex_gdp, ppt) {

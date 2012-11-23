@@ -56,7 +56,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
    openvdb::FloatTree::ConstPtr myTreePtr;
    openvdb::VectorTree::ConstPtr myGradTreePtr;
 
-   ParticleList paList(gdp, /* "dR" */ 1.0, /* "dV" */ 1.0);
+   ParticleList paList(gdp, myPostVDBRadiusMult, myPostVDBVelocityMult);
    openvdb::tools::PointSampler mySampler, gradSampler;
 //                     openvdb::tools::GridSampling<openvdb::FloatTree>  myGridSampler;
 
@@ -68,23 +68,24 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          hvdb::Interrupter boss("VRAY_clusterThis::postProcess() Converting particles to level set");
 
          Settings settings;
-         settings.mRasterizeTrails = myRasterType;
-         settings.mDx = myDx;  // only used for rasterizeTrails()
-         settings.mFogVolume = myFogVolume;
-         settings.mGradientWidth = myGradientWidth;  // only used for fog volume
+         settings.mRadiusMin = myPostRadiusMin;
+         settings.mRasterizeTrails = myPostRasterType;
+         settings.mDx = myPostDx;  // only used for rasterizeTrails()
+         settings.mFogVolume = myPostFogVolume;
+         settings.mGradientWidth = myPostGradientWidth;  // only used for fog volume
 
          float background;
 
          // background in WS units
-         if(myWSUnits)
-            background = myBandWidth;
+         if(myPostWSUnits)
+            background = myPostBandWidth;
          // background NOT in WS units
          else
-            background = myVoxelSize * myBandWidth;
+            background = myPostVoxelSize * myPostBandWidth;
 
          // Construct a new scalar grid with the specified background value.
          openvdb::math::Transform::Ptr transform =
-            openvdb::math::Transform::createLinearTransform(myVoxelSize);
+            openvdb::math::Transform::createLinearTransform(myPostVoxelSize);
          openvdb::ScalarGrid::Ptr outputGrid = openvdb::ScalarGrid::create(background);
          outputGrid->setTransform(transform);
          outputGrid->setGridClass(openvdb::GRID_LEVEL_SET);
@@ -131,7 +132,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          UT_String gridNameStr = "ClusterGrid";
          outputGrid->insertMeta("float type", openvdb::StringMetadata("averaged_velocity"));
          outputGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         outputGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         outputGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPostVoxelSize));
          outputGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 //    hvdb::createVdbPrimitive(*gdp, outputGrid, gridNameStr.toStdString().c_str());
@@ -182,23 +183,23 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          openvdb::tools::Filter<openvdb::FloatGrid> fooFilter(outputGrid);
 //                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(outputGrid);
 
-         if(myVDBMedianFilter)
+         if(myPostVDBMedianFilter)
             fooFilter.median();
 
-         if(myVDBMeanFilter)
+         if(myPostVDBMeanFilter)
             fooFilter.mean();
 
-         if(myVDBMeanCurvatureFilter)
+         if(myPostVDBMeanCurvatureFilter)
             fooFilter.meanCurvature();
 
-         if(myVDBLaplacianFilter)
+         if(myPostVDBLaplacianFilter)
             fooFilter.laplacian();
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
-         if(myVDBOffsetFilter)
-            fooFilter.offset(myVDBOffsetFilterAmount);
+         if(myPostVDBOffsetFilter)
+            fooFilter.offset(myPostVDBOffsetFilterAmount);
 
 
          openvdb::VectorGrid::Ptr gradientGrid = openvdb::VectorGrid::create();
@@ -224,7 +225,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          gridNameStr = "ClusterGradientGrid";
          gradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
          gradientGrid->insertMeta("name", openvdb::StringMetadata((const char *)gridNameStr));
-         gradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myVoxelSize));
+         gradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPostVoxelSize));
          gradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
@@ -271,16 +272,16 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
                   UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
 
-                  ppt->setPos(inst_pos + (myPosInfluence *(sampleResult * gradVect)));
+                  ppt->setPos(inst_pos + (myPostPosInfluence *(sampleResult * gradVect)));
 //                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
 
 //                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
-                  inst_vel_gah.setV3(currVel + (myVelInfluence *(sampleResult * gradVect)));
+                  inst_vel_gah.setV3(currVel + (myPostVelInfluence *(sampleResult * gradVect)));
 
 //                                    std::cout << "currVel: " << currVel << " sampleResult " << sampleResult
 //                                              << " new vel: " <<  currVel * sampleResult << std::endl;
 
-                  inst_N_gah.setV3(inst_N_gah.getV3() + (myNormalInfluence *(sampleResult * gradVect)));
+                  inst_N_gah.setV3(inst_N_gah.getV3() + (myPostNormalInfluence *(sampleResult * gradVect)));
 
 //                        inst_Cd_gah.setElement(ppt);
 //                        inst_Cd_gah.setV3(inst_Cd_gah.getV3() * abs(sampleResult));
@@ -311,7 +312,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             }
 
 
-         if(myVDBWriteDebugFiles) {
+         if(myPostVDBWriteDebugFiles) {
 
                openvdb::GridPtrVec outgrids;
                openvdb::GridPtrVec gradgrids;

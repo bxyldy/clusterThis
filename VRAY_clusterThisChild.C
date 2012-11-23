@@ -228,7 +228,7 @@ int VRAY_clusterThisChild::instancePoint()
       }
 
 
-//   VRAY_clusterThisChild::createAttributeOffsets(inst_gdp, mb_gdp);
+//   VRAY_clusterThisChild::createAttributeRefs(inst_gdp, mb_gdp);
 
 
    GA_RWAttributeRef pt_Cd = inst_gdp->addDiffuseAttribute(GEO_POINT_DICT);
@@ -1471,32 +1471,32 @@ inline void VRAY_clusterThisChild::calculateNewPosition(fpreal theta, uint32 i, 
 
 
 /* ******************************************************************************
-*  Function Name : createAttributeOffsets()
+*  Function Name : createAttributeRefs()
 *
-*  Description :   Create the attribute the offsets for the instanced objects
+*  Description :   Create the attribute the references for the instanced objects
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail * mb_gdp
 *
 *  Return Value : void
 *
 ***************************************************************************** */
-void VRAY_clusterThisChild::createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
+void VRAY_clusterThisChild::createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 {
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThisChild::createAttributeOffsets() " << endl;
+   cout << "VRAY_clusterThisChild::createAttributeRefs() " << endl;
 #endif
 
 
 // TODO: Check all these references with *.isValid() and throw exeception if it fails !!!
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThisChild::createAttributeOffsets() Creating primitive attributes" << endl;
+   cout << "VRAY_clusterThisChild::createAttributeRefs() Creating primitive attributes" << endl;
 #endif
 
    myInstAttrRefs.Cd = inst_gdp->addDiffuseAttribute(GEO_PRIMITIVE_DICT);
    if(!myInstAttrRefs.Cd.isValid())
-      throw VRAY_clusterThis_Exception("VRAY_clusterThisChild::createAttributeOffsets() no Cd attribute!", 1);
+      throw VRAY_clusterThis_Exception("VRAY_clusterThisChild::createAttributeRefs() no Cd attribute!", 1);
    myInstAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
    myInstAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
    myInstAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);

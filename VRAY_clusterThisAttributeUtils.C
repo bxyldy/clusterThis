@@ -30,7 +30,7 @@
 /* ******************************************************************************
 *  Function Name : createAttributeRefs()
 *
-*  Description :   Create the attribute the offsets for the instanced objects
+*  Description :   Create the attribute the references for the instanced objects
 *
 *  Input Arguments : GU_Detail *inst_gdp
 *
@@ -135,20 +135,20 @@ void VRAY_clusterThis::createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_
 
 
 /* ******************************************************************************
-*  Function Name : getAttributeOffsets()
+*  Function Name : getAttributeRefs()
 *
-*  Description :   Get the attribute the offsets of the incoming geometry
+*  Description :   Get the attribute the references of the incoming geometry
 *
 *  Input Arguments : GU_Detail *inst_gdp
 *
 *  Return Value : int status
 *
 ***************************************************************************** */
-int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
+int VRAY_clusterThis::getAttributeRefs(GU_Detail * inst_gdp)
 {
 
 #ifdef DEBUG
-   cout << "VRAY_clusterThis::getAttributeOffsets() " << endl;
+   cout << "VRAY_clusterThis::getAttributeRefs() " << endl;
 #endif
 
 
@@ -195,13 +195,13 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
    // Process exceptions ...
    catch(VRAY_clusterThis_Exception e) {
          e.what();
-         cout << "VRAY_clusterThis::getAttributeOffsets() - Exception encountered, exiting" << endl << endl;
+         cout << "VRAY_clusterThis::getAttributeRefs() - Exception encountered, exiting" << endl << endl;
          return 1;
       }
 
 
 #ifdef DEBUG
-   cout << "Geometry attribute offsets:" << endl;
+   cout << "Geometry attribute references:" << endl;
    cout << "Cd: " << myPointAttrRefs.Cd.isValid() << endl;
    cout << "Alpha: " << myPointAttrRefs.Alpha.isValid() << endl;
    cout << "v: " << myPointAttrRefs.v.isValid() << endl;
@@ -227,7 +227,7 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
 //     cout << "num_neighbors: " << myPointAttrRefs.num_neighbors.isValid() << endl;
 #endif
 
-//    cout << "VRAY_clusterThis::getAttributeOffsets() exiting" << endl;
+//    cout << "VRAY_clusterThis::getAttributeRefs() exiting" << endl;
 
    return 0;
 }
@@ -301,16 +301,16 @@ inline int VRAY_clusterThis::getAttributes(GEO_Point * ppt)
 
 
 /* ******************************************************************************
-*  Function Name : addFileAttributeOffsets()
+*  Function Name : addFileAttributeRefs()
 *
-*  Description :   Add attribute offsets for the instanced file
+*  Description :   Add attribute references for the instanced file
 *
 *  Input Arguments : GU_Detail *inst_gdp
 *
 *  Return Value : int status
 *
 ***************************************************************************** */
-inline int VRAY_clusterThis::addFileAttributeOffsets(GU_Detail * inst_gdp)
+inline int VRAY_clusterThis::addFileAttributeRefs(GU_Detail * inst_gdp)
 {
 
 #ifdef DEBUG

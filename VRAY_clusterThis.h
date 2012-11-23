@@ -80,6 +80,7 @@ namespace
       Settings(): mRasterizeTrails(false), mFogVolume(false), mDx(1.0), mGradientWidth(-1.0) {}
       bool mRasterizeTrails, mFogVolume;
       float mDx, mGradientWidth;
+      float mRadiusMin;
    };
 
 } // unnamed namespace
@@ -364,10 +365,10 @@ class VRAY_clusterThis : public VRAY_Procedural
       void dumpParameters();
       int preLoadGeoFile(GU_Detail * file_gdp);
       void createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int getAttributeOffsets(GU_Detail * gdp);
+      int getAttributeRefs(GU_Detail * gdp);
       int getAttributes(GEO_Point * ppt);
       void checkRequiredAttributes();
-      int addFileAttributeOffsets(GU_Detail * gdp);
+      int addFileAttributeRefs(GU_Detail * gdp);
       void setInstanceAttributes(GEO_Primitive * myGeoPrim);
       void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
       int setFileAttributes(GU_Detail * gdp);
@@ -490,29 +491,29 @@ class VRAY_clusterThis : public VRAY_Procedural
 
       // VDB post processing parms
       int      myPostProcess;
-      int      myRasterType;
-      fpreal   myDx;
-      int      myFogVolume;
-      fpreal   myGradientWidth;
-      fpreal   myVoxelSize;
-      fpreal   myRadiusMin;
-      fpreal   myBandWidth;
-      int      myWSUnits;
-      fpreal   myVDBVelocityMult;
-      fpreal   myVDBRadiusMult;
-      fpreal   myFalloff;
-      fpreal   myPosInfluence;
-      fpreal   myNormalInfluence;
-      fpreal   myVelInfluence;
+      int      myPostRasterType;
+      fpreal   myPostDx;
+      int      myPostFogVolume;
+      fpreal   myPostGradientWidth;
+      fpreal   myPostVoxelSize;
+      fpreal   myPostRadiusMin;
+      fpreal   myPostBandWidth;
+      int      myPostWSUnits;
+      fpreal   myPostVDBVelocityMult;
+      fpreal   myPostVDBRadiusMult;
+      fpreal   myPostFalloff;
+      fpreal   myPostPosInfluence;
+      fpreal   myPostNormalInfluence;
+      fpreal   myPostVelInfluence;
 
-      int      myVDBMedianFilter;
-      int      myVDBMeanFilter;
-      int      myVDBMeanCurvatureFilter;
-      int      myVDBLaplacianFilter;
-      int      myVDBOffsetFilter;
-      fpreal   myVDBOffsetFilterAmount;
-      int      myVDBReNormalizeFilter;
-      int      myVDBWriteDebugFiles;
+      int      myPostVDBMedianFilter;
+      int      myPostVDBMeanFilter;
+      int      myPostVDBMeanCurvatureFilter;
+      int      myPostVDBLaplacianFilter;
+      int      myPostVDBOffsetFilter;
+      fpreal   myPostVDBOffsetFilterAmount;
+      int      myPostVDBReNormalizeFilter;
+      int      myPostVDBWriteDebugFiles;
 
       // A struct to keep track os CVEX vars to pass to the CVEX code
       struct cvex_pt_vars_struct {
