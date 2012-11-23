@@ -869,24 +869,24 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 
 
-   fpreal noise_bias, radius;
-
-   if(myNoiseType < 4) {
-         myNoise.setSeed(myPointAttributes.id);
-         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
-//         cout << "VRAY_clusterThis::calculateNewPosition() turbulence: " << "noise_bias: " << noise_bias << endl;
-      }
-   else {
-         myMersenneTwister.setSeed(myPointAttributes.id);
-         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
-//         cout << "VRAY_clusterThis::calculateNewPosition() myMersenneTwister: " << "noise_bias: " << noise_bias << endl;
-      }
-
-#ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
-#endif
-
-
+//   fpreal noise_bias, radius;
+//
+//   if(myNoiseType < 4) {
+//         myNoise.setSeed(myPointAttributes.id);
+//         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+////         cout << "VRAY_clusterThis::calculateNewPosition() turbulence: " << "noise_bias: " << noise_bias << endl;
+//      }
+//   else {
+//         myMersenneTwister.setSeed(myPointAttributes.id);
+//         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
+////         cout << "VRAY_clusterThis::calculateNewPosition() myMersenneTwister: " << "noise_bias: " << noise_bias << endl;
+//      }
+//
+//#ifdef DEBUG
+//   cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
+//#endif
+//
+//
 
 
 
@@ -902,15 +902,15 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          GEO_Point * ppt = myGdp->points()(i);
 
 
-         VRAY_clusterThis::getAttributes(ppt);
-
-         if(myUsePointRadius)
-            radius = myPointAttributes.radius;
-         else
-            radius = myRadius;
-
-
-         scale = (radius + noise_bias) * scale;
+//         VRAY_clusterThis::getAttributes(ppt);
+//
+//         if(myUsePointRadius)
+//            radius = myPointAttributes.radius;
+//         else
+//            radius = myRadius;
+//
+//
+//         scale = (radius + noise_bias) * scale;
 
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
          // Append to our list of points to be used for various tasks, like breaking up the point cloud into regular grids, etc.
@@ -943,7 +943,8 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(box) {
          if(myPointAttrRefs.v.isValid()) {
                if(testClampBox(myBox, *box) || testClampBox(myVelBox, *box))
-                  VRAYwarning("%s[%s] cannot render a partial box %s", getClassName(), name, "with motion blur");
+//                  VRAYwarning("%s[%s] cannot render a partial box %s", getClassName(), name, "with motion blur");
+                  std::cout << "VRAY_clusterThis::initialize() " << getClassName() << " WARNING: cannot render a partial box " << name << std::endl;
             }
          else {
                clampBox(myBox, *box);
