@@ -36,6 +36,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
    long int stat_interval = (long int)(num_points * 0.10) + 1;
 
 
+
    if(myVerbose > CLUSTER_MSG_INFO)
       cout << "VRAY_clusterThis::postProcess() Processing Voxels" << std::endl;
 
@@ -141,7 +142,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          UT_Vector3 inst_pos, seed_pos, currVel;
          const GA_PointGroup * sourceGroup = NULL;
          long int pt_counter = 0;
-         float radius = 5.0f;
+         float vdb_radius = 2.0f;
 
          if(myVerbose > CLUSTER_MSG_INFO)
             std::cout << "VRAY_clusterThis::postProcess() - Massaging data ... " << std::endl;
@@ -240,8 +241,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             openvdb::Vec3R theIndex =
                outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
 
-            radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
-//                                    std::cout << "radius: " << radius << std::endl;
+            vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
+//                                    std::cout << "vdb_radius: " << vdb_radius << std::endl;
 
 // static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
             const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);

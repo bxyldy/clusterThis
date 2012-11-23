@@ -691,6 +691,7 @@ VRAY_clusterThis::VRAY_clusterThis()
 
    myInstanceNum = 0;
    myTimeScale = 0.5F / myFPS;
+   myRendered = false;
 
    int exitCallBackStatus = -1;
    exitCallBackStatus = UT_Exit::addExitCallback(VRAY_clusterThis::exitClusterThis, (void *)this);
@@ -762,7 +763,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //   GEO_Point  *   ppt;
 //   int         i, first;
    UT_BoundingBox    tbox, tvbox;
-   GU_Detail  *   gdp;
+//   GU_Detail  *   gdp;
    UT_Matrix4     xform;
    UT_String      str;
 
@@ -772,6 +773,15 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
 //         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
 //      }
+
+
+//   if(myRendered && myUseTempFile) {
+   if(myUseTempFile) {
+
+         return 1;
+
+      }
+
 
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
@@ -798,15 +808,70 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 //   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
 
-   gdp = myGdp = (GU_Detail *)queryGeometry(handle, 0);
-//   gdp = myParms->myGdp = (GU_Detail *)queryGeometry(handle, 0);
-   if(!gdp) {
+   myGdp = (GU_Detail *)queryGeometry(handle, 0);
+//   gdp = myGdp = (GU_Detail *)queryGeometry(handle, 0);
+   if(!myGdp) {
+//   if(!gdp) {
          VRAYerror("%s object '%s' has no geometry", getClassName(), name);
          return 0;
       }
 
+
+
+   // Get the point's attribute offsets
+   VRAY_clusterThis::getAttributeOffsets(myGdp);
+//               VRAY_clusterThis::getAttributeOffsets(gdp);
+
+   // Check for required attributes
+   VRAY_clusterThis::checkRequiredAttributes();
+
+
+   VRAY_Procedural::querySurfaceShader(handle, myMaterial);
+   myMaterial.harden();
+//         myPointAttributes.material = myMaterial;
+
+   myObjectName = VRAY_Procedural::queryObjectName(handle);
+
+////      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << std::endl;
+//      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << std::endl;
+   cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
+
+#ifdef DEBUG
+   cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
+// cout << "scale: " << getFParm ( "scale" ) << std::endl;
+#endif
+
+
+//   changeSetting("object:geo_velocityblur", "on");
+
+//   int     vblur = 0;
+//   import("object:velocityblur", &vblur, 0);
+//
+//   if(vblur) {
+//         str = 0;
+//         import("velocity", str);
+//         if(str.isstring()) {
+////               const char  *  name;
+////               name = queryObjectName(handle);
+//               VRAYwarning("%s[%s] cannot get %s",
+//                           VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
+//
+//            }
+//      }
+
+
+
+
+
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
+
+   // Build point tree for varius lookups
+   const GA_PointGroup * sourceGroup = NULL;
+//   myPointTree.build(gdp, sourceGroup);
+   myPointTree.build(myGdp, sourceGroup);
+
+   std::cout << "VRAY_clusterThis::initialize() myPointTree.getMemoryUsage(): " << myPointTree.getMemoryUsage() << std::endl;
 
    UT_Vector3 scale(0.1, 0.1, 0.1);
 
@@ -814,11 +879,15 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
    int first = 1;
    xform = myXformInverse;
-   for(uint32 i = gdp->points().entries(); i-- > 0;) {
-         GEO_Point * ppt = gdp->points()(i);
+//   for(uint32 i = gdp->points().entries(); i-- > 0;) {
+   for(uint32 i = myGdp->points().entries(); i-- > 0;) {
+//         GEO_Point * ppt = gdp->points()(i);
+         GEO_Point * ppt = myGdp->points()(i);
 
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
+         // Append to our list of points to be used for various tasks, like breaking up the point cloud into regular grids, etc.
          myPointList.append(i);
+//         myPointTree.append(gdp, ppt);
          if(first) {
                myBox = tbox;
                myVelBox = tvbox;
@@ -835,6 +904,9 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          VRAYwarning("%s found no points in %s", getClassName(), name);
          return 0;
       }
+
+
+   std::cout << "VRAY_clusterThis::initialize() myPointList.getMemoryUsage(): " << myPointList.getMemoryUsage() << std::endl;
 
 //   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 

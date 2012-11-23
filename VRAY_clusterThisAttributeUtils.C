@@ -151,6 +151,7 @@ int VRAY_clusterThis::getAttributeOffsets(GU_Detail * inst_gdp)
    cout << "VRAY_clusterThis::getAttributeOffsets() " << endl;
 #endif
 
+
    try {
 
          myPointAttrRefs.Cd = inst_gdp->findDiffuseAttribute(GEO_POINT_DICT);

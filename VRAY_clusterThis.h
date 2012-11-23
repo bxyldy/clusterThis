@@ -404,7 +404,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool myUsePointRadius;
 //      bool myUsePointGeoFname;
       bool myUseBacktrackMB;
-      UT_IntArray myPointList;
       UT_String myObjectName;
 //      UT_String myOTLVersion;
       fpreal   myVelocityScale;
@@ -412,6 +411,9 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myLOD;
       static const fpreal myFPS = 24.0;
       fpreal myTimeScale;
+      UT_IntArray myPointList;
+      GEO_PointTree myPointTree;
+      bool myRendered;
 
       GU_Detail * myFileGDP;
       openvdb::ScalarGrid::Ptr myGeoGrid;

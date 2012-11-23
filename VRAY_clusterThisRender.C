@@ -38,7 +38,8 @@
 ***************************************************************************** */
 void VRAY_clusterThis::render()
 {
-   GU_Detail * gdp, *inst_gdp, *mb_gdp, *file_gdp;
+//   GU_Detail * gdp;
+   GU_Detail *inst_gdp, *mb_gdp, *file_gdp;
    GEO_Point * ppt;
    UT_BoundingBox tmpBox;
 
@@ -47,7 +48,7 @@ void VRAY_clusterThis::render()
 //   attrHandleDensity, attrHandleViscosity, attrHandlePressure, attrHandlePscale;
 
    long int point_num = 0;
-   static bool rendered = false;
+//   static bool rendered = false;
 
 
    tempFileDeleted = false;
@@ -71,38 +72,48 @@ void VRAY_clusterThis::render()
 //       }
 
 
-         if(!rendered || !myUseTempFile) {
+         if(!myRendered || !myUseTempFile) {
 
-               void * handle = VRAY_Procedural::queryObject(0);
-               gdp = VRAY_Procedural::allocateGeometry();
-               if(!gdp) {
-                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
-                  }
+//               void * handle = VRAY_Procedural::queryObject(0);
+//               gdp = VRAY_Procedural::allocateGeometry();
+//               if(!gdp) {
+//                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - error allocating geometry for gdp ", 1);
+//                  }
 
                if(myUseGeoFile) {
                      // If the file failed to load, throw an exception
-                     if(!(gdp->load((const char *)mySrcGeoFname).success()))
+                     myGdp->clearAndDestroy();
+                     if(!(myGdp->load((const char *)mySrcGeoFname).success()))
+//                     if(!(gdp->load((const char *)mySrcGeoFname).success()))
                         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read source geometry file ", 1);
 
                      if(myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << std::endl;
                   }
                else {
-                     gdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
-                     if(myVerbose > CLUSTER_MSG_INFO)
-                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << std::endl;
+//                     myGdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
+//                     gdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
+//                     if(myVerbose > CLUSTER_MSG_INFO)
+//                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << std::endl;
                   }
 
+               if(!myGdp) {
+//               if(!gdp) {
+                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
+                  }
 
-               gdp->getBBox(&tmpBox);
-
-               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
-
-               // Get the point's attribute offsets
-               VRAY_clusterThis::getAttributeOffsets(gdp);
-
-               // Check for required attributes
-               VRAY_clusterThis::checkRequiredAttributes();
+// DEBUG
+               myGdp->getBBox(&tmpBox);
+//               gdp->getBBox(&tmpBox);
+               std::cout << "VRAY_clusterThis::render() - myGdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+//               std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+//
+//               // Get the point's attribute offsets
+//               VRAY_clusterThis::getAttributeOffsets(myGdp);
+////               VRAY_clusterThis::getAttributeOffsets(gdp);
+//
+//               // Check for required attributes
+//               VRAY_clusterThis::checkRequiredAttributes();
 
                // Check for weight attribute if the user wants metaballs
                if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
@@ -125,31 +136,12 @@ void VRAY_clusterThis::render()
 
 
 
-//   changeSetting("object:geo_velocityblur", "on");
-
-//   int     vblur = 0;
-//   import("object:velocityblur", &vblur, 0);
-//
-//   if(vblur) {
-//         str = 0;
-//         import("velocity", str);
-//         if(str.isstring()) {
-////               const char  *  name;
-////               name = queryObjectName(handle);
-//               VRAYwarning("%s[%s] cannot get %s",
-//                           VRAY_Procedural::getClassName(), (const char *)myObjectName, " motion blur attr");
-//
-//            }
-//      }
 
 
                // Dump the user parameters to the console
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   VRAY_clusterThis::dumpParameters();
 
-               VRAY_Procedural::querySurfaceShader(handle, myMaterial);
-               myMaterial.harden();
-//         myPointAttributes.material = myMaterial;
 
 
 #ifdef DEBUG
@@ -161,30 +153,28 @@ void VRAY_clusterThis::render()
                   cout << "VRAY_clusterThis::render() myLOD: " << myLOD << std::endl;
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
-               long int num_points = (long int) gdp->points().entries();
+               long int num_points = (long int) myGdp->points().entries();
+//               long int num_points = (long int) gdp->points().entries();
                long int stat_interval = (long int)(num_points * 0.10) + 1;
 
                if(myVerbose > CLUSTER_MSG_QUIET)
                   cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << num_points << std::endl;
 
-               myObjectName = VRAY_Procedural::queryObjectName(handle);
-
-//      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << std::endl;
-//      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << std::endl;
-
-
-#ifdef DEBUG
-               cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
-// cout << "scale: " << getFParm ( "scale" ) << std::endl;
-#endif
-
-
 
                switch(myMethod) {
                      case CLUSTER_INSTANCE_NOW:
                         inst_gdp = VRAY_Procedural::allocateGeometry();
-                        if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
-                           mb_gdp = VRAY_Procedural::allocateGeometry();
+                        if(!inst_gdp) {
+                              throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - error allocating geometry for inst_gdp ", 1);
+                           }
+
+                        if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+                              mb_gdp = VRAY_Procedural::allocateGeometry();
+                              if(!mb_gdp) {
+                                    throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - error allocating geometry for mb_gdp ", 1);
+                                 }
+                           }
+
                         if(myVerbose > CLUSTER_MSG_QUIET)
                            cout << "VRAY_clusterThis::render() - Using \"instance all the geometry at once\" method" << std::endl;
                         break;
@@ -194,7 +184,8 @@ void VRAY_clusterThis::render()
                         break;
                   }
 
-               rendered = true;
+//               rendered = true;
+               myRendered = true;
 
 
                if(myPrimType == CLUSTER_FILE) {
@@ -228,19 +219,22 @@ void VRAY_clusterThis::render()
                if(myCVEX_Exec_pre) {
                      if(myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << std::endl;
-                     VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+                     VRAY_clusterThis::runCVEX(myGdp, myGdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+//                     VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
                   }
 
 
                // Preprocess the incoming point cloud
-               VRAY_clusterThis::preProcess(gdp);
+               VRAY_clusterThis::preProcess(myGdp);
+//               VRAY_clusterThis::preProcess(gdp);
 
 
                // If the user wants to instance all the geometry immediately
                if(myMethod == CLUSTER_INSTANCE_NOW) {
 
                      /// For each point of the incoming geometry
-                     GA_FOR_ALL_GPOINTS(gdp, ppt) {
+                     GA_FOR_ALL_GPOINTS(myGdp, ppt) {
+//                     GA_FOR_ALL_GPOINTS(gdp, ppt) {
                         myPointAttributes.myPos = ppt->getPos();
 
                         // get the point's attributes
@@ -347,7 +341,8 @@ void VRAY_clusterThis::render()
                if(myMethod == CLUSTER_INSTANCE_DEFERRED) {
 
                      // Get the point's attribute offsets
-                     VRAY_clusterThis::getAttributeOffsets(gdp);
+                     VRAY_clusterThis::getAttributeOffsets(myGdp);
+//                     VRAY_clusterThis::getAttributeOffsets(gdp);
 
                      // Check for required attributes
                      VRAY_clusterThis::checkRequiredAttributes();
@@ -360,12 +355,14 @@ void VRAY_clusterThis::render()
                      if(myCVEX_Exec_pre) {
                            if(myVerbose > CLUSTER_MSG_INFO)
                               cout << "VRAY_clusterThis::render() Executing Pre Process CVEX code" << std::endl;
-                           VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+                           VRAY_clusterThis::runCVEX(myGdp, myGdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
+//                           VRAY_clusterThis::runCVEX(gdp, gdp, myCVEXFname_pre, CLUSTER_CVEX_POINT);
                         }
 
 
                      // Preprocess the incoming point cloud
-                     VRAY_clusterThis::preProcess(gdp);
+                     VRAY_clusterThis::preProcess(myGdp);
+//                     VRAY_clusterThis::preProcess(gdp);
 
 
 //                     GU_Detail * vgdp;
@@ -459,30 +456,30 @@ void VRAY_clusterThis::render()
 //                           }
 
 
-
                   } // if(myMethod == CLUSTER_INSTANCE_DEFERRED)
-
 
 
 
                if(myPostProcess && (myMethod == CLUSTER_INSTANCE_NOW)) {
 //               if(myPostProcess && (myMethod == CLUSTER_INSTANCE_NOW) && (myPrimType == CLUSTER_POINT)) {
 
-                     VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
-
+                     VRAY_clusterThis::postProcess(myGdp, inst_gdp, mb_gdp);
+//                     VRAY_clusterThis::postProcess(gdp, inst_gdp, mb_gdp);
                   }
 
 
 
- // DEBUG
+// DEBUG
                if(myMethod == CLUSTER_INSTANCE_NOW) {
-                     gdp->getBBox(&tmpBox);
-                     std::cout << "VRAY_clusterThis::render() - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                     myGdp->getBBox(&tmpBox);
+                     std::cout << "VRAY_clusterThis::render() - after instancing - myGdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+//                     gdp->getBBox(&tmpBox);
+//                     std::cout << "VRAY_clusterThis::render() - after instancing - gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
                      inst_gdp->getBBox(&tmpBox);
-                     std::cout << "VRAY_clusterThis::render() - inst_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                     std::cout << "VRAY_clusterThis::render() - after instancing - inst_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
                      if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
                            mb_gdp->getBBox(&tmpBox);
-                           std::cout << "VRAY_clusterThis::render() - mb_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
+                           std::cout << "VRAY_clusterThis::render() - after instancing - mb_gdp->getBBox(&tmpBox): " << tmpBox << std::endl;
                         }
                   }
 
@@ -547,9 +544,10 @@ void VRAY_clusterThis::render()
                   VRAY_Procedural::freeGeometry(file_gdp);
 
                // We're done, free the original geometry
-               VRAY_Procedural::freeGeometry(gdp);
+               VRAY_Procedural::freeGeometry(myGdp);
+//               VRAY_Procedural::freeGeometry(gdp);
 
-            } /// if (rendered) ...
+            } // if (!myRendered || !myUseTempFile) ...
 
 
          // Geo has already been generated ...
@@ -599,18 +597,22 @@ void VRAY_clusterThis::render()
    catch(VRAY_clusterThis_Exception e) {
          e.what();
          cout << "VRAY_clusterThis::render() - Exception encountered, copying incoming geometry" << std::endl << std::endl;
-         if(gdp)
-            VRAY_Procedural::freeGeometry(gdp);
+         if(myGdp)
+            VRAY_Procedural::freeGeometry(myGdp);
+//         if(gdp)
+//            VRAY_Procedural::freeGeometry(gdp);
          if(inst_gdp)
             VRAY_Procedural::freeGeometry(inst_gdp);
          if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
             if(mb_gdp)
                VRAY_Procedural::freeGeometry(mb_gdp);
          void * handle = queryObject(0);
-         gdp = VRAY_Procedural::allocateGeometry();
-         gdp->copy(*queryGeometry(handle, 0));
+         myGdp = VRAY_Procedural::allocateGeometry();
+         myGdp->copy(*queryGeometry(handle, 0));
+//         gdp = VRAY_Procedural::allocateGeometry();
+//         gdp->copy(*queryGeometry(handle, 0));
          VRAY_Procedural::openGeometryObject();
-         VRAY_Procedural::addGeometry(gdp, 0);
+         VRAY_Procedural::addGeometry(myGdp, 0);
          closeObject();
          return;
       }
@@ -618,7 +620,8 @@ void VRAY_clusterThis::render()
 
    catch(...) {
          cout << "VRAY_clusterThis::render() - Unknown exception encountered, freeing geometry and exiting" << std::endl << std::endl;
-         freeGeometry(gdp);
+         freeGeometry(myGdp);
+//         freeGeometry(gdp);
          freeGeometry(inst_gdp);
          if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
             freeGeometry(mb_gdp);
