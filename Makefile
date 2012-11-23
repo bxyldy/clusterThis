@@ -16,7 +16,7 @@ H_CFLAGS =  $(shell hcustom --cflags)
 
 today = $(shell date +%j)
 MAJOR_VER = "2"
-MINOR_VER = "0"
+MINOR_VER = "1"
 BUILD_VER = "$(today)"
 SRC_VER = $(MAJOR_VER).$(MINOR_VER).$(BUILD_VER)
 SRC_VER_FLAGS = -DMAJOR_VER=$(MAJOR_VER) -DMINOR_VER=$(MINOR_VER) -DBUILD_VER=$(BUILD_VER)
