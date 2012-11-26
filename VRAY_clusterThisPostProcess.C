@@ -174,23 +174,87 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(outputGrid);
 
 
+
          if(myPostVDBMedianFilter)
             fooFilter.median();
+//
+//00867 {
+//00868     for (int n = 0, N = parms.mIterations; n < N && !boss.wasInterrupted(); ++n) {
+//00869
+//00870         if (verbose) {
+//00871             std::cout << "Median filter of radius " << parms.mStencilWidth << std::endl;
+//00872         }
+//00873
+//00874         filter.median(parms.mStencilWidth);
+//00875     }
+//00876 }
+//
+
 
          if(myPostVDBMeanFilter)
             fooFilter.mean();
 
+//00852 {
+//00853     for (int n = 0, N = parms.mIterations; n < N && !boss.wasInterrupted(); ++n) {
+//00854
+//00855         if (verbose) {
+//00856             std::cout << "Mean filter of radius " <<  parms.mStencilWidth << std::endl;
+//00857         }
+//00858
+//00859         filter.mean(parms.mStencilWidth);
+//00860     }
+//00861 }
+
+
          if(myPostVDBMeanCurvatureFilter)
             fooFilter.meanCurvature();
 
-         if(myPostVDBLaplacianFilter)
-            fooFilter.laplacian();
+//00882 {
+//00883     for (int n = 0, N = parms.mIterations; n < N && !boss.wasInterrupted(); ++n) {
+//00884
+//00885         if (verbose) std::cout << "Mean-curvature flow" << (n+1) << std::endl;
+//00886
+//00887         filter.meanCurvature();
+//00888     }
+//00889 }
+
+
+
+
+         if(myPostVDBLaplacianFilter) {
+
+               for(int n = 0, N = 8; n < N && !boss.wasInterrupted(); ++n)
+                  fooFilter.laplacian();
+
+            }
+
+//{
+//00896     for (int n = 0, N = parms.mIterations; n < N && !boss.wasInterrupted(); ++n) {
+//00897
+//00898         if (verbose) std::cout << "Laplacian flow" << (n+1) << std::endl;
+//00899
+//00900         filter.laplacian();
+//00901     }
+//00902 }
+
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
          if(myPostVDBOffsetFilter)
             fooFilter.offset(myPostVDBOffsetFilterAmount);
+
+//00838 {
+//00839
+//00840     if (verbose) {
+//00841         std::cout << "Morphological " << (offset>0 ? "erosion" : "dilation")
+//00842             << " by the offset " << offset << std::endl;
+//00843     }
+//00844
+//00845     filter.offset(offset);
+//00846 }
+
+
 
 
          openvdb::VectorGrid::Ptr gradientGrid = openvdb::VectorGrid::create();
