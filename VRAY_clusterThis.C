@@ -482,8 +482,8 @@ void VRAY_clusterThis::convert(
    const Settings & settings,
    hvdb::Interrupter & boss)
 {
-//    openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList> raster(*outputGrid);
-   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, &boss);
+
+   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
 
 //   std::cout << "VRAY_clusterThis::convert() " << std::endl;
 
@@ -529,7 +529,7 @@ void VRAY_clusterThis::convert(
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
-         openvdb::tools::levelSetToFogVolume(outputGrid, cutOffDist, false);
+         openvdb::tools::levelSetToFogVolume(*outputGrid, cutOffDist, false);
       }
 
 // print stats of the vdb grid
@@ -831,9 +831,93 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 #ifdef DEBUG
    cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
-// cout << "scale: " << getFParm ( "scale" ) << std::endl;
 #endif
 
+
+   if(import("object:name", str)) {
+         cout << "object:name: " << str << std::endl;
+      }
+
+   if(import("object:surface", str)) {
+         cout << "object:surface: " << str << std::endl;
+      }
+
+   if(import("plane:variable", str)) {
+         cout << "plane:variable: " << str << std::endl;
+      }
+
+   if(import("image:resolution", str)) {
+         cout << "image:resolution: " << str << std::endl;
+      }
+
+   if(import("object:categories", str)) {
+         cout << "object:categories: " << str << std::endl;
+      }
+
+   if(import("object:renderpoints", str)) {
+         cout << "object:renderpoints: " << str << std::endl;
+      }
+//
+//ray_property renderer verbose 4
+//    ray_property object name "/obj/shopnet/constant"
+//    ray_property object surface op:/obj/shopnet/constant
+//    ray_property geometry basepath "/obj/geo_cluster"
+//    ray_property geometry basepath "/obj/geo_no_cluster"
+//     ray_property plane variable "Cf+Af"
+//     ray_property plane vextype "vector4"
+//     ray_property plane channel "C"
+//    ray_property image resolution 1280 720
+//    ray_property image pixelaspect 1
+//    ray_property image bucket 32
+//    ray_property image samples 3 3
+//    ray_property renderer pbrshader pathtracer use_renderstate 0
+//    ray_property camera projection "perspective"
+//    ray_property camera zoom 1.56259098938
+//    ray_property camera clip 0.01 1000
+//    ray_property image window 0 1 0 1
+//    ray_property image crop 0 1 0 1
+//    ray_property object velocityscale 0.0208333333333
+//    ray_property object xformsamples 2
+// ray_property object name "/obj/three_point_light1/key_light"
+// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.76 0.76 0.76 normalizearea 1 attenstart 0 doatten 0
+// ray_property light areashape "grid"
+// ray_property light areasize 1 1
+// ray_property light areamap ""
+// ray_property light areafullsphere 0
+// ray_property light surfaceshaders 1
+// ray_property light shadow opdef:/Shop/v_rayshadow shadowtype filter bias 0.05 quality 1 shadowI 1
+// ray_property light projection "perspective"
+// ray_property light zoom 1.20710678119 1.20710678119
+// ray_property object name "/obj/three_point_light1/fill_light"
+// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.081 0.081 0.081 normalizearea 1 attenstart 0 doatten 0
+// ray_property light areashape "grid"
+// ray_property light areasize 1 1
+// ray_property light areamap ""
+// ray_property light areafullsphere 0
+// ray_property light __nonspecular 1
+// ray_property light surfaceshaders 1
+// ray_property light projection "perspective"
+// ray_property light zoom 1.20710678119 1.20710678119
+// ray_property object name "/obj/envlight1"
+// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.8 0.8 0.8
+// ray_property light areashape "env"
+// ray_property light areamap ""
+// ray_property light areafullsphere 1
+// ray_property light envintensity 0.8 0.8 0.8
+// ray_property light raybackground 0
+// ray_property light shader opdef:/Shop/v_asadlight lightcolor 1 1 1
+// ray_property light shadow opdef:/Shop/v_rayshadow shadowtype filter shadowI 1
+// ray_property light projection "perspective"
+// ray_property light zoom 1.20710550585 1.20710550585
+// ray_property object name "/obj/geo_cluster"
+// ray_property object categories "points"
+// ray_property object renderpoints 1
+// ray_property object name "/obj/geo_no_cluster"
+// ray_property object categories "no_points"
+// ray_property object velocityblur 1
+// ray_property object velocityscale 0.0208333333333
+// ray_property object surface op:/obj/shopnet/glow
+//
 
 //   changeSetting("object:geo_velocityblur", "on");
 
@@ -869,29 +953,25 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 
 
-//   fpreal noise_bias, radius;
-//
-//   if(myNoiseType < 4) {
-//         myNoise.setSeed(myPointAttributes.id);
-//         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
-////         cout << "VRAY_clusterThis::calculateNewPosition() turbulence: " << "noise_bias: " << noise_bias << endl;
-//      }
-//   else {
-//         myMersenneTwister.setSeed(myPointAttributes.id);
-//         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
-////         cout << "VRAY_clusterThis::calculateNewPosition() myMersenneTwister: " << "noise_bias: " << noise_bias << endl;
-//      }
-//
-//#ifdef DEBUG
-//   cout << "VRAY_clusterThis::calculateNewPosition() " << "noise_bias: " << noise_bias << endl;
-//#endif
-//
-//
+   fpreal noise_bias;
+
+   if(myNoiseType < 4) {
+         myNoise.setSeed(myPointAttributes.id);
+         noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
+      }
+   else {
+         myMersenneTwister.setSeed(myPointAttributes.id);
+         noise_bias = (myMersenneTwister.frandom() * myNoiseAmp) + 1.0;
+      }
+
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::initialize() " << "noise_bias: " << noise_bias << endl;
+#endif
 
 
 
-
-   UT_Vector3 scale(0.1, 0.1, 0.1);
+   fpreal scale;
+//   UT_Vector3 scale(0.0, 0.0, 0.0);
 
 //   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
@@ -901,20 +981,21 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    for(uint32 i = myGdp->points().entries(); i-- > 0;) {
          GEO_Point * ppt = myGdp->points()(i);
 
+         myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.pscale, 0));
 
-//         VRAY_clusterThis::getAttributes(ppt);
-//
-//         if(myUsePointRadius)
-//            radius = myPointAttributes.radius;
-//         else
-//            radius = myRadius;
-//
-//
-//         scale = (radius + noise_bias) * scale;
+         if(myUsePointRadius) {
+               myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.radius, 0));
+               scale = (myPointAttributes.radius + noise_bias) * myPointAttributes.pscale;
+            }
+         else {
+               scale = (myRadius + noise_bias) * myPointAttributes.pscale;
+            }
+
 
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
          // Append to our list of points to be used for various tasks, like breaking up the point cloud into regular grids, etc.
          myPointList.append(i);
+
          if(first) {
                myBox = tbox;
                myVelBox = tvbox;
@@ -924,6 +1005,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
                myBox.enlargeBounds(tbox);
                myVelBox.enlargeBounds(tvbox);
             }
+
       }
 
    if(first) {

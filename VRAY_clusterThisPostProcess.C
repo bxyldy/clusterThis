@@ -40,21 +40,6 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
    if(myVerbose > CLUSTER_MSG_INFO)
       cout << "VRAY_clusterThis::postProcess() Processing Voxels" << std::endl;
 
-//   Vec3d voxelDimensions() const { return mTransform->voxelDimensions(); }
-//00257     Vec3d voxelDimensions(const Vec3d& xyz) const { return mTransform->voxelDimensions(xyz); }
-//00259     bool hasUniformVoxels() const { return mTransform->hasUniformScale(); }
-//00261
-//00262     Vec3d indexToWorld(const Vec3d& xyz) const { return mTransform->indexToWorld(xyz); }
-//00263     Vec3d indexToWorld(const Coord& ijk) const { return mTransform->indexToWorld(ijk); }
-//00265
-//00266     Vec3d worldToIndex(const Vec3d& xyz) const { return mTransform->worldToIndex(xyz); }
-
-// Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
-
-//                     openvdb::ScalarGrid::Accessor accessor;
-//                     openvdb::FloatTree myTree;
-   openvdb::FloatTree::ConstPtr myTreePtr;
-   openvdb::VectorTree::ConstPtr myGradTreePtr;
 
    ParticleList paList(gdp, myPostVDBRadiusMult, myPostVDBVelocityMult);
    openvdb::tools::PointSampler mySampler, gradSampler;
@@ -141,7 +126,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
          UT_Vector3 inst_pos, seed_pos, currVel;
-         const GA_PointGroup * sourceGroup = NULL;
+//         const GA_PointGroup * sourceGroup = NULL;
          long int pt_counter = 0;
          float vdb_radius = 2.0f;
 
@@ -175,13 +160,19 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          if(!source_Alpha_gah.isAttributeValid())
             throw VRAY_clusterThis_Exception("VRAY_clusterThis::postProcess() Source alpha handle invalid, exiting ...", 1);
 
+//                     openvdb::ScalarGrid::Accessor accessor;
+//                     openvdb::FloatTree myTree;
+//         openvdb::FloatTree myTree;
+         openvdb::FloatTree::ConstPtr myTreePtr;
+         openvdb::VectorTree::ConstPtr myGradTreePtr;
          openvdb::FloatTree::ValueType sampleResult;
          openvdb::VectorGrid::ValueType gradResult;
          const openvdb::FloatTree aTree;
-         myTreePtr = outputGrid->tree();
+         openvdb::FloatTree & myTree = outputGrid->treeRW();
 
-         openvdb::tools::Filter<openvdb::FloatGrid> fooFilter(outputGrid);
+         openvdb::tools::Filter<openvdb::FloatGrid> fooFilter(*outputGrid);
 //                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(outputGrid);
+
 
          if(myPostVDBMedianFilter)
             fooFilter.median();
@@ -207,9 +198,9 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //               gradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME );
          gradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
 
-         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(outputGrid);
+         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(*outputGrid);
          gradientGrid = myGradient.process();
-         myGradTreePtr = gradientGrid->tree();
+         openvdb::VectorTree & myGradTree = gradientGrid->treeRW();
 
 
 //void   median (int width=1, bool serial=false)
@@ -229,28 +220,28 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          gradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
-         GA_FOR_ALL_GROUP_POINTS(inst_gdp, sourceGroup, ppt) {
-//                              myCurrPtOff = ppt->getMapOffset();
+         GA_FOR_ALL_GPOINTS(inst_gdp, ppt) {
+//            int     myCurrPtOff = ppt->getMapOffset();
 //                              std::cout << "myCurrPtOff: " << myCurrPtOff << std::endl;
+//   for(uint32 i = inst_gdp->points().entries(); i-- > 0;) {
+//         GEO_Point * ppt = inst_gdp->points()(i);
 
             inst_pos = ppt->getPos();
 
-// Vec3d worldToIndex   (  const Vec3d &     xyz    )    const
-
-//                              openvdb::Vec3R theIndex =
-//                                 (openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
             openvdb::Vec3R theIndex =
                outputGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
 
             vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
 //                                    std::cout << "vdb_radius: " << vdb_radius << std::endl;
 
-// static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
             const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
 
-            bool success = mySampler.sample(*myTreePtr, inst_sample_pos, sampleResult);
+            bool success = mySampler.sample(myTree, inst_sample_pos, sampleResult);
 
-            gradSampler.sample(*myGradTreePtr, inst_sample_pos, gradResult);
+            bool grad_success = gradSampler.sample(myGradTree, inst_sample_pos, gradResult);
+
+
+
 //
 //                              std::cout << "success: " << success << "\tinst_pos: " << inst_pos
 //                                        << "\tinst_sample_pos: " << inst_sample_pos
@@ -260,7 +251,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //ValueType    sampleWorld (Real x, Real y, Real z) const
 
             // if the instanced point is within the vdb volume
-            if(success) {
+//            if(success) {
+            if(success && grad_success) {
 //                                    std::cout << "inst_pos: " << inst_pos << " inst_sample_pos: "
 //                                              << inst_sample_pos << " sampleResult: " << sampleResult
 //                                              << " gradResult: " << gradResult << std::endl;
@@ -292,11 +284,18 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
                } // if the instanced point is within the vdb volume
 
+//            else {
+//                           int id = static_cast<int>(ppt->getValue<int>(myInstAttrRefs.pointId, 0));
+//
+//                  std::cout << "VRAY_clusterThis::postProcess() didn't hit sample. pt idx: " << myCurrPtOff << " id: " << id << std::endl;
+//
+//               }
+
             if(myVerbose == CLUSTER_MSG_DEBUG) {
                   pt_counter++;
                   if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
-                        cout << "VRAY_clusterThis::postProcess() Number of points post processed: " << pt_counter
-                             << "\t - Number of points found in vdb grid: " << pointsFound << std::endl;
+                        std::cout << "VRAY_clusterThis::postProcess() Number of points post processed: " << pt_counter
+                                  << "\t - Number of points found in vdb grid: " << pointsFound << std::endl;
                      }
                }
 

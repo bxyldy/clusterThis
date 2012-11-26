@@ -3,17 +3,17 @@
 
 
 static void getRoughBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
-                              const GEO_Point * point, const UT_Vector3 & scale,
-                              const GA_ROAttributeRef & voff,
-                              fpreal tscale, const UT_Matrix4 & xform)
+                         const GEO_Point * point, const fpreal scale,
+//                         const GEO_Point * point, const UT_Vector3 & scale,
+                         const GA_ROAttributeRef & voff,
+                         fpreal tscale, const UT_Matrix4 & xform)
 {
    fpreal     maxradius;
-   static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);  // isin45 = 1.41421
+//   static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);  // isin45 = 1.41421
    UT_Vector3    pt;
 
-//   std::cout << "getRoughBBox() \nbox: " << box << "vbox: " << vbox << std::endl;
-
-   maxradius = SYSmax(scale.x(), scale.y()) * isin45 * 0.5F;
+   maxradius = scale * 0.5F;
+//   maxradius = SYSmax(scale.x(), scale.y()) * isin45 * 0.5F;
 
    pt = UT_Vector3(-maxradius, -maxradius, 0) * xform;
    box.initBounds(pt);
@@ -27,24 +27,22 @@ static void getRoughBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
    box.translate(point->getPos());
    vbox = box;
 
-   if(voff.isValid()) {
-         UT_Vector3  vel;
-         int      i;
-         fpreal      amount;
+   UT_Vector3  vel;
+   int      i;
+   fpreal      amount;
 
-         vel = point->getValue<UT_Vector3>(voff);
+   vel = point->getValue<UT_Vector3>(voff);
 //         std::cout << "getRoughBBox() vel: " << vel << std::endl;
-         for(i = 0; i < 3; i++) {
-               amount = vel(i) * tscale;
-               if(amount < 0)
-                  vbox.vals[i][1] -= amount;
-               else
-                  vbox.vals[i][0] -= amount;
-
-            }
-//         std::cout << "getRoughBBox() amount: " << amount << std::endl;
+   for(i = 0; i < 3; i++) {
+         amount = vel(i) * tscale;
+         if(amount < 0)
+            vbox.vals[i][1] -= amount;
+         else
+            vbox.vals[i][0] -= amount;
 
       }
+//         std::cout << "getRoughBBox() amount: " << amount << std::endl;
+//   std::cout << "getRoughBBox() \nbox: " << box << "vbox: " << vbox << std::endl;
 
 
 }
@@ -166,46 +164,6 @@ static inline int computeDivs(fpreal inc, fpreal min)
    return divs;
 }
 
-
-static inline void getInstBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,
-                               const GEO_Point * point, const UT_Vector3 & sprite_scale,
-                               const GA_ROAttributeRef & voff,
-                               fpreal tscale, const UT_Matrix4 & xform)
-{
-   fpreal     maxradius;
-   static fpreal isin45 = 1.0F / SYSsin(M_PI / 4);
-   UT_Vector3    pt;
-
-   maxradius = SYSmax(sprite_scale.x(), sprite_scale.y()) * isin45 * 0.5F;
-
-   pt = UT_Vector3(-maxradius, -maxradius, 0) * xform;
-   box.initBounds(pt);
-   pt = UT_Vector3(-maxradius,  maxradius, 0) * xform;
-   box.enlargeBounds(pt);
-   pt = UT_Vector3(maxradius, -maxradius, 0) * xform;
-   box.enlargeBounds(pt);
-   pt = UT_Vector3(maxradius,  maxradius, 0) * xform;
-   box.enlargeBounds(pt);
-
-   box.translate(point->getPos());
-   vbox = box;
-
-   if(voff.isValid()) {
-         UT_Vector3  vel;
-         int      i;
-         fpreal      amount;
-
-         vel = point->getValue<UT_Vector3>(voff);
-         for(i = 0; i < 3; i++) {
-               amount = vel(i) * tscale;
-               if(amount < 0)
-                  vbox.vals[i][1] -= amount;
-               else
-                  vbox.vals[i][0] -= amount;
-
-            }
-      }
-}
 
 
 #endif

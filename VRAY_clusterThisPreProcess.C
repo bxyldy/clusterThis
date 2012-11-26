@@ -86,7 +86,9 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          // Construct a new scalar grid with the specified background value.
          openvdb::math::Transform::Ptr transform =
             openvdb::math::Transform::createLinearTransform(myPreVoxelSize);
+
 //         openvdb::ScalarGrid::Ptr myGeoGrid = openvdb::ScalarGrid::create(background);
+
          myGeoGrid = openvdb::ScalarGrid::create(background);
 
          myGeoGrid->setTransform(transform);
@@ -111,7 +113,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
 
          UT_Vector3 pos, seed_pos, currVel;
-         const GA_PointGroup * sourceGroup = NULL;
+//         const GA_PointGroup * sourceGroup = NULL;
          long int pt_counter = 0;
          float radius = 5.0f;
 
@@ -148,9 +150,9 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          openvdb::FloatTree::ValueType sampleResult;
          openvdb::VectorGrid::ValueType gradResult;
          const openvdb::FloatTree aTree;
-         myGeoTreePtr = myGeoGrid->tree();
+         openvdb::FloatTree& myGeoTree = myGeoGrid->treeRW();
 
-         openvdb::tools::Filter<openvdb::FloatGrid> preProcessFilter(myGeoGrid);
+         openvdb::tools::Filter<openvdb::FloatGrid> preProcessFilter(*myGeoGrid);
 //                           openvdb::tools::Filter<openvdb::FloatGrid> barFilter(myGeoGrid);
 
          if(myPreVDBMedianFilter)
@@ -178,9 +180,9 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 //               myGradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME );
          myGradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
 
-         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(myGeoGrid);
+         openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(*myGeoGrid);
          myGradientGrid = myGradient.process();
-         myGeoGradTreePtr = myGradientGrid->tree();
+         openvdb::VectorTree& myGeoGradTree = myGradientGrid->treeRW();
 
          gridNameStr = "ClusterGradientGrid";
          myGradientGrid->insertMeta("vector type", openvdb::StringMetadata("covariant (gradient)"));
@@ -189,7 +191,7 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
          myGradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
 
-         GA_FOR_ALL_GROUP_POINTS(gdp, sourceGroup, ppt) {
+         GA_FOR_ALL_GPOINTS(gdp, ppt) {
 //                              myCurrPtOff = ppt->getMapOffset();
 //                              std::cout << "myCurrPtOff: " << myCurrPtOff << std::endl;
 
@@ -208,9 +210,9 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 // static bool    sample (const TreeT &inTree, const Vec3R &inCoord, typename TreeT::ValueType &sampleResult)
             const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
 
-            bool success = myGeoSampler.sample(*myGeoTreePtr, inst_sample_pos, sampleResult);
+            bool success = myGeoSampler.sample(myGeoTree, inst_sample_pos, sampleResult);
 
-            geoGradSampler.sample(*myGeoGradTreePtr, inst_sample_pos, gradResult);
+            geoGradSampler.sample(myGeoGradTree, inst_sample_pos, gradResult);
 //
 //                              std::cout << "success: " << success << "\tpos: " << pos
 //                                        << "\tinst_sample_pos: " << inst_sample_pos
