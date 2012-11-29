@@ -37,14 +37,12 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
    GEO_Point * src_ppt, * inst_ppt;
    GEO_PointPtrArray src_list;
    UT_Vector3 tmp_v, new_v;
+   fpreal dist;
 
-
-
+   // Perform "nearest neighbor" post processing
    if(myNNPostProcess) {
-
          if(myVerbose > CLUSTER_MSG_INFO)
             cout << "VRAY_clusterThis::postProcess() Performing nearest neighbor processing " << std::endl;
-
 
          GA_FOR_ALL_GPOINTS(inst_gdp, inst_ppt) {
 
@@ -56,39 +54,27 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             int num_src_pts_found = mySRCPointTree.findAllClosePt(inst_pos, inst_radius, src_list);
 //      cout << "VRAY_clusterThis::postProcess() num_src_pts_found: " << num_src_pts_found << " inst_radius: " << inst_radius << std::endl;
 
-//      src_list.display();
-
-
             new_v = 0.0;
             if(num_src_pts_found > 0)
                for(uint i = 0; i < src_list.entries(); i++) {
                      src_ppt = src_list(i);
-//               fpreal dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
-                     fpreal dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
-//               fpreal radius = static_cast<fpreal>(src_ppt->getValue<fpreal>(myPointAttrRefs.radius, 0));
+                     dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+//                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
                      tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
-                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
-
+//                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
+//                     new_v = new_v + (tmp_v * (1 + SYSsqrt((inst_radius * inst_radius) - dist)));
+                     new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
                   }
 
-            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)(new_v  * myNNPostVelInfluence));
-//      inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)(new_v / fpreal(num_src_pts_found)));
-
-//      inst_ppt->setPos(inst_pos + (const UT_Vector3)(new_v));
-//      inst_ppt->setPos(inst_pos + (const UT_Vector3)(new_v / myFPS));
-//      tmp_v = (const UT_Vector3)(new_v / fpreal(fpreal(num_src_pts_found) / myFPS));
-            tmp_v = (const UT_Vector3)(new_v / myFPS);
-            tmp_v = (const UT_Vector3)(tmp_v * myNNPostPosInfluence);
-            inst_ppt->setPos(inst_pos + tmp_v);
-
+            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)((new_v / myFPS) * myNNPostVelInfluence));
+            inst_ppt->setPos(inst_pos + (const UT_Vector3)((new_v / myFPS) * myNNPostPosInfluence));
          }
 
-
-
-      }
+      } // if(myNNPostProcess)
 
 
 
+   // Perform Open VDB post processing
    if(myVDBPostProcess) {
 
 
@@ -409,7 +395,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             }   //  if(paList.size() != 0)
 
 
-      }
+      } // if(myVDBPostProcess)
 
 
 }
