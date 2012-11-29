@@ -241,6 +241,10 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_pre_renormalize_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_pre_write_debug_file", "integer", "0"),
 
+   VRAY_ProceduralArg("post_process", "integer", "1"),
+   VRAY_ProceduralArg("nn_post_process", "integer", "1"),
+   VRAY_ProceduralArg("nn_post_pos_influence", "real", "0.1"),
+   VRAY_ProceduralArg("nn_post_vel_influence", "real", "0.1"),
    VRAY_ProceduralArg("vdb_post_process", "integer", "1"),
    VRAY_ProceduralArg("vdb_post_raster_type", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_ws_units", "integer", "1"),
@@ -260,6 +264,10 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_post_mean_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_mean_curvature_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_laplacian_filter", "integer", "0"),
+   VRAY_ProceduralArg("vdb_post_median_iterations", "integer", "4"),
+   VRAY_ProceduralArg("vdb_post_mean_iterations", "integer", "4"),
+   VRAY_ProceduralArg("vdb_post_mean_curvature_iterations", "integer", "4"),
+   VRAY_ProceduralArg("vdb_post_laplacian_iterations", "integer", "4"),
    VRAY_ProceduralArg("vdb_post_offset_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_offset_filter_amount", "real", "0.1"),
    VRAY_ProceduralArg("vdb_post_renormalize_filter", "integer", "0"),
@@ -663,8 +671,16 @@ VRAY_clusterThis::VRAY_clusterThis()
    myPreVDBReNormalizeFilter = 0;
    myPreVDBWriteDebugFiles = 0;
 
-   // VDB post processing parms
+
    myPostProcess = 0;
+
+   // Nearest neighbor post processing parms
+   myNNPostProcess = 0;
+   myNNPostPosInfluence = 0.1;
+   myNNPostVelInfluence = 0.1;
+
+   // VDB post processing parms
+   myVDBPostProcess = 0;
    myPostRasterType = 0;
    myPostDx = 1.0;
    myPostFogVolume = 0;
@@ -687,6 +703,10 @@ VRAY_clusterThis::VRAY_clusterThis()
    myPostVDBOffsetFilterAmount = 0.1;
    myPostVDBReNormalizeFilter = 0;
    myPostVDBWriteDebugFiles = 0;
+   myPostVDBMedianIterations = 4;
+   myPostVDBMeanIterations = 4;
+   myPostVDBMeanCurvatureIterations = 4;
+   myPostVDBLaplacianIterations = 4;
 
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
@@ -1342,9 +1362,24 @@ int VRAY_clusterThis::getOTLParameters()
       myPreVDBWriteDebugFiles = *int_ptr;
 
 
+
+   // Post processing parms
+   if(int_ptr = VRAY_Procedural::getIParm("post_process"))
+      myPostProcess = *int_ptr;
+
+   // Nearest neighbor post processing parms
+   if(int_ptr = VRAY_Procedural::getIParm("nn_post_process"))
+      myNNPostProcess = *int_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("nn_post_pos_influence"))
+         myNNPostPosInfluence = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("nn_post_vel_influence"))
+         myNNPostVelInfluence = *flt_ptr;
+
    // VDB pre processing parms
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_process"))
-      myPostProcess = *int_ptr;
+      myVDBPostProcess = *int_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_raster_type"))
       myPostRasterType = *int_ptr;
@@ -1399,6 +1434,18 @@ int VRAY_clusterThis::getOTLParameters()
 
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_laplacian_filter"))
       myPostVDBLaplacianFilter = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_median_iterations"))
+      myPostVDBMedianIterations = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_mean_iterations"))
+      myPostVDBMeanIterations = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_mean_curvature_iterations"))
+      myPostVDBMeanCurvatureIterations = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_laplacian_iterations"))
+      myPostVDBLaplacianIterations = *int_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_offset_filter"))
       myPostVDBOffsetFilter = *int_ptr;
@@ -1675,6 +1722,10 @@ void VRAY_clusterThis::dumpParameters()
 
    std::cout << "VRAY_clusterThis::dumpParameters() **** POST PROCESS PARAMETERS ****" << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostProcess: " << myPostProcess << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myNNPostProcess: " << myNNPostProcess << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myNNPostPosInfluence: " << myNNPostPosInfluence << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myNNPostVelInfluence: " << myNNPostVelInfluence << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myVDBPostProcess: " << myVDBPostProcess << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostRasterType: " << myPostRasterType << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostDx: " << myPostDx << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostFogVolume: " << myPostFogVolume << std::endl;
@@ -1693,8 +1744,13 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBMeanFilter: " << myPostVDBMeanFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBMeanCurvatureFilter: " << myPostVDBMeanCurvatureFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBLaplacianFilter: " << myPostVDBLaplacianFilter << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBMedianIterations: " << myPostVDBMedianIterations << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBMeanIterations: " << myPostVDBMeanIterations << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBMeanCurvatureIterations: " << myPostVDBMeanCurvatureIterations << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBLaplacianIterations: " << myPostVDBLaplacianIterations << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBOffsetFilter: " << myPostVDBOffsetFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBOffsetFilterAmount: " << myPostVDBOffsetFilterAmount << std::endl;
+
 //   std::cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBWriteDebugFiles: " << myPostVDBWriteDebugFiles << std::endl;
 

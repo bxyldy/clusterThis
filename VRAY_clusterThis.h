@@ -489,8 +489,14 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myPreVDBReNormalizeFilter;
       int      myPreVDBWriteDebugFiles;
 
+
+      int myPostProcess;
+      int myNNPostProcess;
+      fpreal myNNPostPosInfluence;
+      fpreal myNNPostVelInfluence;
+
       // VDB post processing parms
-      int      myPostProcess;
+      int      myVDBPostProcess;
       int      myPostRasterType;
       fpreal   myPostDx;
       int      myPostFogVolume;
@@ -510,6 +516,10 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myPostVDBMeanFilter;
       int      myPostVDBMeanCurvatureFilter;
       int      myPostVDBLaplacianFilter;
+      int      myPostVDBMedianIterations;
+      int      myPostVDBMeanIterations;
+      int      myPostVDBMeanCurvatureIterations;
+      int      myPostVDBLaplacianIterations;
       int      myPostVDBOffsetFilter;
       fpreal   myPostVDBOffsetFilterAmount;
       int      myPostVDBReNormalizeFilter;
