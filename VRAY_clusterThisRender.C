@@ -189,8 +189,8 @@ void VRAY_clusterThis::render()
                   }
 
 
-               // Preprocess the incoming point cloud
-               VRAY_clusterThis::preProcess(myGdp);
+//               // Preprocess the incoming point cloud
+//               VRAY_clusterThis::preProcess(myGdp);
 
 
                // If the user wants to instance all the geometry immediately
@@ -311,8 +311,8 @@ void VRAY_clusterThis::render()
                         }
 
 
-                     // Preprocess the incoming point cloud
-                     VRAY_clusterThis::preProcess(myGdp);
+//                     // Preprocess the incoming point cloud
+//                     VRAY_clusterThis::preProcess(myGdp);
 
 
 //                     GU_Detail * vgdp;

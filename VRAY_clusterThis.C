@@ -144,8 +144,8 @@ class VRAY_clusterThis_Exception;
 *
 ***************************************************************************** */
 static VRAY_ProceduralArg theArgs[] = {
-   VRAY_ProceduralArg("minbound", "real", "-10 -10 -10"),
-   VRAY_ProceduralArg("maxbound", "real", "10 10 10"),
+//   VRAY_ProceduralArg("minbound", "real", "-10 -10 -10"),
+//   VRAY_ProceduralArg("maxbound", "real", "10 10 10"),
    VRAY_ProceduralArg("prim_type", "integer", "0"),
    VRAY_ProceduralArg("use_geo_file", "integer", "0"),
    VRAY_ProceduralArg("src_geo_file", "string", "default.bgeo"),
@@ -614,14 +614,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myFractalDepth = 0;
    myRecursion = 0;
    myCopyAttrs = false;
-   myCVEX_Exec = false;
-   myCVEX_Exec_prim = false;
-   myCVEX_Exec_pre = false;
-   myCVEX_Exec_post = false;
-   myCVEXFname = "";
-   myCVEXFname_prim = "";
-   myCVEXFname_pre = "";
-   myCVEXFname_post = "";
+
    myBlendAttrs = false;
    myMethod = CLUSTER_INSTANCE_NOW;
    myGridPointLimit = 100;
@@ -631,6 +624,16 @@ VRAY_clusterThis::VRAY_clusterThis()
 
    myUsePointRadius = false;
    myUseBacktrackMB = false;
+
+   // CVEX parms
+   myCVEX_Exec = false;
+   myCVEX_Exec_prim = false;
+   myCVEX_Exec_pre = false;
+   myCVEX_Exec_post = false;
+   myCVEXFname = "";
+   myCVEXFname_prim = "";
+   myCVEXFname_pre = "";
+   myCVEXFname_post = "";
 
    myCVEXPointVars.cvex_Cd_pt = 0;
    myCVEXPointVars.cvex_Alpha_pt = 0;
@@ -672,6 +675,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myPreVDBWriteDebugFiles = 0;
 
 
+   // Post processing parms
    myPostProcess = 0;
 
    // Nearest neighbor post processing parms
@@ -802,6 +806,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
 
+
    if(myVerbose > CLUSTER_MSG_QUIET) {
          std::cout << "VRAY_clusterThis::initialize() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
          std::cout << "VRAY_clusterThis::initialize() - Built for Houdini Version: " << UT_MAJOR_VERSION
@@ -810,7 +815,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
 
 
-   // First, find the geometry object we're supposed to render
+   // Find the geometry object to render
    name = 0;
    if(import("object", str))
       name = str.isstring() ? (const char *)str : 0;
@@ -826,7 +831,6 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
    myGdp = (GU_Detail *)queryGeometry(handle, 0);
    if(!myGdp) {
-//   if(!gdp) {
          VRAYerror("%s object '%s' has no geometry", getClassName(), name);
          return 0;
       }
@@ -854,30 +858,31 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 #endif
 
 
-   if(import("object:name", str)) {
-         cout << "object:name: " << str << std::endl;
-      }
-
-   if(import("object:surface", str)) {
-         cout << "object:surface: " << str << std::endl;
-      }
-
-   if(import("plane:variable", str)) {
-         cout << "plane:variable: " << str << std::endl;
-      }
-
-   if(import("image:resolution", str)) {
-         cout << "image:resolution: " << str << std::endl;
-      }
-
-   if(import("object:categories", str)) {
-         cout << "object:categories: " << str << std::endl;
-      }
-
-   if(import("object:renderpoints", str)) {
-         cout << "object:renderpoints: " << str << std::endl;
-      }
+//   if(import("object:name", str)) {
+//         cout << "object:name: " << str << std::endl;
+//      }
 //
+//   if(import("object:surface", str)) {
+//         cout << "object:surface: " << str << std::endl;
+//      }
+//
+//   if(import("plane:variable", str)) {
+//         cout << "plane:variable: " << str << std::endl;
+//      }
+//
+//   if(import("image:resolution", str)) {
+//         cout << "image:resolution: " << str << std::endl;
+//      }
+//
+//   if(import("object:categories", str)) {
+//         cout << "object:categories: " << str << std::endl;
+//      }
+//
+//   if(import("object:renderpoints", str)) {
+//         cout << "object:renderpoints: " << str << std::endl;
+//      }
+
+
 //ray_property renderer verbose 4
 //    ray_property object name "/obj/shopnet/constant"
 //    ray_property object surface op:/obj/shopnet/constant
@@ -939,6 +944,8 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 // ray_property object surface op:/obj/shopnet/glow
 //
 
+
+
 //   changeSetting("object:geo_velocityblur", "on");
 
 //   int     vblur = 0;
@@ -958,27 +965,21 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 
 
-
-
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
 
+
    // Build point tree for various lookups
-//   const GA_PointGroup * sourceGroup = NULL;
-//   mySRCPointTree.build(myGdp, sourceGroup);
-
-
-
    for(uint32 i = myGdp->points().entries(); i-- > 0;) {
-         const GEO_Point * ppt;
-         ppt = myGdp->points()(i);
-
+         // Append to our list of points to be used for various tasks,
+         // like breaking up the point cloud into regular grids, etc.
          mySRCPointList.append(i);
 
+         // Build the geo point tree to be used for nearest neighbor caculations
+         const GEO_Point * ppt;
+         ppt = myGdp->points()(i);
          fpreal radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
-//         mySRCPointTree.appendPtRadius(ppt->getPos(), radius);
          mySRCPointTree.appendPtRadius(myGdp, ppt, radius);
-
       }
 
 
@@ -987,7 +988,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 #endif
 
 
-
+   // find how much noise is being generated to help with BBox calculations
    fpreal noise_bias;
 
    if(myNoiseType < 4) {
@@ -1004,15 +1005,12 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 #endif
 
 
-
+   // Calculate our BBox for the incoming point cloud and add noise, radius, etc. to enlarge the BBox to
+   // accomodate the instanced geometry
    fpreal scale;
-//   UT_Vector3 scale(0.0, 0.0, 0.0);
-
-//   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
    int first = 1;
    xform = myXformInverse;
-//   for(uint32 i = gdp->points().entries(); i-- > 0;) {
    for(uint32 i = myGdp->points().entries(); i-- > 0;) {
          GEO_Point * ppt = myGdp->points()(i);
 
@@ -1026,10 +1024,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
                scale = (myRadius + noise_bias) * myPointAttributes.pscale;
             }
 
-
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
-         // Append to our list of points to be used for various tasks, like breaking up the point cloud into regular grids, etc.
-         mySRCPointList.append(i);
 
          if(first) {
                myBox = tbox;
