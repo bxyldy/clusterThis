@@ -243,10 +243,10 @@ int VRAY_clusterThisChild::instancePoint()
 
 
    std::cout << "VRAY_clusterThisChild::instancePoint() myBox " << myBox << std::endl;
-//   std::cout << "VRAY_clusterThisChild::instancePoint() myPointList.entries() " << myPointList.entries() << std::endl;
+//   std::cout << "VRAY_clusterThisChild::instancePoint() mySRCPointList.entries() " << mySRCPointList.entries() << std::endl;
 
-   for(uint32 i = myPointList.entries(); i-- > 0;) {
-         idx = myPointList(i);
+   for(uint32 i = mySRCPointList.entries(); i-- > 0;) {
+         idx = mySRCPointList(i);
          ppt = myGdp->points()(idx);
 
 //         std::cout << "VRAY_clusterThisChild::instancePoint() ppt->getPos() " << ppt->getPos() << std::endl;

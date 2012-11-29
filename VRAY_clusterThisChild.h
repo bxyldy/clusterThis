@@ -42,7 +42,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
          myGeoFile(theClusterObj->myGeoFile),
 
          myGdp(theClusterObj->myGdp),
-         myPointList(theClusterObj->myPointList),
+         mySRCPointList(theClusterObj->mySRCPointList),
          myParent(theClusterObj)
 
       {
@@ -351,7 +351,7 @@ class VRAY_clusterThisChild : public VRAY_Procedural
       bool myUsePointRadius;
 //      bool myUsePointGeoFname;
       bool myUseBacktrackMB;
-      UT_IntArray myPointList;
+      UT_IntArray mySRCPointList;
       UT_String myObjectName;
 //      UT_String myOTLVersion;
       fpreal   myVelocityScale;

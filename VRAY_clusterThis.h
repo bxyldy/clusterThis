@@ -412,8 +412,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myLOD;
       static const fpreal myFPS = 24.0;
       fpreal myTimeScale;
-      UT_IntArray myPointList;
-      GEO_PointTree myPointTree;
+      UT_IntArray mySRCPointList;
+      GEO_PointTree mySRCPointTree;
       bool myRendered;
 
       GU_Detail * myFileGDP;

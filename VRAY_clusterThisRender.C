@@ -332,7 +332,7 @@ void VRAY_clusterThis::render()
 //                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
 
 
-//                   if(lod > myParms->myChunkSize && myPointList.entries() > myGridPointLimit) {
+//                   if(lod > myParms->myChunkSize && mySRCPointList.entries() > myGridPointLimit) {
 //                        std::cout << "VRAY_clusterThis::render() Splitting into further procedurals " << std::endl;
 
                      // Split into further procedurals
@@ -342,13 +342,13 @@ void VRAY_clusterThis::render()
 
                      max = myBox.sizeMax();
                      dfactor = (xinc + yinc + zinc) / max;
-                     factor = SYSpow((fpreal)myPointList.entries() / myGridPointLimit, 1.0F / dfactor);
+                     factor = SYSpow((fpreal)mySRCPointList.entries() / myGridPointLimit, 1.0F / dfactor);
                      if(factor > 4)
                         factor = 4;
                      max /= factor;
 
 //                        std::cout << "VRAY_clusterThis::render() max " <<  max << " factor " << factor << " dfactor " << dfactor << std::endl;
-//                        std::cout << "VRAY_clusterThis::render() Preparing to split " <<  myPointList.entries() << " points with lod " << lod << std::endl;
+//                        std::cout << "VRAY_clusterThis::render() Preparing to split " <<  mySRCPointList.entries() << " points with lod " << lod << std::endl;
 //                        std::cout << "VRAY_clusterThis::render() myBox " << myBox << std::endl;
 
                      nx = computeDivs(xinc, max);

@@ -943,12 +943,27 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
 
-   // Build point tree for varius lookups
-   const GA_PointGroup * sourceGroup = NULL;
-   myPointTree.build(myGdp, sourceGroup);
+   // Build point tree for various lookups
+//   const GA_PointGroup * sourceGroup = NULL;
+//   mySRCPointTree.build(myGdp, sourceGroup);
+
+
+
+   for(uint32 i = myGdp->points().entries(); i-- > 0;) {
+         const GEO_Point * ppt;
+         ppt = myGdp->points()(i);
+
+         mySRCPointList.append(i);
+
+         fpreal radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+//         mySRCPointTree.appendPtRadius(ppt->getPos(), radius);
+         mySRCPointTree.appendPtRadius(myGdp, ppt, radius);
+
+      }
+
 
 #ifdef DEBUG
-   std::cout << "VRAY_clusterThis::initialize() myPointTree.getMemoryUsage(): " << myPointTree.getMemoryUsage() << std::endl;
+   std::cout << "VRAY_clusterThis::initialize() mySRCPointTree.getMemoryUsage(): " << mySRCPointTree.getMemoryUsage() << std::endl;
 #endif
 
 
@@ -994,7 +1009,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
          // Append to our list of points to be used for various tasks, like breaking up the point cloud into regular grids, etc.
-         myPointList.append(i);
+         mySRCPointList.append(i);
 
          if(first) {
                myBox = tbox;
@@ -1016,7 +1031,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
 
 #ifdef DEBUG
-   std::cout << "VRAY_clusterThis::initialize() myPointList.getMemoryUsage(): " << myPointList.getMemoryUsage() << std::endl;
+   std::cout << "VRAY_clusterThis::initialize() mySRCPointList.getMemoryUsage(): " << mySRCPointList.getMemoryUsage() << std::endl;
 #endif
 
 //   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;

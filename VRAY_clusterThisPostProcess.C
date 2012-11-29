@@ -30,10 +30,58 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 {
 
-   GEO_Point * ppt;
-
    long int num_points = (long int) gdp->points().entries();
    long int stat_interval = (long int)(num_points * 0.10) + 1;
+
+
+   GEO_Point * src_ppt, * inst_ppt;
+   GEO_PointPtrArray src_list;
+   UT_Vector3 tmp_v, new_v;
+
+   if(myVerbose > CLUSTER_MSG_INFO)
+      cout << "VRAY_clusterThis::postProcess() Performing nearest neighbor processing " << std::endl;
+
+
+   GA_FOR_ALL_GPOINTS(inst_gdp, inst_ppt) {
+
+      UT_Vector3 inst_pos = inst_ppt->getPos();
+
+      fpreal inst_radius = static_cast<fpreal>(inst_ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+      UT_Vector3 inst_v = static_cast<UT_Vector3>(inst_ppt->getValue<UT_Vector3>(myInstAttrRefs.pointV, 0));
+
+      int num_src_pts_found = mySRCPointTree.findAllClosePt(inst_pos, inst_radius, src_list);
+//      cout << "VRAY_clusterThis::postProcess() num_src_pts_found: " << num_src_pts_found << " inst_radius: " << inst_radius << std::endl;
+
+//      src_list.display();
+
+
+      new_v = 0.0;
+      if(num_src_pts_found > 0)
+         for(uint i = 0; i < src_list.entries(); i++) {
+               src_ppt = src_list(i);
+//               fpreal dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+               fpreal dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+//               fpreal radius = static_cast<fpreal>(src_ppt->getValue<fpreal>(myPointAttrRefs.radius, 0));
+               tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
+               new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
+
+            }
+
+      inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)(new_v  * myPostVelInfluence));
+//      inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)(new_v / fpreal(num_src_pts_found)));
+
+//      inst_ppt->setPos(inst_pos + (const UT_Vector3)(new_v));
+//      inst_ppt->setPos(inst_pos + (const UT_Vector3)(new_v / myFPS));
+//      tmp_v = (const UT_Vector3)(new_v / fpreal(fpreal(num_src_pts_found) / myFPS));
+      tmp_v = (const UT_Vector3)(new_v / myFPS);
+      tmp_v = (const UT_Vector3)(tmp_v * myPostPosInfluence);
+      inst_ppt->setPos(inst_pos + tmp_v);
+
+   }
+
+
+
+   return;
 
 
 
@@ -283,6 +331,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          gradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPostVoxelSize));
          gradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
+         GEO_Point * ppt;
 
          GA_FOR_ALL_GPOINTS(inst_gdp, ppt) {
 //            int     myCurrPtOff = ppt->getMapOffset();
@@ -398,6 +447,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
 #endif
+
 
 
 

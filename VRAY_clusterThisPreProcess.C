@@ -34,15 +34,6 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    long int stat_interval = (long int)(num_points * 0.10) + 1;
 
 
-   for(uint32 i = gdp->points().entries(); i-- > 0;) {
-         ppt = gdp->points()(i);
-
-         myPointList.append(i);
-
-      }
-
-
-
    // If the user wants to build grids for pre processing
    // TODO: Should this be an option?  There may be functions/features that will depend on this ... discuss!
    if(!myPreProcess)
