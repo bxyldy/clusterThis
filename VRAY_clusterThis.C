@@ -91,12 +91,14 @@
 #include <CVEX/CVEX_Context.h>
 #include <UT/UT_StringArray.h>
 #include <MOT/MOT_Director.h>
+#include <SYS/SYS_Math.h>
 
 #include <sys/stat.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <limits>
 #include <ios>
 #include <assert.h>
 

@@ -58,16 +58,39 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             if(num_src_pts_found > 0)
                for(uint i = 0; i < src_list.entries(); i++) {
                      src_ppt = src_list(i);
+                     tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
                      dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
 //                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
-                     tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
 //                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
 //                     new_v = new_v + (tmp_v * (1 + SYSsqrt((inst_radius * inst_radius) - dist)));
                      new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
                   }
 
-            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, (const UT_Vector3)((new_v / myFPS) * myNNPostVelInfluence));
-            inst_ppt->setPos(inst_pos + (const UT_Vector3)((new_v / myFPS) * myNNPostPosInfluence));
+//  SYSavg(a,b,c)
+// SYSclamp(a, min, max)
+//std::numeric_limits<float>::max();
+//std::numeric_limits<float>::min();
+//std::numeric_limits<float>::infinity();
+
+//            const UT_Vector3 v =  static_cast<const UT_Vector3>(
+//                                 (((new_v / myFPS) * myNNPostVelInfluence)));
+
+//            const UT_Vector3 v =  static_cast<const UT_Vector3>(
+//                                 (((new_v / myFPS) * myNNPostVelInfluence) / static_cast<float>(num_src_pts_found)));
+
+            const UT_Vector3 v =  static_cast<const UT_Vector3>(
+                                 ((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
+
+            SYSclamp(v[0], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+            SYSclamp(v[1], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+            SYSclamp(v[2], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+
+//            cout << "VRAY_clusterThis::postProcess() v: " << v << std::endl;
+
+            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, static_cast<const UT_Vector3>(v * myNNPostVelInfluence));
+
+            inst_ppt->setPos((inst_pos + static_cast<const UT_Vector3>(v * myNNPostPosInfluence)));
+
          }
 
       } // if(myNNPostProcess)
