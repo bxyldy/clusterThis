@@ -1,11 +1,12 @@
+
+SRC_VER = 2.0.1
 SHELL=/bin/csh
 DBG=-g
 src = VRAY_clusterThis.C VRAY_clusterThis.h \
    VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
    VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
    VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-   VRAY_clusterThisPreProcess.C VRAY_clusterThisPostProcess.C \
-   VRAY_clusterThisUtil.C VRAY_clusterThisRender.C
+   VRAY_clusterThisRender.C
 
 SOURCES = VRAY_clusterThis.C
 H_CFLAGS =  $(shell hcustom --cflags)
@@ -14,18 +15,13 @@ H_CFLAGS =  $(shell hcustom --cflags)
 # -I/opt/hfs/toolkit/include -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized
 # -Wunused -Wno-unused-parameter -O2 -fno-strict-aliasing
 
-today = $(shell date +%j)
-MAJOR_VER = "2"
-MINOR_VER = "1"
-BUILD_VER = "$(today)"
-SRC_VER = $(MAJOR_VER).$(MINOR_VER).$(BUILD_VER)
-SRC_VER_FLAGS = -DMAJOR_VER=$(MAJOR_VER) -DMINOR_VER=$(MINOR_VER) -DBUILD_VER=$(BUILD_VER)
-
 TAGINFO = $(shell (echo -n "Compiled on:" `date`"\n  by:" `whoami`@`hostname`"\n$(SESI_TAGINFO)") | /opt/hfs/bin/sesitag -m)
-CFLAGS := $(CFLAGS) $(H_CFLAGS) -I/usr/local/include/ $(SRC_VER_FLAGS) $(DBG) ${TAGINFO} -ftree-vectorize -ftree-vectorizer-verbose=2
+CFLAGS := $(CFLAGS) $(H_CFLAGS) $(DBG) ${TAGINFO} -ftree-vectorize -ftree-vectorizer-verbose=2
 
 INSTDIR = $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/
 DSONAME = VRAY_clusterThis.so
+
+#include $(HT)/makefiles/Makefile.gnu
 
 all: clusterThis
 
@@ -37,25 +33,24 @@ ifeq ($(OSTYPE),linux)
 #	-DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64 -c  -DGCC4 -DGCC3 -Wno-deprecated -I/opt/hfs${HOUDINI_VERSION}/toolkit/include \
 #	-I/opt/hfs${HOUDINI_VERSION}/toolkit/include/htools -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized -Wunused -Wno-unused-parameter \
 #	-O2 -DMAKING_DSO -o VRAY_clusterThis.o VRAY_clusterThis.C
-	$(CXX) $(DBG) $(CFLAGS) -I/usr/local/include -I/usr/local/include/openvdb_houdini -o VRAY_clusterThis.o VRAY_clusterThis.C
-	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/local/ -lopenvdb -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.so
+	$(CXX) $(DBG) $(CFLAGS) -o VRAY_clusterThis.o VRAY_clusterThis.C
+	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.so
 endif
 
 
-#ifeq ($(OSTYPE),darwin)
-#	$(CXX) $(DBG) $(CFLAGS) -DVERSION=\"${VERSION}\" -DDLLEXPORT=  -D_GNU_SOURCE -DMBSD -DMBSD_COCOA -DMBSD_INTEL -arch x86_64 -DAMD64 -fPIC -DSIZEOF_VOID_P=8 \
-#	-DSESI_LITTLE_ENDIAN -DENABLE_THREADS -DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64 -fobjc-gc-only -c  -DGCC4 -DGCC3 -Wno-deprecated \
-#	-I/opt/hfs/toolkit/include -I/opt/hfs/toolkit/include/htools -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized \
-#	-Wunused -Wno-unused-parameter -O2 -DMAKING_DSO -o VRAY_clusterThis.o VRAY_clusterThis.C
-#	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.dylib
-#endif
+ifeq ($(OSTYPE),darwin)
+	$(CXX) $(DBG) $(CFLAGS) -DVERSION=\"${VERSION}\" -DDLLEXPORT=  -D_GNU_SOURCE -DMBSD -DMBSD_COCOA -DMBSD_INTEL -arch x86_64 -DAMD64 -fPIC -DSIZEOF_VOID_P=8 \
+	-DSESI_LITTLE_ENDIAN -DENABLE_THREADS -DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64 -fobjc-gc-only -c  -DGCC4 -DGCC3 -Wno-deprecated \
+	-I/opt/hfs/toolkit/include -I/opt/hfs/toolkit/include/htools -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized \
+	-Wunused -Wno-unused-parameter -O2 -DMAKING_DSO -o VRAY_clusterThis.o VRAY_clusterThis.C
+	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.dylib
+endif
 
 install_dso: VRAY_clusterThis.so
 	cp ./VRAY_clusterThis.so $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/VRAY_clusterThis.so
 
 install: ${src} VRAY_clusterThis.so
 ifeq ($(OSTYPE),linux)
-	-@echo $(SRC_VER)
 	strip ${DSONAME}
 	cp ${DSONAME} $(INSTDIR)
 endif
@@ -63,16 +58,14 @@ ifeq ($(OSTYPE),darwin)
 	cp ${DSONAME}.dylib ${HOME}/houdini${VERSION}/dso/mantra/
 endif
 
-get_OTL:
-	cp $(DCA_COMMON)/lib/houdini/otls/VM_GEO_clusterThis.otl .
-
 archive_src:
 	rm -fr docs
 	doxygen Doxyfile
 	tar zcvf mantra_clusterThis_v${SRC_VER}.src.tar.gz \
 		${src} \
 		docs/	\
-		Makefile Doxyfile
+		Makefile Doxyfile \
+		README.txt
 
 clean:
 	rm -f *.o *.so *.dll *.exp *.lib *.dylib

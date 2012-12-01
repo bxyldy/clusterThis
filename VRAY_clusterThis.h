@@ -15,76 +15,6 @@
 
 //#define DEBUG
 
-namespace
-{
-
-// This class is required by openvdb::tools::ParticlesToLeveSet
-   class ParticleList
-   {
-      public:
-         ParticleList(const GA_Detail * gdp,
-                      openvdb::Real radiusMult = 1,
-                      openvdb::Real velocityMult = 1) :
-            mGdp(gdp),
-            mVDBRadiusHandle(gdp, GEO_POINT_DICT, "vdb_radius"),
-            mVelHandle(gdp, GEO_POINT_DICT, "v"),
-            mHasRadius(mVDBRadiusHandle.isValid()),
-            mHasVelocity(mVelHandle.isValid()),
-            mRadiusMult(radiusMult),
-            mVelocityMult(velocityMult) {
-         }
-
-         bool hasRadius()   const {
-            return mHasRadius;
-         }
-         bool hasVelocity() const {
-            return mHasVelocity;
-         }
-
-         // The public methods below are the only ones required
-         // by tools::ParticlesToLevelSet
-         size_t size() const {
-            return mGdp->getNumPoints();
-         }
-         openvdb::Vec3R pos(int n) const {
-            UT_Vector3 p = mGdp->getPos3(this->offset(n));
-            return openvdb::Vec3R(p[0], p[1], p[2]);
-         }
-         openvdb::Vec3R vel(int n) const {
-            if(!mHasVelocity)
-               return openvdb::Vec3R(0, 0, 0);
-            UT_Vector3 v = mVelHandle.get(this->offset(n));
-            return mVelocityMult * openvdb::Vec3R(v[0], v[1], v[2]);
-         }
-         openvdb::Real radius(int n) const {
-            if(!mHasRadius)
-               return mRadiusMult;
-            return mRadiusMult * mVDBRadiusHandle.get(this->offset(n));
-         }
-
-      protected:
-         GA_Offset offset(int n) const {
-            return mGdp->pointOffset(n);
-         }
-
-         const GA_Detail  *  mGdp;
-         GA_ROHandleF        mVDBRadiusHandle;
-         GA_ROHandleV3       mVelHandle;
-         const bool          mHasRadius, mHasVelocity;
-         const openvdb::Real mRadiusMult; // multiplier for radius
-         const openvdb::Real mVelocityMult; // multiplier for velocity
-   };// ParticleList
-
-// Convenient settings struct
-   struct Settings {
-      Settings(): mRasterizeTrails(false), mFogVolume(false), mDx(1.0), mGradientWidth(-1.0) {}
-      bool mRasterizeTrails, mFogVolume;
-      float mDx, mGradientWidth;
-      float mRadiusMin;
-   };
-
-} // unnamed namespace
-
 
 /* ******************************************************************************
 *  Class Name : VRAY_clusterThis_Exception()
@@ -97,18 +27,17 @@ namespace
 *  Return Value : None
 *
 ***************************************************************************** */
-class VRAY_clusterThis_Exception
-{
-      std::string e_msg;
-      int e_code;
+class VRAY_clusterThis_Exception {
+   std::string e_msg;
+   int e_code;
 
-   public:
-      VRAY_clusterThis_Exception(std::string msg, int code);
+public:
+   VRAY_clusterThis_Exception(std::string msg, int code);
 //   ~VRAY_clusterThis_Exception();
 
-      void what() {
-         std::cout << "VRAY_clusterThis_Exception::what() - VRAY_clusterThis exception:  " << e_msg << endl;
-      }
+   void what() {
+      std::cout << "VRAY_clusterThis_Exception::what() - VRAY_clusterThis exception:  " << e_msg << endl;
+   }
 
 };
 
@@ -124,82 +53,74 @@ class VRAY_clusterThis_Exception
 *  Return Value : None
 *
 ***************************************************************************** */
-class VRAY_clusterThis : public VRAY_Procedural
-{
-   public:
-      VRAY_clusterThis();
-      virtual ~VRAY_clusterThis();
+class VRAY_clusterThis : public VRAY_Procedural {
+public:
+   VRAY_clusterThis();
+   virtual ~VRAY_clusterThis();
 
-      virtual const char * getClassName();
-      virtual int initialize(const UT_BoundingBox * box);
-      virtual void getBoundingBox(UT_BoundingBox & box);
-      virtual bool hasVolume() {
-         return true;
-      }
-      virtual void render();
+   virtual const char * getClassName();
+   virtual int initialize(const UT_BoundingBox *);
+   virtual void getBoundingBox(UT_BoundingBox & box);
+   virtual bool hasVolume() {
+      return true;
+   }
+   virtual void render();
 
-      static void exitClusterThis(void * data);
-      void exitClusterThisReal(const char * fname);
-      void exitClusterThisReal(void * data);
-
-
-      struct exitData_struct {
-         float exitTime;
-         int exitCode;
-      } exitData;
+   static void exitClusterThis(void * data);
+   void exitClusterThisReal(const char * fname);
+   struct exitData_struct {
+      float exitTime;
+      int exitCode;
+   } exitData;
 
 
-   private:
+private:
 
-      friend class VRAY_clusterThisChild;
+   struct pt_attr_offset_struct {
 
-      struct pt_attr_ref_struct {
+      // Required attributes
+      GA_RWAttributeRef Cd;
+      GA_RWAttributeRef Alpha;
+      GA_RWAttributeRef v;
+      GA_RWAttributeRef N;
+      GA_RWAttributeRef up;
+      GA_RWAttributeRef orient;
+      GA_RWAttributeRef material;
+      GA_RWAttributeRef id;
+      GA_RWAttributeRef pscale;
+      GA_RWAttributeRef weight;
+      GA_RWAttributeRef width;
+      GA_RWAttributeRef prim_type;
+      GA_RWAttributeRef geo_fname;
 
-         // Required attributes
-         GA_RWAttributeRef Cd;
-         GA_RWAttributeRef Alpha;
-         GA_RWAttributeRef v;
-         GA_RWAttributeRef backtrack;
-         GA_RWAttributeRef N;
-         GA_RWAttributeRef up;
-//         GA_RWAttributeRef orient;
-         GA_RWAttributeRef material;
-         GA_RWAttributeRef id;
-         GA_RWAttributeRef pscale;
-         GA_RWAttributeRef radius;
-         GA_RWAttributeRef weight;
-         GA_RWAttributeRef width;
-         GA_RWAttributeRef vdb_radius;
-         GA_RWAttributeRef geo_fname;
+      // Optional attributes
+      /*        GA_RWAttributeRef num_neighbors;
+              GA_RWAttributeRef force;
+              GA_RWAttributeRef vorticity;
+              GA_RWAttributeRef uv;
+              GA_RWAttributeRef age;
+              GA_RWAttributeRef viscosity;
+              GA_RWAttributeRef density;
+              GA_RWAttributeRef pressure;
+              GA_RWAttributeRef mass;
+              GA_RWAttributeRef temperature;*/
 
-         // Optional attributes
-         /*        GA_RWAttributeRef num_neighbors;
-                 GA_RWAttributeRef force;
-                 GA_RWAttributeRef vorticity;
-                 GA_RWAttributeRef uv;
-                 GA_RWAttributeRef age;
-                 GA_RWAttributeRef viscosity;
-                 GA_RWAttributeRef density;
-                 GA_RWAttributeRef pressure;
-                 GA_RWAttributeRef mass;
-                 GA_RWAttributeRef temperature;*/
-
-      } myPointAttrRefs;
+   } myPointAttrOffsets;
 
 
-      struct file_attr_ref_struct {
+   struct file_attr_offset_struct {
 
-         // Required attributes
-         GA_RWAttributeRef Cd;
-         GA_RWAttributeRef Alpha;
-         GA_RWAttributeRef v;
-         GA_RWAttributeRef N;
+      // Required attributes
+      GA_RWAttributeRef Cd;
+      GA_RWAttributeRef Alpha;
+      GA_RWAttributeRef v;
+      GA_RWAttributeRef N;
 //      GA_RWAttributeRef orient;
-         GA_RWAttributeRef material;
-         GA_RWAttributeRef id;
-         GA_RWAttributeRef inst_id;
+      GA_RWAttributeRef material;
+      GA_RWAttributeRef id;
+      GA_RWAttributeRef inst_id;
 //      GA_RWAttributeRef lod;
-         GA_RWAttributeRef pscale;
+      GA_RWAttributeRef pscale;
 //      GA_RWAttributeRef up;
 //      GA_RWAttributeRef angle;
 //      GA_RWAttributeRef offset;
@@ -210,377 +131,286 @@ class VRAY_clusterThis : public VRAY_Procedural
 //      GA_RWAttributeRef deformspace;
 //      GA_RWAttributeRef xformobj;
 
-         GA_RWAttributeRef pointCd;
-         GA_RWAttributeRef pointAlpha;
-         GA_RWAttributeRef pointV;
-         GA_RWAttributeRef pointBacktrack;
-         GA_RWAttributeRef pointN;
-         GA_RWAttributeRef pointMaterial;
-         GA_RWAttributeRef pointPscale;
-         GA_RWAttributeRef pointId;
-         GA_RWAttributeRef pointInstId;
+      GA_RWAttributeRef pointCd;
+      GA_RWAttributeRef pointAlpha;
+      GA_RWAttributeRef pointV;
+      GA_RWAttributeRef pointN;
+      GA_RWAttributeRef pointMaterial;
+      GA_RWAttributeRef pointPscale;
+      GA_RWAttributeRef pointId;
+      GA_RWAttributeRef pointInstId;
 //      GA_RWAttributeRef pointLOD;
 //      GA_RWAttributeRef pointUp;
 //      GA_RWAttributeRef pointAngle;
 //      GA_RWAttributeRef pointOffset;
 //      GA_RWAttributeRef pointAmp;
 
-      } myFileAttrRefs;
+   } myFileAttrOffsets;
 
 
-      struct inst_attr_ref_struct {
+   struct inst_attr_offset_struct {
 
-         // Required attributes
-         GA_RWAttributeRef Cd;
-         GA_RWAttributeRef Alpha;
-         GA_RWAttributeRef v;
-         GA_RWAttributeRef N;
-//         GA_RWAttributeRef orient;
-         GA_RWAttributeRef material;
-         GA_RWAttributeRef id;
-         GA_RWAttributeRef inst_id;
-         GA_RWAttributeRef pscale;
-         GA_RWAttributeRef radius;
-         GA_RWAttributeRef weight;
-         GA_RWAttributeRef width;
+      // Required attributes
+      GA_RWAttributeRef Cd;
+      GA_RWAttributeRef Alpha;
+      GA_RWAttributeRef v;
+      GA_RWAttributeRef N;
+      GA_RWAttributeRef orient;
+      GA_RWAttributeRef material;
+      GA_RWAttributeRef id;
+      GA_RWAttributeRef inst_id;
+      GA_RWAttributeRef pscale;
+      GA_RWAttributeRef weight;
+      GA_RWAttributeRef width;
 
-         GA_RWAttributeRef pointCd;
-         GA_RWAttributeRef pointAlpha;
-         GA_RWAttributeRef pointV;
-         GA_RWAttributeRef pointBacktrack;
-         GA_RWAttributeRef pointN;
-         GA_RWAttributeRef pointUp;
-//         GA_RWAttributeRef pointOrient;
-         GA_RWAttributeRef pointMaterial;
-         GA_RWAttributeRef pointId;
-         GA_RWAttributeRef pointWeight;
-         GA_RWAttributeRef pointWidth;
-         GA_RWAttributeRef pointInstId;
-         GA_RWAttributeRef pointPscale;
-         GA_RWAttributeRef pointRadius;
-         GA_RWAttributeRef pointVDBRadius;
+      GA_RWAttributeRef pointCd;
+      GA_RWAttributeRef pointAlpha;
+      GA_RWAttributeRef pointV;
+      GA_RWAttributeRef pointN;
+      GA_RWAttributeRef pointMaterial;
+      GA_RWAttributeRef pointId;
+      GA_RWAttributeRef pointWeight;
+      GA_RWAttributeRef pointWidth;
+      GA_RWAttributeRef pointInstId;
+      GA_RWAttributeRef pointPscale;
 
-         // Optional attributes
-         //GA_RWAttributeRef num_neighbors;
-         //GA_RWAttributeRef force;
-         //GA_RWAttributeRef vorticity;
-         //GA_RWAttributeRef uv;
-         //GA_RWAttributeRef age;
-         //GA_RWAttributeRef viscosity;
-         //GA_RWAttributeRef density;
-         //GA_RWAttributeRef pressure;
-         //GA_RWAttributeRef mass;
-         //GA_RWAttributeRef temperature;
+      // Optional attributes
+      //GA_RWAttributeRef num_neighbors;
+      //GA_RWAttributeRef force;
+      //GA_RWAttributeRef vorticity;
+      //GA_RWAttributeRef uv;
+      //GA_RWAttributeRef age;
+      //GA_RWAttributeRef viscosity;
+      //GA_RWAttributeRef density;
+      //GA_RWAttributeRef pressure;
+      //GA_RWAttributeRef mass;
+      //GA_RWAttributeRef temperature;
 
-      } myInstAttrRefs;
+   } myInstAttrRefs;
 
 
 
-      struct inst_mb_attr_ref_struct {
+   struct inst_mb_attr_offset_struct {
 
-         // Required attributes
-         GA_RWAttributeRef Cd;
-         GA_RWAttributeRef Alpha;
-         GA_RWAttributeRef v;
-         GA_RWAttributeRef N;
-//         GA_RWAttributeRef orient;
-         GA_RWAttributeRef material;
-         GA_RWAttributeRef id;
-         GA_RWAttributeRef inst_id;
-         GA_RWAttributeRef pscale;
-         GA_RWAttributeRef radius;
-         GA_RWAttributeRef weight;
-         GA_RWAttributeRef width;
+      // Required attributes
+      GA_RWAttributeRef Cd;
+      GA_RWAttributeRef Alpha;
+      GA_RWAttributeRef v;
+      GA_RWAttributeRef N;
+      GA_RWAttributeRef orient;
+      GA_RWAttributeRef material;
+      GA_RWAttributeRef id;
+      GA_RWAttributeRef inst_id;
+      GA_RWAttributeRef pscale;
+      GA_RWAttributeRef weight;
+      GA_RWAttributeRef width;
 
-         GA_RWAttributeRef pointCd;
-         GA_RWAttributeRef pointAlpha;
-         GA_RWAttributeRef pointV;
-         GA_RWAttributeRef pointBacktrack;
-         GA_RWAttributeRef pointN;
-         GA_RWAttributeRef pointUp;
-//         GA_RWAttributeRef pointOrient;
-         GA_RWAttributeRef pointMaterial;
-         GA_RWAttributeRef pointWeight;
-         GA_RWAttributeRef pointWidth;
-         GA_RWAttributeRef pointId;
-         GA_RWAttributeRef pointInstId;
-         GA_RWAttributeRef pointPscale;
-         GA_RWAttributeRef pointRadius;
-         GA_RWAttributeRef pointVDBRadius;
+      GA_RWAttributeRef pointCd;
+      GA_RWAttributeRef pointAlpha;
+      GA_RWAttributeRef pointV;
+      GA_RWAttributeRef pointN;
+      GA_RWAttributeRef pointMaterial;
+      GA_RWAttributeRef pointWeight;
+      GA_RWAttributeRef pointWidth;
+      GA_RWAttributeRef pointId;
+      GA_RWAttributeRef pointInstId;
+      GA_RWAttributeRef pointPscale;
 
-         // Optional attributes
-         //GA_RWAttributeRef num_neighbors;
-         //GA_RWAttributeRef force;
-         //GA_RWAttributeRef vorticity;
-         //GA_RWAttributeRef uv;
-         //GA_RWAttributeRef age;
-         //GA_RWAttributeRef viscosity;
-         //GA_RWAttributeRef density;
-         //GA_RWAttributeRef pressure;
-         //GA_RWAttributeRef mass;
-         //GA_RWAttributeRef temperature;
+      // Optional attributes
+      //GA_RWAttributeRef num_neighbors;
+      //GA_RWAttributeRef force;
+      //GA_RWAttributeRef vorticity;
+      //GA_RWAttributeRef uv;
+      //GA_RWAttributeRef age;
+      //GA_RWAttributeRef viscosity;
+      //GA_RWAttributeRef density;
+      //GA_RWAttributeRef pressure;
+      //GA_RWAttributeRef mass;
+      //GA_RWAttributeRef temperature;
 
-      } myInstMBAttrRefs;
+   } myInstMBAttrOffsets;
 
 
-      struct pt_attr_struct {
-         // Required attributes
-         UT_Vector4 myPos;
-         UT_Vector4 myNewPos;
-         UT_Vector4 myMBPos;
+   struct pt_attr_struct {
+      // Required attributes
+      UT_Vector4 myPos;
+      UT_Vector4 myNewPos;
+      UT_Vector4 myMBPos;
 
-         UT_Vector3 Cd;
-         fpreal Alpha;
-         UT_Vector3 v;
-         UT_Vector4 backtrack;
-         UT_Vector3 N;
-         UT_Vector3 up;
-//         UT_Vector4 orient;
-         uint32 id;
-         fpreal radius;
-         fpreal vdb_radius;
-         fpreal pscale;
-         fpreal weight;
-         fpreal width;
-         UT_String material;
-         UT_String geo_fname;
+      UT_Vector3 Cd;
+      fpreal Alpha;
+      UT_Vector3 v;
+      UT_Vector3 N;
+      UT_Vector4 orient;
+      uint32 id;
+      fpreal pscale;
+      fpreal weight;
+      fpreal width;
+      UT_String material;
 
 //         fpreal theta;
 
-         // Optional attributes
-         /*        uint32 num_neighbors;
-                 UT_Vector3 force;
-                 UT_Vector3 vorticity;
-                 UT_Vector3 uv;
-                 fpreal age;
-                 fpreal viscosity;
-                 fpreal density;
-                 fpreal pressure;
-                 fpreal mass;
-                 fpreal temperature;*/
-      } myPointAttributes;
+      // Optional attributes
+      /*        uint32 num_neighbors;
+              UT_Vector3 force;
+              UT_Vector3 vorticity;
+              UT_Vector3 uv;
+              fpreal age;
+              fpreal viscosity;
+              fpreal density;
+              fpreal pressure;
+              fpreal mass;
+              fpreal temperature;*/
+   } myPointAttributes;
 
 
-      void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
-      void dumpParameters();
-      int preLoadGeoFile(GU_Detail * file_gdp);
-      void createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int getAttributeRefs(GU_Detail * gdp);
-      int getAttributes(GEO_Point * ppt);
-      void checkRequiredAttributes();
-      int addFileAttributeRefs(GU_Detail * gdp);
-      void setInstanceAttributes(GEO_Primitive * myGeoPrim);
-      void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
-      int setFileAttributes(GU_Detail * gdp);
-      int getOTLParameters();
-      int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
-
-      // voxel processing
-      int convertVDBUnits();
-      void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
-      void preProcess(GU_Detail * gdp);
-      void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
+   void dumpParameters();
+   int preLoadGeoFile(GU_Detail * file_gdp);
+   void createAttributeOffsets(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int getAttributeOffsets(GU_Detail * gdp);
+   int getAttributes(GEO_Point * ppt, GU_Detail * gdp);
+   void checkRequiredAttributes();
+   int addFileAttributeOffsets(GU_Detail * gdp);
+   void setInstanceAttributes(GEO_Primitive * myGeoPrim);
+   void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
+   int setFileAttributes(GU_Detail * gdp);
+   int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
 
 
-      // Instancing methods
-      int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num);
-      int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   // Instancing methods
+   int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num);
+   int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+   int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
-      // member variables
-      GU_Detail * myGdp;
-      UT_BoundingBox myBox;
-      UT_BoundingBox myVelBox;
-      UT_String myMaterial;
-      UT_Matrix3 myXformInverse;
-      bool tempFileDeleted;
-      UT_Noise myNoise;
-      UT_MersenneTwister myMersenneTwister;
-      bool myUsePointRadius;
-//      bool myUsePointGeoFname;
-      bool myUseBacktrackMB;
-      UT_String myObjectName;
-//      UT_String myOTLVersion;
-      fpreal   myVelocityScale;
-      long int myInstanceNum;
-      fpreal   myLOD;
-      static const fpreal myFPS = 24.0;
-      fpreal myTimeScale;
-      UT_IntArray myPointList;
-      GEO_PointTree myPointTree;
-      bool myRendered;
+   UT_BoundingBox myBox;
+   fpreal bb_x1, bb_x2, bb_y1, bb_y2, bb_z1, bb_z2;
+   UT_String myMaterial;
+   UT_Matrix3 myXformInverse;
 
-      GU_Detail * myFileGDP;
-      openvdb::ScalarGrid::Ptr myGeoGrid;
-      openvdb::VectorGrid::Ptr myGradientGrid;
+   // Parameters
+   uint32   myNumCopies;
+   bool     myUseGeoFile;
+   UT_String mySrcGeoFname;
+   uint32   myPrimType;
+   uint32   myMethod;
+   fpreal   mySize[3];
+   uint32   myRecursion;
+   fpreal   myFreqX, myFreqY, myFreqZ;
+   fpreal   myOffsetX, myOffsetY, myOffsetZ;
+   fpreal   myRadius;
+   fpreal   myBirthProb;
+   uint32   myDoMotionBlur;
+   fpreal   myShutter;
+   fpreal   myShutter2;
+   UT_Noise::UT_NoiseType  myNoiseType;
+   fpreal   myRough;
+   fpreal   myCurrentTime;
+   fpreal   myNoiseAmp;
+   fpreal   myNoiseAtten;
+   UT_Vector3 myNoiseVec;
+   UT_Noise myNoise;
+   int      myNoiseSeed;
+   int      myFractalDepth;
+   bool     myCopyAttrs;
+   bool     myBlendAttrs;
+   uint32   myFilterType;
+   fpreal   myFilterAmp;
+   UT_String myGeoFile;
+   UT_String myTempFname;
+   bool      myUseTempFile;
+   bool      mySaveTempFile;
+   UT_String myCVEXFname;
+   bool     myCVEX_Exec;
+   UT_String myCVEXFname_prim;
+   bool     myCVEX_Exec_prim;
+   UT_String myCVEXFname_pre;
+   bool     myCVEX_Exec_pre;
+   UT_String myCVEXFname_post;
+   bool     myCVEX_Exec_post;
+   int      myVerbose;
+   UT_String myObjectName;
+   UT_String myOTLVersion;
 
+   // A struct to keep track os CVEX vars to pass to the CVEX code
+   struct cvex_pt_vars_struct {
+uint  cvex_Cd_pt:
+      1;
+uint  cvex_Alpha_pt:
+      1;
+uint  cvex_v_pt:
+      1;
+uint  cvex_N_pt:
+      1;
+uint  cvex_pscale_pt:
+      1;
+   } myCVEXPointVars;
 
-      // Parameters
-      uint32   myNumCopies;
-      bool     myUseGeoFile;
-      UT_String mySrcGeoFname;
-      uint32   myPrimType;
-      uint32   myMethod;  // Instance now or deferred
-      uint32   myGridPointLimit;
-      fpreal   mySize[3];
-      uint32   myRecursion;
-      fpreal   myFreqX, myFreqY, myFreqZ;
-      fpreal   myOffsetX, myOffsetY, myOffsetZ;
-      fpreal   myRadius;
-      fpreal   myBirthProb;
-      uint32   myDoMotionBlur;
-      fpreal   myShutter;
-      fpreal   myShutter2;
-      int      myNoiseType;
-      fpreal   myRough;
-      fpreal   myCurrentTime;
-      fpreal   myNoiseAmp;
-      fpreal   myNoiseAtten;
-      UT_Vector3 myNoiseVec;
-      int      myNoiseSeed;
-      int      myFractalDepth;
-      bool     myCopyAttrs;
-      bool     myBlendAttrs;
-      uint32   myFilterType;
-      fpreal   myFilterAmp;
-      UT_String myGeoFile;
-      UT_String myTempFname;
-      bool      myUseTempFile;
-      bool      mySaveTempFile;
-      UT_String myCVEXFname;
-      bool     myCVEX_Exec;
-      UT_String myCVEXFname_prim;
-      bool     myCVEX_Exec_prim;
-      UT_String myCVEXFname_pre;
-      bool     myCVEX_Exec_pre;
-      UT_String myCVEXFname_post;
-      bool     myCVEX_Exec_post;
-      int      myVerbose;
+   struct cvex_prim_vars_struct {
+uint  cvex_Cd_prim:
+      1;
+uint  cvex_Alpha_prim:
+      1;
+uint  cvex_v_prim:
+      1;
+uint  cvex_N_prim:
+      1;
+uint  cvex_pscale_prim:
+      1;
+uint  cvex_weight_prim:
+      1;
+uint  cvex_width_prim:
+      1;
+   } myCVEXPrimVars;
 
-      // VDB pre processing parms
-      int      myPreProcess;
-      int      myPreRasterType;
-      fpreal   myPreDx;
-      int      myPreFogVolume;
-      fpreal   myPreGradientWidth;
-      fpreal   myPreVoxelSize;
-      fpreal   myPreRadiusMin;
-      fpreal   myPreBandWidth;
-      int      myPreWSUnits;
-      fpreal   myPreVDBVelocityMult;
-      fpreal   myPreVDBRadiusMult;
-      fpreal   myPreFalloff;
-      fpreal   myPrePosInfluence;
-      fpreal   myPreNormalInfluence;
-      fpreal   myPreVelInfluence;
+   fpreal   myVelocityScale;
+   long int myInstanceNum;
+   fpreal myLOD;
 
-      int      myPreVDBMedianFilter;
-      int      myPreVDBMeanFilter;
-      int      myPreVDBMeanCurvatureFilter;
-      int      myPreVDBLaplacianFilter;
-      int      myPreVDBOffsetFilter;
-      fpreal   myPreVDBOffsetFilterAmount;
-      int      myPreVDBReNormalizeFilter;
-      int      myPreVDBWriteDebugFiles;
+   GU_Detail * myFileGDP;
 
-      // VDB post processing parms
-      int      myPostProcess;
-      int      myPostRasterType;
-      fpreal   myPostDx;
-      int      myPostFogVolume;
-      fpreal   myPostGradientWidth;
-      fpreal   myPostVoxelSize;
-      fpreal   myPostRadiusMin;
-      fpreal   myPostBandWidth;
-      int      myPostWSUnits;
-      fpreal   myPostVDBVelocityMult;
-      fpreal   myPostVDBRadiusMult;
-      fpreal   myPostFalloff;
-      fpreal   myPostPosInfluence;
-      fpreal   myPostNormalInfluence;
-      fpreal   myPostVelInfluence;
+   friend class VRAY_clusterThisChild;
 
-      int      myPostVDBMedianFilter;
-      int      myPostVDBMeanFilter;
-      int      myPostVDBMeanCurvatureFilter;
-      int      myPostVDBLaplacianFilter;
-      int      myPostVDBOffsetFilter;
-      fpreal   myPostVDBOffsetFilterAmount;
-      int      myPostVDBReNormalizeFilter;
-      int      myPostVDBWriteDebugFiles;
+   enum clusterPrimTypeEnum {
+      CLUSTER_POINT = 0,
+      CLUSTER_PRIM_SPHERE,
+      CLUSTER_PRIM_CUBE,
+      CLUSTER_PRIM_GRID,
+      CLUSTER_PRIM_TUBE,
+      CLUSTER_PRIM_CIRCLE,
+      CLUSTER_PRIM_CURVE,
+      CLUSTER_PRIM_METABALL,
+      CLUSTER_FILE
+   };
 
-      // A struct to keep track os CVEX vars to pass to the CVEX code
-      struct cvex_pt_vars_struct {
-      uint  cvex_Cd_pt:
-         1;
-      uint  cvex_Alpha_pt:
-         1;
-      uint  cvex_v_pt:
-         1;
-      uint  cvex_N_pt:
-         1;
-      uint  cvex_pscale_pt:
-         1;
-      } myCVEXPointVars;
+   enum clusterMotionBlurTypeEnum {
+      CLUSTER_MB_NONE = 0,
+      CLUSTER_MB_VELOCITY,
+      CLUSTER_MB_DEFORMATION
+   };
 
-      struct cvex_prim_vars_struct {
-      uint  cvex_Cd_prim:
-         1;
-      uint  cvex_Alpha_prim:
-         1;
-      uint  cvex_v_prim:
-         1;
-      uint  cvex_N_prim:
-         1;
-      uint  cvex_pscale_prim:
-         1;
-      uint  cvex_weight_prim:
-         1;
-      uint  cvex_width_prim:
-         1;
-      } myCVEXPrimVars;
+   enum clusterVerboseTypeEnum {
+      CLUSTER_MSG_QUIET = 0,
+      CLUSTER_MSG_INFO,
+      CLUSTER_MSG_VERBOSE,
+      CLUSTER_MSG_DEBUG
+   };
 
+   enum clusterInstanceMethod {
+      CLUSTER_INSTANCE_NOW = 0,
+      CLUSTER_INSTANCE_DEFERRED
+   };
 
-      enum clusterPrimTypeEnum {
-         CLUSTER_POINT = 0,
-         CLUSTER_PRIM_SPHERE,
-         CLUSTER_PRIM_CUBE,
-         CLUSTER_PRIM_GRID,
-         CLUSTER_PRIM_TUBE,
-         CLUSTER_PRIM_CIRCLE,
-         CLUSTER_PRIM_CURVE,
-         CLUSTER_PRIM_METABALL,
-         CLUSTER_FILE
-      };
-
-      enum clusterMotionBlurTypeEnum {
-         CLUSTER_MB_NONE = 0,
-         CLUSTER_MB_VELOCITY,
-         CLUSTER_MB_DEFORMATION
-      };
-
-      enum clusterVerboseTypeEnum {
-         CLUSTER_MSG_QUIET = 0,
-         CLUSTER_MSG_INFO,
-         CLUSTER_MSG_VERBOSE,
-         CLUSTER_MSG_DEBUG
-      };
-
-      enum clusterInstanceMethod {
-         CLUSTER_INSTANCE_NOW = 0,
-         CLUSTER_INSTANCE_DEFERRED
-      };
-
-      enum clusterCVEXMethod {
-         CLUSTER_CVEX_POINT = 0,
-         CLUSTER_CVEX_PRIM
-      };
+   enum clusterCVEXMethod {
+      CLUSTER_CVEX_POINT = 0,
+      CLUSTER_CVEX_PRIM
+   };
 
 };
 
@@ -589,5 +419,124 @@ class VRAY_clusterThis : public VRAY_Procedural
 #endif
 
 
+/**********************************************************************************/
+//  $Log: VRAY_clusterThis.h,v $
+//  Revision 1.40  2012-09-09 05:00:54  mstory
+//  More cleanup and testing.
+//
+//  Revision 1.39  2012-09-07 15:39:22  mstory
+//   Removed all volume instancing (used in different project) and continu… …
+//
+//  …ed H12 modifications.
+//
+//  --mstory
+//
+//  Revision 1.38  2012-09-05 23:02:38  mstory
+//  Modifications for H12.
+//
+//  Revision 1.37  2012-09-04 03:25:28  mstory
+//  .
+//
+//  Revision 1.34  2011-02-15 00:59:15  mstory
+//  Refactored out rededundant attribute code in the child (deferred) instancicng mode.
+//  Made remaining changes for H11 (and beyond) versions way of handiling attributes.
+//
+//
+//  --mstory
+//
+//  Revision 1.33  2011-02-06 19:49:15  mstory
+//  Modified for Houdini version 11.
+//
+//  Refactored a lot of the attribute code, cleaned up odds and ends.
+//
+//  Revision 1.32  2010-04-12 06:39:42  mstory
+//  Finished CVEX modifications.
+//
+//  Revision 1.31  2010-04-10 10:11:42  mstory
+//  Added additional CVEX processing.  Fixed a few annoying bugs.  Adding external disk geo source.
+//
+//  Revision 1.30  2010-02-23 08:36:22  mstory
+//  Fixed most of the CVEX problems with primtive instancng.  Fixed seg faults from uninitilialized pointers in the CVEX variables,
+//
+//  Revision 1.29  2009-11-20 14:59:57  mstory
+//  Release 1.4.7 ready.
+//
+//  Revision 1.28  2009-11-19 16:26:51  mstory
+//  Adding point inst id to child objects (for deferred instancing), need to add to prims as well.
+//
+//  Revision 1.27  2009-11-16 17:47:12  mstory
+//  Fixed the curve instancing, still need to determine all attribites required for the curve (i.e. width)
+//
+//  Revision 1.26  2009-11-16 08:32:45  mstory
+//  Added instance ID for each instance passed to CVEX processing.
+//
+//  Revision 1.25  2009-04-06 16:40:58  mstory
+//  Added volume and curve instancing.
+//  Optimized attribute processing.
+//  Added motion blur pass for CVEX processing.
+//  Changed parameter code to use proper functions.
+//  Added verbosity switch for console messages.
+//  Added randomness for when to instance of objects
+//  Using SYSsin() and SYScos () instead of std C functions.
+//  Optimized memory usage for CVEX processing, correct memory allocationfor attributes and objects.
+//  Added user selectable attributes for CVEX processing.
+//
+//  --mstory
+//
+//  Revision 1.24  2009-02-10 21:55:59  mstory
+//  Added all attributes for the CVEX processing of instanced geo.
+//  Added OTL version checking.
+//
+//  Revision 1.23  2009-02-05 00:59:05  mstory
+//  Added simple CVEX processng.
+//  Addded temp file for caching geo during deep shad passes.
+//
+//  Revision 1.22  2008-12-04 05:37:41  mstory
+//  .
+//
+//  Revision 1.21  2008-11-27 05:32:39  mstory
+//  Added Alpha attribute and fixed bug where it crashes mantra if the weight attr wasn't in the input geo.
+//
+//  Revision 1.20  2008-11-19 01:11:43  mstory
+//  Added point instancing.  Fixed the file instancing problem.
+//  Most of the shader assignment issues straightened out.
+//
+//  Revision 1.19  2008-10-30 19:51:54  mstory
+//  Added file instancing (still needs work).
+//
+//  Revision 1.18  2008-10-30 07:03:06  mstory
+//  Added deformation motion blur and metaball instancing.
+//
+//  Revision 1.17  2008-10-20 22:12:14  mstory
+//  Cleaned up unused vars, etc.  Ready for enxt release.
+//
+//  Revision 1.16  2008-10-20 19:35:00  mstory
+//  Added a switch to be able to choose using the addProcedural() method of allocating procedurals.
+//
+//  Revision 1.14  2008-10-11 18:15:06  mstory
+//  .
+//
+//  Revision 1.12  2008-10-06 21:58:40  mstory
+//  .
+//
+//  Revision 1.11  2008-10-06 04:20:05  mstory
+//  Added the beginning of volume instancing, file instancing and almost have multi pass temp file working.
+//
+//  Revision 1.10  2008-10-04 04:42:44  mstory
+//  Added simple exception processing.
+//
+//  Revision 1.9  2008-10-04 04:40:34  mstory
+//  .
+//
+//  Revision 1.8  2008-10-03 00:01:00  mstory
+//  Working out motion blur, material assignments, etc.; much more work to do ....
+//
+//  Revision 1.7  2008-10-01 22:18:43  mstory
+//  Changed the "recursion algorythm" ... needs proper design, coming soon to a DSO near you!
+//
+//  Revision 1.2  2008-08-28 03:08:08  mstory
+//  Lots of changes!!!
+//
+/**********************************************************************************/
 
 
