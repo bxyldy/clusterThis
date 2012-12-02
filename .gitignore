@@ -10,3 +10,10 @@
 *.lai
 *.la
 *.a
+
+*.bak
+*.save
+
+docs/*
+src_archive/*
+.#*
