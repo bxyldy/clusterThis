@@ -59,11 +59,12 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                for(uint i = 0; i < src_list.entries(); i++) {
                      src_ppt = src_list(i);
                      tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
-                     dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
-//                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+//                     dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
 //                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
 //                     new_v = new_v + (tmp_v * (1 + SYSsqrt((inst_radius * inst_radius) - dist)));
-                     new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
+//                     new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
+                     new_v = new_v + (tmp_v * (1 + inst_radius - dist));
                   }
 
 //  SYSavg(a,b,c)
@@ -78,8 +79,10 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //            const UT_Vector3 v =  static_cast<const UT_Vector3>(
 //                                 (((new_v / myFPS) * myNNPostVelInfluence) / static_cast<float>(num_src_pts_found)));
 
-            const UT_Vector3 v =  static_cast<const UT_Vector3>(
-                                 ((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
+            const UT_Vector3 v =
+               static_cast<const UT_Vector3>((new_v / static_cast<float>(num_src_pts_found)));
+//            const UT_Vector3 v =
+//               static_cast<const UT_Vector3>(((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
 
             SYSclamp(v[0], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
             SYSclamp(v[1], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
@@ -239,32 +242,41 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
 
-               if(myPostVDBMedianFilter)
+               if(myPostVDBMedianFilter) {
+               if(myVerbose > CLUSTER_MSG_INFO)
+                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with median filter ... " << std::endl;
                   for(int n = 0; n < myPostVDBMedianIterations && !boss.wasInterrupted(); ++n)
                      fooFilter.median();
+               }
 
 
-               if(myPostVDBMeanFilter)
+               if(myPostVDBMeanFilter) {
+                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean filter ... " << std::endl;
                   for(int n = 0; n < myPostVDBMeanIterations && !boss.wasInterrupted(); ++n)
                      fooFilter.mean();
+               }
 
-
-               if(myPostVDBMeanCurvatureFilter)
+               if(myPostVDBMeanCurvatureFilter) {
+                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean curvature filter ... " << std::endl;
                   for(int n = 0; n < myPostVDBMeanCurvatureIterations && !boss.wasInterrupted(); ++n)
                      fooFilter.meanCurvature();
+               }
 
 
-               if(myPostVDBLaplacianFilter)
+               if(myPostVDBLaplacianFilter) {
+                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with laplacian filter ... " << std::endl;
                   for(int n = 0; n < myPostVDBLaplacianIterations && !boss.wasInterrupted(); ++n)
                      fooFilter.laplacian();
-
+               }
 
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
-               if(myPostVDBOffsetFilter)
+               if(myPostVDBOffsetFilter) {
+                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with offset filter ... " << std::endl;
                   fooFilter.offset(myPostVDBOffsetFilterAmount);
+               }
 
 //00838 {
 //00839
@@ -425,11 +437,5 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
 #endif
-
-
-
-
-
-
 
 

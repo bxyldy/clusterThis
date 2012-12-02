@@ -107,10 +107,10 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
 //   dy = SYScos(delta * myFreqY + myOffsetY);
 //   dz = SYScos(delta * myFreqZ + myOffsetZ);
 
-#ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "delta: " << delta << endl;
-   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
-#endif
+//#ifdef DEBUG
+//   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "delta: " << delta << endl;
+//   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "dx: " << dx << " dy: " << dy << " dz: " << dz << endl;
+//#endif
 
 //   myNoise.setSeed(myPointAttributes.id);
 
@@ -118,12 +118,13 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
    // TODO:
 //   fpreal noise_bias = (myNoise.turbulence(myPointAttributes.myPos, myFractalDepth, myRough, myNoiseAtten) * myNoiseAmp) + 1.0;
 
+//      UT_Vector3 myNoiseVec;
    // myNoise.turbulence(myPos, myFractalDepth, myNoiseVec, myRough, myNoiseAtten);
    // cout << "VRAY_clusterThis::render() " << "myNoiseVec: " << myNoiseVec.x() << " " << myNoiseVec.x() << " " << myNoiseVec.x() << endl;
 
-#ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "noise_bias: " << noise_bias << endl;
-#endif
+//#ifdef DEBUG
+//   cout << "VRAY_clusterThis::calculateNewInstPosition() " << "noise_bias: " << noise_bias << endl;
+//#endif
 
 //   // Calculate the new object's position
 //   myPointAttributes.myNewPos[0] = (fpreal) myPointAttributes.myPos.x() +
@@ -141,12 +142,12 @@ static inline int calculateNewInstPosition(fpreal theta, uint32 i, uint32 j)
 //      myPointAttributes.myMBPos[2] = myPointAttributes.myNewPos[2] - myPointAttributes.v.z();
 //   }
 
-#ifdef DEBUG
-   cout << "VRAY_clusterThis::calculateNewInstPosition() myPos:   "
-        << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
-   cout << "VRAY_clusterThis::calculateNewInstPosition() newPos: "
-        << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
-#endif
+//#ifdef DEBUG
+//   cout << "VRAY_clusterThis::calculateNewInstPosition() myPos:   "
+//        << myPointAttributes.myPos.x() << " " << myPointAttributes.myPos.y() << " " << myPointAttributes.myPos.z() << endl;
+//   cout << "VRAY_clusterThis::calculateNewInstPosition() newPos: "
+//        << myPointAttributes.myNewPos[0] << " " << myPointAttributes.myNewPos[1] << " " << myPointAttributes.myNewPos[2] << endl;
+//#endif
 
    return 0;
 

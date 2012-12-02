@@ -1,22 +1,8 @@
 /* ******************************************************************************
 *
-*  clusterThis mantra DSO for render time geo clustering
-*
-* $RCSfile: VRAY_clusterThis.C,v $
+* clusterThis mantra DSO for render time geo clustering
 *
 * Description : This DSO  will instance geomtery or volumes during the render of mantra IFD's
-*
-* $Revision: 1.60 $
-*
-* $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThis.C,v $
-*
-* $Author: mstory $
-*
-*  Version 2.0.1
-*  Date: October 5, 2012
-*  Author: Mark Story
-*
-* See Change History at the end of the file.
 *
 *    Digital Cinema Arts (C) 2008-2012
 *
@@ -135,6 +121,8 @@ namespace hutil = houdini_utils;
 class VRAY_clusterThisChild;
 class VRAY_clusterThis_Exception;
 
+
+
 /* ******************************************************************************
 *  Function Name : theArgs()
 *
@@ -146,8 +134,7 @@ class VRAY_clusterThis_Exception;
 *
 ***************************************************************************** */
 static VRAY_ProceduralArg theArgs[] = {
-//   VRAY_ProceduralArg("minbound", "real", "-10 -10 -10"),
-//   VRAY_ProceduralArg("maxbound", "real", "10 10 10"),
+
    VRAY_ProceduralArg("prim_type", "integer", "0"),
    VRAY_ProceduralArg("use_geo_file", "integer", "0"),
    VRAY_ProceduralArg("src_geo_file", "string", "default.bgeo"),
@@ -172,10 +159,14 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("noise_atten", "real", "0.0"),
    VRAY_ProceduralArg("noise_seed", "integer", "7"),
    VRAY_ProceduralArg("noise_fractal_depth", "integer", "3"),
-   VRAY_ProceduralArg("copy_attrs", "integer", "1"),
-   VRAY_ProceduralArg("speed_stretch", "real", "0.0 0.0 0.0"),
-   VRAY_ProceduralArg("blend_attrs", "integer", "0"),
    VRAY_ProceduralArg("geo_file", "string", "default.bgeo"),
+   VRAY_ProceduralArg("filter_type", "integer", "0"),
+   VRAY_ProceduralArg("filter_amp", "real", "0.0"),
+   VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
+   VRAY_ProceduralArg("temp_file", "integer", "0"),
+   VRAY_ProceduralArg("save_temp_file", "integer", "0"),
+   VRAY_ProceduralArg("otl_version", "string", "DCA_VERSION"),
+
    VRAY_ProceduralArg("CVEX_shader", "string", "default.vex"),
    VRAY_ProceduralArg("CVEX_exec", "integer", "0"),
    VRAY_ProceduralArg("CVEX_shader_prim", "string", "default.vex"),
@@ -184,12 +175,6 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("CVEX_exec_pre", "integer", "0"),
    VRAY_ProceduralArg("CVEX_shader_post", "string", "default.vex"),
    VRAY_ProceduralArg("CVEX_exec_post", "integer", "0"),
-   VRAY_ProceduralArg("filter_type", "integer", "0"),
-   VRAY_ProceduralArg("filter_amp", "real", "0.0"),
-   VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
-   VRAY_ProceduralArg("temp_file", "integer", "0"),
-   VRAY_ProceduralArg("save_temp_file", "integer", "0"),
-   VRAY_ProceduralArg("otl_version", "string", "DCA_VERSION"),
 
    VRAY_ProceduralArg("Cd_pt", "integer", "0"),
    VRAY_ProceduralArg("Alpha_pt", "integer", "0"),
@@ -585,11 +570,14 @@ VRAY_clusterThis::VRAY_clusterThis()
    std::cout << "VRAY_clusterThis::VRAY_clusterThis() - Constructor" << std::endl;
 #endif
 
+   if(myVerbose > CLUSTER_MSG_INFO)
+      std::cout << "VRAY_clusterThis - Constructor" << std::endl;
+
    // Init member variables
    myBox.initBounds(0, 0, 0);
    myVelBox.initBounds(0, 0, 0);
    myPrimType = CLUSTER_PRIM_SPHERE;
-   myUseGeoFile = false;
+   myUseGeoFile = 0;
    mySrcGeoFname = "";
    myNumCopies = 0;
    myNoiseType = 0;
@@ -615,23 +603,21 @@ VRAY_clusterThis::VRAY_clusterThis()
    myNoiseSeed = 0;
    myFractalDepth = 0;
    myRecursion = 0;
-   myCopyAttrs = false;
 
-   myBlendAttrs = false;
    myMethod = CLUSTER_INSTANCE_NOW;
    myGridPointLimit = 100;
    myVerbose = CLUSTER_MSG_QUIET;
-   myUseTempFile = false;
-   mySaveTempFile = false;
+   myUseTempFile = 0;
+   mySaveTempFile = 0;
 
-   myUsePointRadius = false;
-   myUseBacktrackMB = false;
+   myUsePointRadius = 0;
+   myUseBacktrackMB = 0;
 
    // CVEX parms
-   myCVEX_Exec = false;
-   myCVEX_Exec_prim = false;
-   myCVEX_Exec_pre = false;
-   myCVEX_Exec_post = false;
+   myCVEX_Exec = 0;
+   myCVEX_Exec_prim = 0;
+   myCVEX_Exec_pre = 0;
+   myCVEX_Exec_post = 0;
    myCVEXFname = "";
    myCVEXFname_prim = "";
    myCVEXFname_pre = "";
@@ -719,7 +705,6 @@ VRAY_clusterThis::VRAY_clusterThis()
 
    myInstanceNum = 0;
    myTimeScale = 0.5F / myFPS;
-   myRendered = false;
 
    int exitCallBackStatus = -1;
    exitCallBackStatus = UT_Exit::addExitCallback(VRAY_clusterThis::exitClusterThis, (void *)this);
@@ -783,26 +768,11 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
 
-   void  *  handle;
+   void     *     handle;
    const char  *  name;
-   UT_BoundingBox    tbox, tvbox;
+   UT_BoundingBox tbox, tvbox;
    UT_Matrix4     xform;
    UT_String      str;
-
-
-//   std::cout << "VRAY_clusterThis::initialize() box: " << box << std::endl;
-//   if(box) {
-//         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
-//         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
-//      }
-
-
-//   if(myRendered && myUseTempFile) {
-   if(myUseTempFile) {
-
-         return 1;
-
-      }
 
 
    // Get the OTL parameters
@@ -817,25 +787,46 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
 
 
+
    // Find the geometry object to render
-   name = 0;
-   if(import("object", str))
-      name = str.isstring() ? (const char *)str : 0;
-//   handle = queryObject(name);
-   handle = queryObject(0);
-   if(!handle) {
-         VRAYerror("%s couldn't find object '%s'", getClassName(), name);
-         return 0;
-      }
-   name = queryObjectName(handle);
+//   name = 0;
+//   if(VRAY_Procedural::import("object", str))
+//      name = str.isstring() ? (const char *)str : 0;
+////   handle = VRAY_Procedural::queryObject(name);
+//   handle = VRAY_Procedural::queryObject(0);
+//   if(!handle) {
+//         VRAYerror("%s couldn't find object '%s'", VRAY_Procedural::getClassName(), name);
+//         return 0;
+//      }
+//   name = VRAY_Procedural::queryObjectName(handle);
+//
+////   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
+//
+//   myGdp = (GU_Detail *)VRAY_Procedural::queryGeometry(handle, 0);
+//   if(!myGdp) {
+//         VRAYerror("%s object '%s' has no geometry", VRAY_Procedural::getClassName(), name);
+//         return 0;
+//      }
 
-//   std::cout << "VRAY_clusterThis::initialize() name: " << name << std::endl;
 
-   myGdp = (GU_Detail *)queryGeometry(handle, 0);
-   if(!myGdp) {
-         VRAYerror("%s object '%s' has no geometry", getClassName(), name);
-         return 0;
+
+   handle = VRAY_Procedural::queryObject(0);
+   myGdp = VRAY_Procedural::allocateGeometry();
+
+   if(myUseGeoFile) {
+         // If the file failed to load, throw an exception
+         if(!(myGdp->load((const char *)mySrcGeoFname).success()))
+            throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read source geometry file ", 1);
+
+         if(myVerbose > CLUSTER_MSG_INFO)
+            cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
       }
+   else {
+         myGdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
+         if(myVerbose > CLUSTER_MSG_INFO)
+            cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
+      }
+
 
 
 
@@ -883,68 +874,6 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //   if(import("object:renderpoints", str)) {
 //         cout << "object:renderpoints: " << str << std::endl;
 //      }
-
-
-//ray_property renderer verbose 4
-//    ray_property object name "/obj/shopnet/constant"
-//    ray_property object surface op:/obj/shopnet/constant
-//    ray_property geometry basepath "/obj/geo_cluster"
-//    ray_property geometry basepath "/obj/geo_no_cluster"
-//     ray_property plane variable "Cf+Af"
-//     ray_property plane vextype "vector4"
-//     ray_property plane channel "C"
-//    ray_property image resolution 1280 720
-//    ray_property image pixelaspect 1
-//    ray_property image bucket 32
-//    ray_property image samples 3 3
-//    ray_property renderer pbrshader pathtracer use_renderstate 0
-//    ray_property camera projection "perspective"
-//    ray_property camera zoom 1.56259098938
-//    ray_property camera clip 0.01 1000
-//    ray_property image window 0 1 0 1
-//    ray_property image crop 0 1 0 1
-//    ray_property object velocityscale 0.0208333333333
-//    ray_property object xformsamples 2
-// ray_property object name "/obj/three_point_light1/key_light"
-// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.76 0.76 0.76 normalizearea 1 attenstart 0 doatten 0
-// ray_property light areashape "grid"
-// ray_property light areasize 1 1
-// ray_property light areamap ""
-// ray_property light areafullsphere 0
-// ray_property light surfaceshaders 1
-// ray_property light shadow opdef:/Shop/v_rayshadow shadowtype filter bias 0.05 quality 1 shadowI 1
-// ray_property light projection "perspective"
-// ray_property light zoom 1.20710678119 1.20710678119
-// ray_property object name "/obj/three_point_light1/fill_light"
-// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.081 0.081 0.081 normalizearea 1 attenstart 0 doatten 0
-// ray_property light areashape "grid"
-// ray_property light areasize 1 1
-// ray_property light areamap ""
-// ray_property light areafullsphere 0
-// ray_property light __nonspecular 1
-// ray_property light surfaceshaders 1
-// ray_property light projection "perspective"
-// ray_property light zoom 1.20710678119 1.20710678119
-// ray_property object name "/obj/envlight1"
-// ray_property object surface opdef:/Shop/v_arealight lightcolor 0.8 0.8 0.8
-// ray_property light areashape "env"
-// ray_property light areamap ""
-// ray_property light areafullsphere 1
-// ray_property light envintensity 0.8 0.8 0.8
-// ray_property light raybackground 0
-// ray_property light shader opdef:/Shop/v_asadlight lightcolor 1 1 1
-// ray_property light shadow opdef:/Shop/v_rayshadow shadowtype filter shadowI 1
-// ray_property light projection "perspective"
-// ray_property light zoom 1.20710550585 1.20710550585
-// ray_property object name "/obj/geo_cluster"
-// ray_property object categories "points"
-// ray_property object renderpoints 1
-// ray_property object name "/obj/geo_no_cluster"
-// ray_property object categories "no_points"
-// ray_property object velocityblur 1
-// ray_property object velocityscale 0.0208333333333
-// ray_property object surface op:/obj/shopnet/glow
-//
 
 
 
@@ -1116,7 +1045,7 @@ int VRAY_clusterThis::getOTLParameters()
       myDoMotionBlur = *int_ptr;
 
    if(int_ptr = VRAY_Procedural::getIParm("backtrack_mb"))
-      myUseBacktrackMB = bool(*int_ptr);
+      myUseBacktrackMB = *int_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("mb_shutter"))
       myShutter = *flt_ptr;
@@ -1175,14 +1104,8 @@ int VRAY_clusterThis::getOTLParameters()
    if(int_ptr = VRAY_Procedural::getIParm("noise_fractal_depth"))
       myFractalDepth = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("copy_attrs"))
-      myCopyAttrs = bool (*int_ptr);
-
-   if(int_ptr = VRAY_Procedural::getIParm("blend_attrs"))
-      myBlendAttrs = bool (*int_ptr);
-
    if(int_ptr = VRAY_Procedural::getIParm("use_geo_file"))
-      myUseGeoFile = bool (*int_ptr);
+      myUseGeoFile = *int_ptr;
 
    if(char_handle = VRAY_Procedural::getSParm("src_geo_file")) {
          mySrcGeoFname = (UT_String)(*char_handle);
@@ -1200,6 +1123,24 @@ int VRAY_clusterThis::getOTLParameters()
          myTempFname.harden();
       }
 
+
+   if(int_ptr = VRAY_Procedural::getIParm("temp_file"))
+      myUseTempFile = *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("save_temp_file"))
+      mySaveTempFile =  *int_ptr;
+
+   if(int_ptr = VRAY_Procedural::getIParm("verbose"))
+      myVerbose = *int_ptr;
+
+//   if(char_handle = VRAY_Procedural::getSParm("otl_version")) {
+//         myOTLVersion = (UT_String)(*char_handle);
+//         myOTLVersion.harden();
+//      }
+
+
+
+
    if(char_handle = VRAY_Procedural::getSParm("CVEX_shader")) {
          myCVEXFname = (UT_String)(*char_handle);
          myCVEXFname.harden();
@@ -1207,7 +1148,7 @@ int VRAY_clusterThis::getOTLParameters()
 
 
    if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec"))
-      myCVEX_Exec = bool (*int_ptr);
+      myCVEX_Exec =  *int_ptr;
 
 
    if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_prim")) {
@@ -1216,7 +1157,7 @@ int VRAY_clusterThis::getOTLParameters()
       }
 
    if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_prim"))
-      myCVEX_Exec_prim = bool (*int_ptr);
+      myCVEX_Exec_prim = *int_ptr;
 
 
    if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_pre")) {
@@ -1225,7 +1166,7 @@ int VRAY_clusterThis::getOTLParameters()
       }
 
    if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_pre"))
-      myCVEX_Exec_pre = bool (*int_ptr);
+      myCVEX_Exec_pre = *int_ptr;
 
    if(char_handle = VRAY_Procedural::getSParm("CVEX_shader_post")) {
          myCVEXFname_post = (UT_String)(*char_handle);
@@ -1233,7 +1174,7 @@ int VRAY_clusterThis::getOTLParameters()
       }
 
    if(int_ptr = VRAY_Procedural::getIParm("CVEX_exec_post"))
-      myCVEX_Exec_post = bool (*int_ptr);
+      myCVEX_Exec_post = *int_ptr;
 
 
    if(int_ptr = VRAY_Procedural::getIParm("cvex_Cd_pt"))
@@ -1272,20 +1213,6 @@ int VRAY_clusterThis::getOTLParameters()
 
    if(int_ptr = VRAY_Procedural::getIParm("cvex_width_prim"))
       myCVEXPrimVars.cvex_width_prim = *int_ptr;
-
-   if(int_ptr = VRAY_Procedural::getIParm("temp_file"))
-      myUseTempFile = bool (*int_ptr);
-
-   if(int_ptr = VRAY_Procedural::getIParm("save_temp_file"))
-      mySaveTempFile = bool (*int_ptr);
-
-   if(int_ptr = VRAY_Procedural::getIParm("verbose"))
-      myVerbose = *int_ptr;
-
-//   if(char_handle = VRAY_Procedural::getSParm("otl_version")) {
-//         myOTLVersion = (UT_String)(*char_handle);
-//         myOTLVersion.harden();
-//      }
 
 
    // VDB pre processing parms
@@ -1369,10 +1296,10 @@ int VRAY_clusterThis::getOTLParameters()
       myNNPostProcess = *int_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("nn_post_pos_influence"))
-         myNNPostPosInfluence = *flt_ptr;
+      myNNPostPosInfluence = *flt_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("nn_post_vel_influence"))
-         myNNPostVelInfluence = *flt_ptr;
+      myNNPostVelInfluence = *flt_ptr;
 
    // VDB pre processing parms
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_process"))

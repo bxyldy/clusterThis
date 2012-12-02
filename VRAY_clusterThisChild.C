@@ -400,9 +400,9 @@ int VRAY_clusterThisChild::instancePoint()
       }
 
 
-   if(myParent->myPostProcess) {
-         myParent->postProcess(myGdp, inst_gdp, mb_gdp);
-      }
+//   if(myParent->myPostProcess) {
+//         myParent->postProcess(myGdp, inst_gdp, mb_gdp);
+//      }
 
 
    openGeometryObject();

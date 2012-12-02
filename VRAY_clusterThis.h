@@ -414,7 +414,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal myTimeScale;
       UT_IntArray mySRCPointList;
       GEO_PointTree mySRCPointTree;
-      bool myRendered;
+//      static bool myRendered;
 
       GU_Detail * myFileGDP;
       openvdb::ScalarGrid::Ptr myGeoGrid;
@@ -423,7 +423,7 @@ class VRAY_clusterThis : public VRAY_Procedural
 
       // Parameters
       uint32   myNumCopies;
-      bool     myUseGeoFile;
+      int     myUseGeoFile;
       UT_String mySrcGeoFname;
       uint32   myPrimType;
       uint32   myMethod;  // Instance now or deferred
@@ -442,25 +442,22 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myCurrentTime;
       fpreal   myNoiseAmp;
       fpreal   myNoiseAtten;
-      UT_Vector3 myNoiseVec;
       int      myNoiseSeed;
       int      myFractalDepth;
-      bool     myCopyAttrs;
-      bool     myBlendAttrs;
       uint32   myFilterType;
       fpreal   myFilterAmp;
       UT_String myGeoFile;
       UT_String myTempFname;
-      bool      myUseTempFile;
-      bool      mySaveTempFile;
+      int      myUseTempFile;
+      int      mySaveTempFile;
       UT_String myCVEXFname;
-      bool     myCVEX_Exec;
+      int     myCVEX_Exec;
       UT_String myCVEXFname_prim;
-      bool     myCVEX_Exec_prim;
+      int     myCVEX_Exec_prim;
       UT_String myCVEXFname_pre;
-      bool     myCVEX_Exec_pre;
+      int     myCVEX_Exec_pre;
       UT_String myCVEXFname_post;
-      bool     myCVEX_Exec_post;
+      int     myCVEX_Exec_post;
       int      myVerbose;
 
       // VDB pre processing parms

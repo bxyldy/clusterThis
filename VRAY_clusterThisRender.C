@@ -46,6 +46,7 @@ void VRAY_clusterThis::render()
    long int point_num = 0;
 
    tempFileDeleted = false;
+   static bool rendered = false;
 
    myPasses(1);
 //   std::cout << "VRAY_clusterThis::render() - num_passes: " << dca::myPasses(0) <<  std::endl;
@@ -64,7 +65,7 @@ void VRAY_clusterThis::render()
 //       }
 
 
-         if(!myRendered || !myUseTempFile) {
+         if(!rendered || !myUseTempFile) {
 
                if(myUseGeoFile) {
                      // If the file failed to load, throw an exception
@@ -154,7 +155,7 @@ void VRAY_clusterThis::render()
                         break;
                   }
 
-               myRendered = true;
+               rendered = true;
 
 
                if(myPrimType == CLUSTER_FILE) {
@@ -324,12 +325,12 @@ void VRAY_clusterThis::render()
                      fpreal      xinc, yinc, zinc, factor;
                      fpreal      xv, yv, zv;
                      fpreal      dfactor;
-                     fpreal      lod;
+//                     fpreal      lod;
 
-
-                     // Compute LOD without regards to motion blur
-                     lod = getLevelOfDetail(myBox);
-//                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
+//                     lod = getLevelOfDetail(myBox);
+////                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
+//                     lod = getLevelOfDetail(myVelBox);
+////                        std::cout << "VRAY_clusterThis::render() lod: " << lod << std::endl;
 
 
 //                   if(lod > myParms->myChunkSize && mySRCPointList.entries() > myGridPointLimit) {
@@ -469,6 +470,7 @@ void VRAY_clusterThis::render()
 
                // Save the geo to temp location so it doesn't have to be regenerated for a deep shadow pass, etc.
                if(myMethod == CLUSTER_INSTANCE_NOW && myUseTempFile) {
+                     cout << "VRAY_clusterThis::render() temp file: " << myTempFname << std::endl;
                      ofstream myGeoStream;
                      // myGeoStream.open("/tmp/thisGeo.bgeo");
                      myGeoStream.open((const char *)myTempFname, ios_base::binary);
@@ -486,7 +488,7 @@ void VRAY_clusterThis::render()
                // We're done, free the original geometry
                VRAY_Procedural::freeGeometry(myGdp);
 
-            } // if (!myRendered || !myUseTempFile) ...
+            } // if (!rendered || !myUseTempFile) ...
 
 
          // Geo has already been generated ...

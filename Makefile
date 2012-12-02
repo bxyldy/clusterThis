@@ -44,7 +44,7 @@ install_dso: VRAY_clusterThis.so
 install: ${src} VRAY_clusterThis.so
 ifeq ($(OSTYPE),linux)
 	-@echo $(SRC_VER)
-	strip ${DSONAME}
+#	strip ${DSONAME}
 	cp ${DSONAME} $(INSTDIR)
 endif
 ifeq ($(OSTYPE),darwin)
