@@ -41,6 +41,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
    // Perform "nearest neighbor" post processing
    if(myNNPostProcess) {
+         UT_Vector3 v;
+
          if(myVerbose > CLUSTER_MSG_INFO)
             cout << "VRAY_clusterThis::postProcess() Performing nearest neighbor processing " << std::endl;
 
@@ -55,44 +57,28 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //      cout << "VRAY_clusterThis::postProcess() num_src_pts_found: " << num_src_pts_found << " inst_radius: " << inst_radius << std::endl;
 
             new_v = 0.0;
-            if(num_src_pts_found > 0)
+            if(num_src_pts_found > 0) {
+
                for(uint i = 0; i < src_list.entries(); i++) {
                      src_ppt = src_list(i);
                      tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
-//                     dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
-                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+                     dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+//                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
 //                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
 //                     new_v = new_v + (tmp_v * (1 + SYSsqrt((inst_radius * inst_radius) - dist)));
-//                     new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
-                     new_v = new_v + (tmp_v * (1 + inst_radius - dist));
+                     new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
+//                     new_v = new_v + (tmp_v * (1 + inst_radius - dist));
+//                     cout << "VRAY_clusterThis::postProcess() new_v: " << new_v << std::endl;
                   }
 
-//  SYSavg(a,b,c)
-// SYSclamp(a, min, max)
-//std::numeric_limits<float>::max();
-//std::numeric_limits<float>::min();
-//std::numeric_limits<float>::infinity();
+            v = static_cast<UT_Vector3>((new_v / static_cast<float>(num_src_pts_found)));
+//            v = static_cast<const UT_Vector3>(((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
 
-//            const UT_Vector3 v =  static_cast<const UT_Vector3>(
-//                                 (((new_v / myFPS) * myNNPostVelInfluence)));
-
-//            const UT_Vector3 v =  static_cast<const UT_Vector3>(
-//                                 (((new_v / myFPS) * myNNPostVelInfluence) / static_cast<float>(num_src_pts_found)));
-
-            const UT_Vector3 v =
-               static_cast<const UT_Vector3>((new_v / static_cast<float>(num_src_pts_found)));
-//            const UT_Vector3 v =
-//               static_cast<const UT_Vector3>(((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
-
-            SYSclamp(v[0], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
-            SYSclamp(v[1], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
-            SYSclamp(v[2], std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
-
-//            cout << "VRAY_clusterThis::postProcess() v: " << v << std::endl;
-
-            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV, static_cast<const UT_Vector3>(v * myNNPostVelInfluence));
+            inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV,
+                                           static_cast<const UT_Vector3>(v * myNNPostVelInfluence));
 
             inst_ppt->setPos((inst_pos + static_cast<const UT_Vector3>(v * myNNPostPosInfluence)));
+            }
 
          }
 
@@ -243,40 +229,40 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
                if(myPostVDBMedianFilter) {
-               if(myVerbose > CLUSTER_MSG_INFO)
-                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with median filter ... " << std::endl;
-                  for(int n = 0; n < myPostVDBMedianIterations && !boss.wasInterrupted(); ++n)
-                     fooFilter.median();
-               }
+                     if(myVerbose > CLUSTER_MSG_INFO)
+                        std::cout << "VRAY_clusterThis::postProcess() - Filtering with median filter ... " << std::endl;
+                     for(int n = 0; n < myPostVDBMedianIterations && !boss.wasInterrupted(); ++n)
+                        fooFilter.median();
+                  }
 
 
                if(myPostVDBMeanFilter) {
-                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean filter ... " << std::endl;
-                  for(int n = 0; n < myPostVDBMeanIterations && !boss.wasInterrupted(); ++n)
-                     fooFilter.mean();
-               }
+                     std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean filter ... " << std::endl;
+                     for(int n = 0; n < myPostVDBMeanIterations && !boss.wasInterrupted(); ++n)
+                        fooFilter.mean();
+                  }
 
                if(myPostVDBMeanCurvatureFilter) {
-                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean curvature filter ... " << std::endl;
-                  for(int n = 0; n < myPostVDBMeanCurvatureIterations && !boss.wasInterrupted(); ++n)
-                     fooFilter.meanCurvature();
-               }
+                     std::cout << "VRAY_clusterThis::postProcess() - Filtering with mean curvature filter ... " << std::endl;
+                     for(int n = 0; n < myPostVDBMeanCurvatureIterations && !boss.wasInterrupted(); ++n)
+                        fooFilter.meanCurvature();
+                  }
 
 
                if(myPostVDBLaplacianFilter) {
-                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with laplacian filter ... " << std::endl;
-                  for(int n = 0; n < myPostVDBLaplacianIterations && !boss.wasInterrupted(); ++n)
-                     fooFilter.laplacian();
-               }
+                     std::cout << "VRAY_clusterThis::postProcess() - Filtering with laplacian filter ... " << std::endl;
+                     for(int n = 0; n < myPostVDBLaplacianIterations && !boss.wasInterrupted(); ++n)
+                        fooFilter.laplacian();
+                  }
 
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = barFilter.renormalize(3, 0.1);
 
                if(myPostVDBOffsetFilter) {
-                  std::cout << "VRAY_clusterThis::postProcess() - Filtering with offset filter ... " << std::endl;
-                  fooFilter.offset(myPostVDBOffsetFilterAmount);
-               }
+                     std::cout << "VRAY_clusterThis::postProcess() - Filtering with offset filter ... " << std::endl;
+                     fooFilter.offset(myPostVDBOffsetFilterAmount);
+                  }
 
 //00838 {
 //00839
@@ -390,7 +376,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //
 //               }
 
-                  if(myVerbose == CLUSTER_MSG_DEBUG) {
+                  if(myVerbose > CLUSTER_MSG_INFO) {
                         pt_counter++;
                         if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
                               std::cout << "VRAY_clusterThis::postProcess() Number of points post processed: " << pt_counter
@@ -401,7 +387,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                }
 
 
-               if(myVerbose == CLUSTER_MSG_DEBUG) {
+               if(myVerbose > CLUSTER_MSG_INFO) {
                      if(!pointsFound)
                         cout << "VRAY_clusterThis::postProcess() NO POINTS POST PROCESSED!!! " << std::endl;
                      else
