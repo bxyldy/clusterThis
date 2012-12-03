@@ -47,7 +47,7 @@ void VRAY_clusterThis::createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_
 
 // TODO: Check all these references with *.isValid() and throw exeception if it fails !!!
 
-   if((myPrimType != CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
+   if(myPrimType != CLUSTER_POINT) {
 
 #ifdef DEBUG
          cout << "VRAY_clusterThis::createAttributeRefs() Creating primitive attributes" << endl;
@@ -103,7 +103,7 @@ void VRAY_clusterThis::createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_
 
    // Do the point attribute creation
 
-   if((myPrimType == CLUSTER_POINT) && (myMethod == CLUSTER_INSTANCE_NOW)) {
+   if(myPrimType == CLUSTER_POINT) {
 #ifdef DEBUG
          cout << "VRAY_clusterThis::createAttributeRefs() Creating Point attributes" << endl;
 #endif

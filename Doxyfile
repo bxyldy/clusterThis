@@ -588,7 +588,6 @@ INPUT                  = VRAY_clusterThis.h \
                          Doxyfile \
                          VRAY_clusterThisAttributeUtils.C \
                          VRAY_clusterThisRender.C \
-                         VRAY_clusterThisPreProcess.C \
                          VRAY_clusterThisPostProcess.C \
                          VRAY_clusterThisRunCVEX.C \
                          faq.txt \

@@ -3,7 +3,7 @@ DBG=-g
 src = VRAY_clusterThis.C VRAY_clusterThis.h \
    VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
    VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-   VRAY_clusterThisPreProcess.C VRAY_clusterThisPostProcess.C \
+   VRAY_clusterThisPostProcess.C \
    VRAY_clusterThisUtil.C VRAY_clusterThisRender.C
 
 SOURCES = VRAY_clusterThis.C

@@ -575,7 +575,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    myFractalDepth = 0;
    myRecursion = 0;
 
-   myMethod = CLUSTER_INSTANCE_NOW;
    myVerbose = CLUSTER_MSG_QUIET;
    myUseTempFile = 0;
    mySaveTempFile = 0;

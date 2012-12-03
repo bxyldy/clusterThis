@@ -549,11 +549,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          CLUSTER_MSG_DEBUG
       };
 
-      enum clusterInstanceMethod {
-         CLUSTER_INSTANCE_NOW = 0,
-         CLUSTER_INSTANCE_DEFERRED
-      };
-
       enum clusterCVEXMethod {
          CLUSTER_CVEX_POINT = 0,
          CLUSTER_CVEX_PRIM
