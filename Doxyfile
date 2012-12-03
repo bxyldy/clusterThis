@@ -581,8 +581,6 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = VRAY_clusterThis.h \
-                         VRAY_clusterThisChild.C \
-                         VRAY_clusterThisChild.h \
                          VRAY_clusterThisInstance.C \
                          VRAY_clusterUtil.C \
                          VRAY_clusterCVEXUtil.C \

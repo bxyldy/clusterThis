@@ -490,9 +490,3 @@ inline int VRAY_clusterThis::setFileAttributes(GU_Detail * file_gdp)
 
 
 
-
-
-
-
-
-

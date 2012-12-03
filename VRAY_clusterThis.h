@@ -151,8 +151,6 @@ class VRAY_clusterThis : public VRAY_Procedural
 
    private:
 
-      friend class VRAY_clusterThisChild;
-
       struct pt_attr_ref_struct {
 
          // Required attributes
@@ -378,7 +376,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       // voxel processing
       int convertVDBUnits();
       void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
-      void preProcess(GU_Detail * gdp);
       void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
 
@@ -459,33 +456,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       UT_String myCVEXFname_post;
       int     myCVEX_Exec_post;
       int      myVerbose;
-
-      // VDB pre processing parms
-      int      myPreProcess;
-      int      myPreRasterType;
-      fpreal   myPreDx;
-      int      myPreFogVolume;
-      fpreal   myPreGradientWidth;
-      fpreal   myPreVoxelSize;
-      fpreal   myPreRadiusMin;
-      fpreal   myPreBandWidth;
-      int      myPreWSUnits;
-      fpreal   myPreVDBVelocityMult;
-      fpreal   myPreVDBRadiusMult;
-      fpreal   myPreFalloff;
-      fpreal   myPrePosInfluence;
-      fpreal   myPreNormalInfluence;
-      fpreal   myPreVelInfluence;
-
-      int      myPreVDBMedianFilter;
-      int      myPreVDBMeanFilter;
-      int      myPreVDBMeanCurvatureFilter;
-      int      myPreVDBLaplacianFilter;
-      int      myPreVDBOffsetFilter;
-      fpreal   myPreVDBOffsetFilterAmount;
-      int      myPreVDBReNormalizeFilter;
-      int      myPreVDBWriteDebugFiles;
-
 
       int myPostProcess;
       int myNNPostProcess;

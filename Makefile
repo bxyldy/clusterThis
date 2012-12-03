@@ -1,7 +1,6 @@
 SHELL=/bin/csh
 DBG=-g
 src = VRAY_clusterThis.C VRAY_clusterThis.h \
-   VRAY_clusterThisChild.C  VRAY_clusterThisChild.h  \
    VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
    VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
    VRAY_clusterThisPreProcess.C VRAY_clusterThisPostProcess.C \

@@ -746,10 +746,3 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 
 #endif
 
-
-
-
-
-
-
-
