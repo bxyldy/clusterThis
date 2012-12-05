@@ -3,7 +3,7 @@ DBG=-g
 src = VRAY_clusterThis.C VRAY_clusterThis.h \
    VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
    VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-   VRAY_clusterThisPostProcess.C \
+   VRAY_clusterThisPostProcess.C VRAY_clusterThisParms.C \
    VRAY_clusterThisUtil.C VRAY_clusterThisRender.C
 
 SOURCES = VRAY_clusterThis.C
@@ -15,7 +15,7 @@ H_CFLAGS =  $(shell hcustom --cflags)
 
 today = $(shell date +%j)
 MAJOR_VER = "2"
-MINOR_VER = "1"
+MINOR_VER = "5"
 BUILD_VER = "$(today)"
 SRC_VER = $(MAJOR_VER).$(MINOR_VER).$(BUILD_VER)
 SRC_VER_FLAGS = -DMAJOR_VER=$(MAJOR_VER) -DMINOR_VER=$(MINOR_VER) -DBUILD_VER=$(BUILD_VER)

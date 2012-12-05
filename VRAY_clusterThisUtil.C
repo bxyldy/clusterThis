@@ -1,5 +1,321 @@
+/* ******************************************************************************
+*
+*  VRAY_clusterThisUtil
+*
+*
+* Description :
+*
+*
+***************************************************************************** */
+
+
 #ifndef __VRAY_clusterThisUtil_C__
 #define __VRAY_clusterThisUtil_C__
+
+
+
+/* ******************************************************************************
+*  Function Name : getBoundingBox
+*
+*  Description :  Get the bounding box for this VRAY_clusterThis object
+*
+*  Input Arguments : None
+*
+*  Return Value : None
+*
+***************************************************************************** */
+void VRAY_clusterThis::getBoundingBox(UT_BoundingBox & box)
+{
+
+   box = myVelBox;
+
+#ifdef DEBUG
+   std::cout << "VRAY_clusterThis::getBoundingBox() box: " << box << std::endl;
+#endif
+
+}
+
+
+/* ******************************************************************************
+*  Function Name : checkRequiredAttributes
+*
+*  Description :  Check that all the required attributes are in the point cloud
+*
+*  Input Arguments : None
+*
+*  Return Value : None
+*
+***************************************************************************** */
+void VRAY_clusterThis::checkRequiredAttributes()
+{
+
+   // TODO: Confirm that all required attrs are being checked for each instance type
+
+//   std::cout << "VRAY_clusterThis::checkRequiredAttributes()" << std::endl;
+   // Check for required attributes
+   if(myPointAttrRefs.Cd.isInvalid()) {
+         cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
+      }
+
+   if(myPointAttrRefs.Alpha.isInvalid()) {
+         cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
+      }
+
+   if(myPointAttrRefs.v.isInvalid()) {
+         cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
+      }
+
+   if(myPointAttrRefs.N.isInvalid()) {
+         cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
+      }
+
+   if(myPointAttrRefs.pscale.isInvalid()) {
+         cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
+      }
+
+   if(myPointAttrRefs.id.isInvalid()) {
+         cout << "Incoming points must have id attribute Throwing exception ..." << endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
+      }
+
+}
+
+
+
+/* ******************************************************************************
+*  Function Name : convert()
+*
+*  Description : convert point cloud to VDB level set or fog volume
+*
+*  Input Arguments : None
+*
+*  Return Value :
+*
+* ***************************************************************************** */
+void VRAY_clusterThis::convert(
+   openvdb::ScalarGrid::Ptr outputGrid,
+   ParticleList & paList,
+   const Settings & settings,
+   hvdb::Interrupter & boss)
+{
+
+   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
+
+//   std::cout << "VRAY_clusterThis::convert() " << std::endl;
+
+
+   raster.setRmin(settings.mRadiusMin);
+
+   if(myVerbose == CLUSTER_MSG_DEBUG) {
+         std::cout << "VRAY_clusterThis::convert(): raster.getVoxelSize(): " << raster.getVoxelSize() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+      }
+
+   if(raster.getHalfWidth() < openvdb::Real(2)) {
+         std::cout << "VRAY_clusterThis::convert(): Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
+      }
+   else
+      if(raster.getHalfWidth() > openvdb::Real(1000)) {
+            throw std::runtime_error(
+               "VRAY_clusterThis::convert(): Half width of narrow-band > 1000 voxels which exceeds memory limitations!");
+         }
+
+   if(settings.mRasterizeTrails && paList.hasVelocity()) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing trails"  << std::endl;
+         raster.rasterizeTrails(paList, settings.mDx);
+      }
+   else {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing spheres"  << std::endl;
+         raster.rasterizeSpheres(paList);
+      }
+
+   if(boss.wasInterrupted()) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): Process was interrupted"  << std::endl;
+         return;
+      }
+
+   // Convert the level-set into a fog volume.
+   if(settings.mFogVolume) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): converting to fog volume"  << std::endl;
+         float cutOffDist = std::numeric_limits<float>::max();
+         if(settings.mGradientWidth > 1e-6)
+            cutOffDist = settings.mGradientWidth;
+         openvdb::tools::levelSetToFogVolume(*outputGrid, cutOffDist, false);
+      }
+
+// print stats of the vdb grid
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      outputGrid->print();
+
+}
+
+
+
+
+int VRAY_clusterThis::convertVDBUnits()
+{
+//     const bool toWSUnits = static_cast<bool>(evalInt("worldSpaceUnits", 0, 0));
+//
+//     if (toWSUnits) {
+//         setFloat("bandWidthWS", 0, 0, evalFloat("bandWidth", 0, 0) * mVoxelSize);
+//         return 1;
+//     }
+//
+//     setFloat("bandWidth", 0, 0, evalFloat("bandWidthWS", 0, 0) / mVoxelSize);
+//
+   return 1;
+}
+
+
+
+
+/* ******************************************************************************
+*  Function Name : exitClusterThis()
+*
+*  Description :  Start the exit process
+*
+*  Input Arguments : void *data
+*
+*  Return Value :
+*
+***************************************************************************** */
+void VRAY_clusterThis::exitClusterThis(void * data)
+{
+   VRAY_clusterThis * me = (VRAY_clusterThis *)data;
+
+   if(me->myVerbose > CLUSTER_MSG_INFO)
+      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+
+
+//   if(me->myVerbose > CLUSTER_MSG_INFO)
+//      cout << "VRAY_clusterThis::exitClusterThis() myTempFname: " << (const char *)me->myTempFname << endl;
+
+
+//   if(me->tempFileDeleted) {
+//         me->tempFileDeleted = true;
+//         cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
+////         me->exitClusterThisReal((const char *)me->myTempFname);
+//         me->exitClusterThisReal(data);
+//      }
+
+
+   if(me->myVerbose > CLUSTER_MSG_INFO)
+      cout << "VRAY_clusterThis::exitClusterThis() - Running exit processing" << endl;
+
+//   cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
+//
+//   cout << "VRAY_clusterThis::exitClusterThis() - temp filename " << me->myTempFname << endl;
+
+//   const char * fname = me->myTempFname;
+//
+////   ofstream myStream;
+//
+////   myStream.open("exit_data.txt", ios_base::app);
+////   myStream << this->exitData.exitTime << std::endl;
+////   myStream << this->exitData.exitCode << std::endl;
+////   myStream.flush();
+////   myStream.close();
+////   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
+////
+//
+//   struct stat fileResults;
+//
+//   if(me->myUseTempFile && !me->mySaveTempFile) {
+//         if((UT_String(fname)).isstring() && stat(fname, &fileResults) == 0) {
+//               if(me->myVerbose > CLUSTER_MSG_INFO)
+//                  cout << "VRAY_clusterThis::exitClusterThis() - Found temp file " << fname << endl;
+//               if(!remove(fname) && (me->myVerbose > CLUSTER_MSG_INFO))
+//                  cout << "VRAY_clusterThis::exitClusterThis() - Removed geometry temp file: " << fname << endl;
+//            }
+//         else
+//            if(me->myVerbose > CLUSTER_MSG_INFO)
+//               cout << "VRAY_clusterThis::exitClusterThis() - Did not find temp file " << fname << endl << endl;
+//      }
+//
+//
+
+   const char * fname = me->myTempFname;
+
+   me->exitClusterThisReal(fname);
+//         me->exitClusterThisReal(data);
+
+}
+
+
+
+/* ******************************************************************************
+*  Function Name : exitClusterThisReal()
+*
+*  Description : Clean up temp file if used, save stats to file and DB
+*
+*  Input Arguments : None
+*
+*  Return Value :
+*
+* ***************************************************************************** */
+//void VRAY_clusterThis::exitClusterThisReal(void * data)
+void VRAY_clusterThis::exitClusterThisReal(const char * fname)
+{
+   struct stat fileResults;
+//   VRAY_clusterThis * me = (VRAY_clusterThis *)data;
+
+
+   if(myVerbose > CLUSTER_MSG_INFO)
+      cout << "VRAY_clusterThis::exitClusterThisReal() - Running exit processing" << endl;
+
+
+//   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
+//
+//   cout << "VRAY_clusterThis::exitClusterThisReal() - temp filename " << myTempFname << endl;
+//
+//   const char * fname = me->myTempFname;
+
+//   ofstream myStream;
+
+//   myStream.open("exit_data.txt", ios_base::app);
+//   myStream << this->exitData.exitTime << std::endl;
+//   myStream << this->exitData.exitCode << std::endl;
+//   myStream.flush();
+//   myStream.close();
+//   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
+//
+
+
+   if(this->myUseTempFile && !this->mySaveTempFile) {
+         if((UT_String(fname)).isstring() && stat(fname, &fileResults) == 0) {
+               if(myVerbose > CLUSTER_MSG_INFO)
+                  cout << "VRAY_clusterThis::exitClusterThisReal() - Found temp file " << fname << endl;
+               if(!remove(fname) && (myVerbose > CLUSTER_MSG_INFO))
+                  cout << "VRAY_clusterThis::exitClusterThisReal() - Removed geometry temp file: " << fname << endl;
+            }
+         else
+            if(myVerbose > CLUSTER_MSG_INFO)
+               cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << fname << endl << endl;
+      }
+
+
+
+   if(myVerbose > CLUSTER_MSG_INFO)
+      std::cout << "VRAY_clusterThis::exitClusterThisReal() - Exiting" << std::endl;
+}
+
+
+
+
+
+/// ********************** MISC. STATIC FUNCTIONS *************************************
+
+
 
 
 static void getRoughBBox(UT_BoundingBox & box, UT_BoundingBox & vbox,

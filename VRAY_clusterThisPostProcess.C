@@ -2,7 +2,6 @@
 *
 *  VRAY_clusterThisPostProcess
 *
-* $RCSfile: VRAY_clusterThisPostProcess.C,v $
 *
 * Description :
 *

@@ -9,7 +9,7 @@ allows access to render time data, add additional detail to scene.
 @b Features:
 @li Instance primitives at render time (sphere, cube, grid, tube, circle, curve, metaball)
 @li Instance disk file (and apply CVEX deformation and attribute processing)
-@li Attribute driven instancing
+@li Open VDB post processing of instanced geometry and it's attributes
 @li Motion blur
 @li CVEX processing of instanced geometry
 @li Cache file stores data when generating deep shadow maps to optimize instancing.

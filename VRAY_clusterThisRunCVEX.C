@@ -1,25 +1,8 @@
 /* ******************************************************************************
 *
 *  VRAY_clusterThisRunCVEX
-*
-* $RCSfile: VRAY_clusterThisRunCVEX.C,v $
-*
+**
 * Description :
-*
-* $Revision: 1.12 $
-*
-* $Source: /dca/cvsroot/houdini/VRAY_clusterThis/VRAY_clusterThisRunCVEX.C,v $
-*
-* $Author: mstory $
-*
-*
-* See Change History at the end of the file.
-*
-*    Digital Cinema Arts (C) 2008
-*
-* This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License.
-* To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ or send a letter to
-* Creative Commons, 543 Howard Street, 5th Floor, San Francisco, California, 94105, USA.
 *
 ***************************************************************************** */
 
