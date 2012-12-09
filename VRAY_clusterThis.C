@@ -198,6 +198,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    mySize[2] = 0.0;
    myDoMotionBlur = CLUSTER_MB_NONE;
    myCurrentTime = 0.0;
+   myCurrentFrame = 0.0;
    myShutter = 0.1;
    myNoiseAmp = 0.0;
    myFilterType = 0;
@@ -206,6 +207,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myNoiseSeed = 0;
    myFractalDepth = 0;
    myRecursion = 0;
+   myBBoxFudgeFactor = 0.0;
 
    myVerbose = CLUSTER_MSG_QUIET;
    myUseTempFile = 0;
@@ -353,6 +355,9 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
 
+   // Dump the user parameters to the console
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      VRAY_clusterThis::dumpParameters();
 
    if(myVerbose > CLUSTER_MSG_QUIET) {
          std::cout << "VRAY_clusterThis::initialize() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
@@ -361,6 +366,11 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          std::cout << "VRAY_clusterThis::initialize() - Initializing ..." <<  std::endl;
       }
 
+//          cout << "VM_GEO_clusterThis OTL version: " <<  myOTLVersion << std::endl;
+//       if(myOTLVersion != DCA_VERSION) {
+//          cout << "VM_GEO_clusterThis OTL is wrong version: " <<  myOTLVersion << ", should be version: " << DCA_VERSION << ", please install correct version." << std::endl;
+//          throw VRAY_clusterThis_Exception ( "VRAY_clusterThis::initialize() VM_GEO_clusterThis OTL is wrong version!", 1 );
+//       }
 
 
    // Find the geometry object to render
@@ -391,18 +401,16 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myUseGeoFile) {
          // If the file failed to load, throw an exception
          if(!(myGdp->load((const char *)mySrcGeoFname).success()))
-            throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - Failed to read source geometry file ", 1);
+            throw VRAY_clusterThis_Exception("VRAY_clusterThis::initialize() - Failed to read source geometry file ", 1);
 
          if(myVerbose > CLUSTER_MSG_INFO)
-            cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
+            cout << "VRAY_clusterThis::initialize() - Successfully loaded source geo file: " << mySrcGeoFname << endl;
       }
    else {
          myGdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
          if(myVerbose > CLUSTER_MSG_INFO)
-            cout << "VRAY_clusterThis::render() - Copied incoming geometry" << endl;
+            cout << "VRAY_clusterThis::initialize() - Copied incoming geometry" << endl;
       }
-
-
 
 
    // Get the point's attribute references
@@ -416,10 +424,14 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    myMaterial.harden();
 //         myPointAttributes.material = myMaterial;
 
+#ifdef DEBUG
+   cout << "VRAY_clusterThis::initialize() myMaterial: " << myMaterial << std::endl;
+#endif
+
    myObjectName = VRAY_Procedural::queryObjectName(handle);
 
-//      cout << "VRAY_clusterThis::render() Object Name: " << myObjectName << std::endl;
-//      cout << "VRAY_clusterThis::render() Root Name: " << queryRootName() << std::endl;
+//      cout << "VRAY_clusterThis::initialize() Object Name: " << myObjectName << std::endl;
+//      cout << "VRAY_clusterThis::initialize() Root Name: " << queryRootName() << std::endl;
 
 #ifdef DEBUG
    cout << "Geometry Samples: " << queryGeometrySamples(handle) << std::endl;
@@ -551,18 +563,23 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
 
 
-#ifdef DEBUG
-   std::cout << "VRAY_clusterThis::initialize() mySRCPointList.getMemoryUsage(): " << mySRCPointList.getMemoryUsage() << std::endl;
-#endif
+//   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
-//   std::cout << "VRAY_clusterThis::initialize() 2 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+   // NOTE: Enlarge the bbox another 10% because we won't be able to ive mantra the actual bbox size via render() method.
+   // (mantra calls getBoundingBox() only once, and it's *before* the render() method is called by mantra).
+   myBox.enlargeBounds(myBBoxFudgeFactor, 0.000001);
+   myVelBox.enlargeBounds(myBBoxFudgeFactor, 0.000001);
+
+
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+   std::cout << "VRAY_clusterThis::initialize()\nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
 
    if(box) {
          if(myPointAttrRefs.v.isValid()) {
                if(testClampBox(myBox, *box) || testClampBox(myVelBox, *box))
-//                  VRAYwarning("%s[%s] cannot render a partial box %s", getClassName(), name, "with motion blur");
-                  std::cout << "VRAY_clusterThis::initialize() " << getClassName() << " WARNING: cannot render a partial box " << name << std::endl;
+                  VRAYwarning("%s[%s] cannot render a partial box %s", getClassName(), name, "with motion blur");
+               std::cout << "VRAY_clusterThis::initialize() " << getClassName() << " WARNING: cannot render a partial box " << name << std::endl;
             }
          else {
                clampBox(myBox, *box);

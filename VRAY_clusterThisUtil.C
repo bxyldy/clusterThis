@@ -55,33 +55,40 @@ void VRAY_clusterThis::checkRequiredAttributes()
    // Check for required attributes
    if(myPointAttrRefs.Cd.isInvalid()) {
          cout << "Incoming points must have Cd attribute! Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Cd attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have Cd attribute! ", 1);
       }
 
    if(myPointAttrRefs.Alpha.isInvalid()) {
          cout << "Incoming points must have Alpha attribute! Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have Alpha attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have Alpha attribute! ", 1);
       }
 
    if(myPointAttrRefs.v.isInvalid()) {
          cout << "Incoming points must have v attribute! Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have v attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have v attribute! ", 1);
       }
 
    if(myPointAttrRefs.N.isInvalid()) {
          cout << "Incoming points must have N attribute! Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have N attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have N attribute! ", 1);
       }
 
    if(myPointAttrRefs.pscale.isInvalid()) {
          cout << "Incoming points must have pscale attribute! Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have pscale attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have pscale attribute! ", 1);
       }
 
    if(myPointAttrRefs.id.isInvalid()) {
          cout << "Incoming points must have id attribute Throwing exception ..." << endl;
-         throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have id attribute! ", 1);
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have id attribute! ", 1);
       }
+
+   // Check for weight attribute if the user wants metaballs
+   if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
+         cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
+         throw VRAY_clusterThis_Exception("VRAY_clusterThis::checkRequiredAttributes() Incoming points must have weight attribute if instancing metaballs!", 1);
+      }
+
 
 }
 

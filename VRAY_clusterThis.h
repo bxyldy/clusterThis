@@ -1,14 +1,13 @@
 /* ******************************************************************************
 *
-*  clusterThis mantra DSO for render time geo clustering
+*  VRAY_clusterThis.h
 *
-*    Digital Cinema Arts (C) 2008-2012
 *
-* This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License.
-* To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ or send a letter to
-* Creative Commons, 543 Howard Street, 5th Floor, San Francisco, California, 94105, USA.
+* Description :
+*
 *
 ***************************************************************************** */
+
 
 #ifndef __VRAY_clusterThis_h__
 #define __VRAY_clusterThis_h__
@@ -142,12 +141,10 @@ class VRAY_clusterThis : public VRAY_Procedural
       void exitClusterThisReal(const char * fname);
       void exitClusterThisReal(void * data);
 
-
       struct exitData_struct {
          float exitTime;
          int exitCode;
       } exitData;
-
 
    private:
 
@@ -160,7 +157,7 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef backtrack;
          GA_RWAttributeRef N;
          GA_RWAttributeRef up;
-//         GA_RWAttributeRef orient;
+//         GA_RWAttributeRef orient;  // NOTE: using up vector instead of orient, at least for now.
          GA_RWAttributeRef material;
          GA_RWAttributeRef id;
          GA_RWAttributeRef pscale;
@@ -378,7 +375,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
       void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
-
       // Instancing methods
       int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
       int instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
@@ -414,8 +410,8 @@ class VRAY_clusterThis : public VRAY_Procedural
 //      static bool myRendered;
 
       GU_Detail * myFileGDP;
-      openvdb::ScalarGrid::Ptr myGeoGrid;
-      openvdb::VectorGrid::Ptr myGradientGrid;
+//      openvdb::ScalarGrid::Ptr myGeoGrid;
+//      openvdb::VectorGrid::Ptr myGradientGrid;
 
 
       // Parameters
@@ -437,6 +433,9 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myNoiseType;
       fpreal   myRough;
       fpreal   myCurrentTime;
+      fpreal   myCurrentFrame;
+      fpreal   myBBoxFudgeFactor;
+
       fpreal   myNoiseAmp;
       fpreal   myNoiseAtten;
       int      myNoiseSeed;

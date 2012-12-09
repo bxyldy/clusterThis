@@ -41,6 +41,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("mb_shutter2", "real", "0.9"),
    VRAY_ProceduralArg("verbose", "integer", "0"),
    VRAY_ProceduralArg("time", "real",  "0.0"),
+   VRAY_ProceduralArg("frame", "real",  "0.0"),
    VRAY_ProceduralArg("noise_type", "integer", "0"),
    VRAY_ProceduralArg("noise_amp", "real", "0.1"),
    VRAY_ProceduralArg("noise_rough", "real", "0.1"),
@@ -53,6 +54,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
    VRAY_ProceduralArg("temp_file", "integer", "0"),
    VRAY_ProceduralArg("save_temp_file", "integer", "0"),
+   VRAY_ProceduralArg("bbox_fudge_factor", "real",  "0.001"),
    VRAY_ProceduralArg("otl_version", "string", "DCA_VERSION"),
 
    VRAY_ProceduralArg("CVEX_shader", "string", "default.vex"),
@@ -201,6 +203,12 @@ int VRAY_clusterThis::getOTLParameters()
 
    if(flt_ptr = VRAY_Procedural::getFParm("time"))
       myCurrentTime = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("frame"))
+      myCurrentFrame = *flt_ptr;
+
+   if(flt_ptr = VRAY_Procedural::getFParm("bbox_fudge_factor"))
+      myBBoxFudgeFactor = *flt_ptr;
 
    if(flt_ptr = VRAY_Procedural::getFParm("noise_amp"))
       myNoiseAmp = *flt_ptr;
@@ -472,7 +480,9 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myTempFname: " << myTempFname << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myUseTempFile: " << myUseTempFile << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() mySaveTempFile: " << mySaveTempFile << std::endl;
-
+   std::cout << "VRAY_clusterThis::dumpParameters() myCurrentFrame: " << myCurrentFrame << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myCurrentTime: " << myCurrentTime << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myBBoxFudgeFactor: " << myBBoxFudgeFactor << std::endl;
 
    std::cout << "VRAY_clusterThis::dumpParameters() **** NOISE PARAMETERS ****" << std::endl;
 

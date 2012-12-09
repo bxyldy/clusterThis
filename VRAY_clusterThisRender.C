@@ -43,13 +43,6 @@ void VRAY_clusterThis::render()
 
    try {
 
-//          cout << "VM_GEO_clusterThis OTL version: " <<  myOTLVersion << std::endl;
-//       if(myOTLVersion != DCA_VERSION) {
-//          cout << "VM_GEO_clusterThis OTL is wrong version: " <<  myOTLVersion << ", should be version: " << DCA_VERSION << ", please install correct version." << std::endl;
-//          throw VRAY_clusterThis_Exception ( "VRAY_clusterThis::render() VM_GEO_clusterThis OTL is wrong version!", 1 );
-//       }
-
-
          if(!rendered || !myUseTempFile) {
 
                if(myUseGeoFile) {
@@ -62,11 +55,11 @@ void VRAY_clusterThis::render()
                      if(myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << std::endl;
                   }
-               else {
+//               else {
 //                     myGdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
 //                     if(myVerbose > CLUSTER_MSG_INFO)
 //                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << std::endl;
-                  }
+//                  }
 
                if(!myGdp) {
                      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
@@ -75,13 +68,6 @@ void VRAY_clusterThis::render()
 //// DEBUG
 //               myGdp->getBBox(&tmpBox);
 //               std::cout << "VRAY_clusterThis::render() - myGdp->getBBox(&tmpBox): " << tmpBox << std::endl;
-
-
-               // Check for weight attribute if the user wants metaballs
-               if((myPrimType == CLUSTER_PRIM_METABALL) && (myPointAttrRefs.weight.isInvalid())) {
-                     cout << "Incoming points must have weight attribute if instancing metaballs! Throwing exception ..." << std::endl;
-                     throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() Incoming points must have weight attribute if instancing metaballs!", 1);
-                  }
 
 
                // Import the object:velocityscale settings.  This setting stores the
@@ -96,14 +82,6 @@ void VRAY_clusterThis::render()
                         std::cout << "VRAY_clusterThis::render() found object:velocityscale. myVelocityScale: " << myVelocityScale << std::endl;
                   }
 
-
-               // Dump the user parameters to the console
-               if(myVerbose == CLUSTER_MSG_DEBUG)
-                  VRAY_clusterThis::dumpParameters();
-
-#ifdef DEBUG
-               cout << "VRAY_clusterThis::render() myMaterial: " << myMaterial << std::endl;
-#endif
 
                myLOD = getLevelOfDetail(myBox);
                if(myVerbose > CLUSTER_MSG_INFO)
@@ -166,11 +144,6 @@ void VRAY_clusterThis::render()
                   }
 
 
-//               // Preprocess the incoming point cloud
-//               VRAY_clusterThis::preProcess(myGdp);
-
-
-
                /// For each point of the incoming geometry
                GA_FOR_ALL_GPOINTS(myGdp, ppt) {
                   myPointAttributes.myPos = ppt->getPos();
@@ -186,16 +159,13 @@ void VRAY_clusterThis::render()
                   fpreal dice;
                   bool skip = false;
 
-                  if((myPrimType != CLUSTER_PRIM_CURVE) ||
-                        (myPrimType == CLUSTER_PRIM_CURVE)) {
-
+                  if(myPrimType != CLUSTER_PRIM_CURVE) {
 
                         // For each point, make a number of copies of and recurse a number of times for each copy ...
                         for(int copyNum = 0; copyNum < myNumCopies; copyNum++) {
                               for(int recursionNum = 0; recursionNum < myRecursion; recursionNum++) {
 
                                     // generate random number to determine to instance or not
-
                                     dice = SYSfastRandom(seed);
                                     bool(dice >= myBirthProb) ? skip = true : skip = false;
 //                  cout << dice << " " << skip << std::endl;
@@ -205,7 +175,6 @@ void VRAY_clusterThis::render()
                                     VRAY_clusterThis::calculateNewPosition(theta, copyNum, recursionNum);
 
                                     if(!skip) {
-
                                           // Create a primitive based upon user's selection
                                           switch(myPrimType) {
                                                 case CLUSTER_POINT:
@@ -240,12 +209,10 @@ void VRAY_clusterThis::render()
                                           cout << "VRAY_clusterThis::render() - myInstanceNum: " << myInstanceNum << std::endl;
 #endif
 
-                                       }
-
+                                       } // if(!skip) ...
                                  } // for number of recursions ...
                            } // for number of copies ...
-
-                     }
+                     } // if(myPrimType != CLUSTER_PRIM_CURVE) ...
 
                   // User wants a curve instanced on this point
                   if((myPrimType == CLUSTER_PRIM_CURVE) && (!skip))

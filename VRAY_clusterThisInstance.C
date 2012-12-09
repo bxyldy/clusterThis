@@ -133,7 +133,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 #endif
 
    GEO_Primitive * myCube;
-//   GEO_Point * ppt;
+   GEO_Point * ppt;
    UT_Matrix4 xform(1.0);
 //   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
@@ -150,12 +150,12 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-//   for(int i = 0; i < myCube->getVertexCount(); i++) {
-//         ppt = myCube->getVertexElement(i).getPt();
-//         UT_Vector4  P = ppt->getPos();
-//         P *= xform;
-//         ppt->setPos(P);
-//      }
+   for(int i = 0; i < myCube->getVertexCount(); i++) {
+         ppt = myCube->getVertexElement(i).getPt();
+         UT_Vector4  P = ppt->getPos();
+         P *= xform;
+         ppt->setPos(P);
+      }
 
    VRAY_clusterThis::setInstanceAttributes(myCube);
 
@@ -167,13 +167,13 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                                                  myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
                                                  myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                                                  myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
-//
-//         for(int i = 0; i < myCube->getVertexCount(); i++) {
-//               ppt = myCube->getVertexElement(i).getPt();
-//               UT_Vector4  P = ppt->getPos();
-//               P *= xform;
-//               ppt->setPos(P);
-//            }
+
+         for(int i = 0; i < myCube->getVertexCount(); i++) {
+               ppt = myCube->getVertexElement(i).getPt();
+               UT_Vector4  P = ppt->getPos();
+               P *= xform;
+               ppt->setPos(P);
+            }
 
          VRAY_clusterThis::setInstanceAttributes(myCube);
       }
@@ -207,7 +207,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    GEO_Primitive * myGrid;
    GU_GridParms grid_parms;
-//   GEO_Point * ppt;
+   GEO_Point * ppt;
    UT_Matrix4 xform(1.0);
 //   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix3 rot_xform(1.0);
@@ -226,12 +226,12 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    grid_parms.plane = GU_PLANE_XY;
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-//   for(int i = 0; i < myGrid->getVertexCount(); i++) {
-//         ppt = myGrid->getVertexElement(i).getPt();
-//         UT_Vector4  P = ppt->getPos();
-//         P *= xform;
-//         ppt->setPos(P);
-//      }
+   for(int i = 0; i < myGrid->getVertexCount(); i++) {
+         ppt = myGrid->getVertexElement(i).getPt();
+         UT_Vector4  P = ppt->getPos();
+         P *= xform;
+         ppt->setPos(P);
+      }
 
    VRAY_clusterThis::setInstanceAttributes(myGrid);
 
@@ -242,12 +242,12 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          grid_parms.zcenter = myPointAttributes.myMBPos[2];
          myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-//         for(int i = 0; i < myGrid->getVertexCount(); i++) {
-//               ppt = myGrid->getVertexElement(i).getPt();
-//               UT_Vector4  P = ppt->getPos();
-//               P *= xform;
-//               ppt->setPos(P);
-//            }
+         for(int i = 0; i < myGrid->getVertexCount(); i++) {
+               ppt = myGrid->getVertexElement(i).getPt();
+               UT_Vector4  P = ppt->getPos();
+               P *= xform;
+               ppt->setPos(P);
+            }
 
          VRAY_clusterThis::setInstanceAttributes(myGrid);
       }
