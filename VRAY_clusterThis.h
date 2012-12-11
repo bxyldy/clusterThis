@@ -356,24 +356,24 @@ class VRAY_clusterThis : public VRAY_Procedural
       } myPointAttributes;
 
 
-      void calculateNewPosition(fpreal theta, uint32 i, uint32 j);
-      void dumpParameters();
-      int preLoadGeoFile(GU_Detail * file_gdp);
-      void createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int getAttributeRefs(GU_Detail * gdp);
-      int getAttributes(GEO_Point * ppt);
-      void checkRequiredAttributes();
-      int addFileAttributeRefs(GU_Detail * gdp);
-      void setInstanceAttributes(GEO_Primitive * myGeoPrim);
-      void setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
-      int setFileAttributes(GU_Detail * gdp);
-      int getOTLParameters();
-      int runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
+      void  calculateNewPosition(fpreal theta, uint32 i, uint32 j);
+      void  dumpParameters();
+      int   preLoadGeoFile(GU_Detail * file_gdp);
+      void  createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int   getAttributeRefs(GU_Detail * gdp);
+      int   getAttributes(GEO_Point * ppt);
+      void  checkRequiredAttributes();
+      int   addFileAttributeRefs(GU_Detail * gdp);
+      void  setInstanceAttributes(GEO_Primitive * myGeoPrim);
+      void  setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
+      int   setFileAttributes(GU_Detail * gdp);
+      int   getOTLParameters();
+      int   runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
 
       // voxel processing
-      int convertVDBUnits();
-      void convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
-      void postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int   convertVDBUnits();
+      void  convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void  postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
       // Instancing methods
       int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);

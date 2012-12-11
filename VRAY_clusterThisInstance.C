@@ -133,14 +133,9 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 #endif
 
    GEO_Primitive * myCube;
-   GEO_Point * ppt;
    UT_Matrix4 xform(1.0);
-//   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
-   UT_Matrix3 rot_xform(1.0);
-//   UT_Vector3 myDir = myPointAttributes.N;
-   UT_Vector3 myUp = UT_Vector3(0, 1, 0);
-   rot_xform.orient(myPointAttributes.N, myUp);
-   xform = rot_xform;
+   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
 
    myCube = (GEO_Primitive *) inst_gdp->cube(
                myPointAttributes.myNewPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
@@ -151,7 +146,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
    for(int i = 0; i < myCube->getVertexCount(); i++) {
-         ppt = myCube->getVertexElement(i).getPt();
+         GEO_Point * ppt = myCube->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
          ppt->setPos(P);
@@ -169,7 +164,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                                                  myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
          for(int i = 0; i < myCube->getVertexCount(); i++) {
-               ppt = myCube->getVertexElement(i).getPt();
+               GEO_Point * ppt = myCube->getVertexElement(i).getPt();
                UT_Vector4  P = ppt->getPos();
                P *= xform;
                ppt->setPos(P);
@@ -207,14 +202,10 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
    GEO_Primitive * myGrid;
    GU_GridParms grid_parms;
-   GEO_Point * ppt;
+   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
    UT_Matrix4 xform(1.0);
-//   UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
-   UT_Matrix3 rot_xform(1.0);
-//   UT_Vector3 myDir = myPointAttributes.N;
-   UT_Vector3 myUp = UT_Vector3(0, 1, 0);
-   rot_xform.orient(myPointAttributes.N, myUp);
-   xform = rot_xform;
+
+   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
 
    grid_parms.rows = 2;
    grid_parms.cols = 2;
@@ -227,7 +218,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
    for(int i = 0; i < myGrid->getVertexCount(); i++) {
-         ppt = myGrid->getVertexElement(i).getPt();
+         GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
          UT_Vector4  P = ppt->getPos();
          P *= xform;
          ppt->setPos(P);
@@ -243,7 +234,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
          for(int i = 0; i < myGrid->getVertexCount(); i++) {
-               ppt = myGrid->getVertexElement(i).getPt();
+               GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
                UT_Vector4  P = ppt->getPos();
                P *= xform;
                ppt->setPos(P);
