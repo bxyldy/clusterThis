@@ -14,6 +14,8 @@
 
 //#define DEBUG
 
+static const fpreal CLUSTER_BBOX_MIN = 0.00001;
+
 namespace
 {
 
@@ -370,10 +372,14 @@ class VRAY_clusterThis : public VRAY_Procedural
       int   getOTLParameters();
       int   runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
 
+      void postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+
       // voxel processing
       int   convertVDBUnits();
       void  convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void  convertVector(openvdb::VectorGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
       void  postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      void  preProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
       // Instancing methods
       int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
@@ -390,6 +396,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       GU_Detail * myGdp;
       UT_BoundingBox myBox;
       UT_BoundingBox myVelBox;
+      long int myNumSourcePoints;
       UT_String myMaterial;
       UT_Matrix3 myXformInverse;
       bool tempFileDeleted;
@@ -407,11 +414,14 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal myTimeScale;
       UT_IntArray mySRCPointList;
       GEO_PointTree mySRCPointTree;
-//      static bool myRendered;
+      clock_t myInitTime;
+      clock_t myPreProcTime;
+      clock_t myPostProcTime;
+      clock_t myRenderTime;
 
       GU_Detail * myFileGDP;
-//      openvdb::ScalarGrid::Ptr myGeoGrid;
-//      openvdb::VectorGrid::Ptr myGradientGrid;
+      openvdb::ScalarGrid::Ptr mySourceGeoGrid;
+      openvdb::VectorGrid::Ptr mySourceGradientGrid;
 
 
       // Parameters
@@ -456,6 +466,35 @@ class VRAY_clusterThis : public VRAY_Procedural
       int     myCVEX_Exec_post;
       int      myVerbose;
 
+      // VDB pre processing parms
+      int      myVDBPreProcess;
+      int      myPreRasterType;
+      fpreal   myPreDx;
+      int      myPreFogVolume;
+      fpreal   myPreGradientWidth;
+      fpreal   myPreVoxelSize;
+      fpreal   myPreRadiusMin;
+      fpreal   myPreBandWidth;
+      int      myPreWSUnits;
+      fpreal   myPreVDBVelocityMult;
+      fpreal   myPreVDBRadiusMult;
+      fpreal   myPreFalloff;
+      fpreal   myPrePosInfluence;
+      fpreal   myPreNormalInfluence;
+      fpreal   myPreVelInfluence;
+      int      myPreVDBMedianFilter;
+      int      myPreVDBMeanFilter;
+      int      myPreVDBMeanCurvatureFilter;
+      int      myPreVDBLaplacianFilter;
+      int      myPreVDBMedianIterations;
+      int      myPreVDBMeanIterations;
+      int      myPreVDBMeanCurvatureIterations;
+      int      myPreVDBLaplacianIterations;
+      int      myPreVDBOffsetFilter;
+      fpreal   myPreVDBOffsetFilterAmount;
+      int      myPreVDBReNormalizeFilter;
+      int      myPreVDBWriteDebugFiles;
+
       int myPostProcess;
       int myNNPostProcess;
       fpreal myNNPostPosInfluence;
@@ -477,7 +516,6 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myPostPosInfluence;
       fpreal   myPostNormalInfluence;
       fpreal   myPostVelInfluence;
-
       int      myPostVDBMedianFilter;
       int      myPostVDBMeanFilter;
       int      myPostVDBMeanCurvatureFilter;

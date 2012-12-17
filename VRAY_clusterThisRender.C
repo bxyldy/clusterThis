@@ -33,8 +33,8 @@ void VRAY_clusterThis::render()
    tempFileDeleted = false;
    static bool rendered = false;
 
-   myPasses(1);
-//   std::cout << "VRAY_clusterThis::render() - num_passes: " << dca::myPasses(0) <<  std::endl;
+//   myPasses(1);
+   std::cout << "VRAY_clusterThis::render() - num_passes: " << myPasses(1) <<  std::endl;
 
    if(myVerbose > CLUSTER_MSG_QUIET) {
          std::cout << "VRAY_clusterThis::render() - Instancing ..." <<  std::endl;
@@ -55,11 +55,6 @@ void VRAY_clusterThis::render()
                      if(myVerbose > CLUSTER_MSG_INFO)
                         cout << "VRAY_clusterThis::render() - Successfully loaded source geo file: " << mySrcGeoFname << std::endl;
                   }
-//               else {
-//                     myGdp->copy(*VRAY_Procedural::queryGeometry(handle, 0));
-//                     if(myVerbose > CLUSTER_MSG_INFO)
-//                        cout << "VRAY_clusterThis::render() - Copied incoming geometry" << std::endl;
-//                  }
 
                if(!myGdp) {
                      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
@@ -88,11 +83,10 @@ void VRAY_clusterThis::render()
                   cout << "VRAY_clusterThis::render() myLOD: " << myLOD << std::endl;
 
                // Get the number if points of the incoming geometery, calculate an interval for reporting the status of the instancing to the user
-               long int num_points = (long int) myGdp->points().entries();
-               long int stat_interval = (long int)(num_points * 0.10) + 1;
+               long int stat_interval = (long int)(myNumSourcePoints * 0.10) + 1;
 
                if(myVerbose > CLUSTER_MSG_QUIET)
-                  cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << num_points << std::endl;
+                  cout << "VRAY_clusterThis::render() Number of points of incoming geometry: " << myNumSourcePoints << std::endl;
 
                inst_gdp = VRAY_Procedural::allocateGeometry();
                if(!inst_gdp) {
@@ -380,6 +374,9 @@ void VRAY_clusterThis::render()
          return;
       }
 
+
+//   myPasses(0);
+   std::cout << "VRAY_clusterThis::render() - num_passes: " << myPasses(0) <<  std::endl;
 
    if(myVerbose > CLUSTER_MSG_QUIET)
       cout << "VRAY_clusterThis::render() - Leaving render() method" << std::endl;

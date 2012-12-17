@@ -34,6 +34,7 @@ See the @subpage changes "Release Notes" for what's new in this version of @b cl
 - @ref secParameters
 - @ref secInstall
 - @ref secNotes
+- @ref secDesignNotes
 - @ref secDebugTips
 <!-- - @ref secRegistry -->
 
@@ -160,6 +161,19 @@ Copy the openvdb lib files (libopenvdb.so& libopenvdb_houdini.so) to a location 
 
 NOTES:
 
+
+@section secDesignNotes
+
+Flowcharts:
+
+@b Overall mantra procedural call sequence:
+http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_overall.pdf
+
+@b render() method algorithm:
+http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_flowchart.pdf
+
+@b postProcess() algorithm:
+http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_postProcess.pdf
 
 @section secDebugTips Debug Tips
 

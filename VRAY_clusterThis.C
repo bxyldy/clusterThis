@@ -58,6 +58,8 @@
 #include <limits>
 #include <ios>
 #include <assert.h>
+#include <time.h>
+#include <math.h>
 
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/LevelSetSphere.h>
@@ -85,6 +87,7 @@ namespace hutil = houdini_utils;
 #include "VRAY_clusterThisAttributeUtils.C"
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
+//#include "VRAY_clusterThisPreProcess.C"
 #include "VRAY_clusterThisPostProcess.C"
 
 class VRAY_clusterThis_Exception;
@@ -183,6 +186,7 @@ VRAY_clusterThis::VRAY_clusterThis()
    myUseGeoFile = 0;
    mySrcGeoFname = "";
    myNumCopies = 0;
+   myNumSourcePoints = 0;
    myNoiseType = 0;
    myFreqX = 0.0;
    myFreqY = 0.0;
@@ -238,6 +242,36 @@ VRAY_clusterThis::VRAY_clusterThis()
    myCVEXPrimVars.cvex_pscale_prim = 0;
    myCVEXPrimVars.cvex_weight_prim = 0;
    myCVEXPrimVars.cvex_width_prim = 0;
+
+
+   // VDB pre processing parms
+   myVDBPreProcess = 0;
+   myPreRasterType = 0;
+   myPreDx = 1.0;
+   myPreFogVolume = 0;
+   myPreGradientWidth = 0.5;
+   myPreVoxelSize = 0.025;
+   myPreRadiusMin = 1.5;
+   myPreBandWidth = 0.2;
+   myPreWSUnits = 1;
+   myPreVDBRadiusMult = 1.0;
+   myPreVDBVelocityMult = 1.0;
+   myPreFalloff = 0.5;
+   myPrePosInfluence = 0.1;
+   myPreNormalInfluence = 0.1;
+   myPreVelInfluence = 0.1;
+   myPreVDBMedianFilter = 0;
+   myPreVDBMeanFilter = 0;
+   myPreVDBMeanCurvatureFilter = 0;
+   myPreVDBLaplacianFilter = 0;
+   myPreVDBOffsetFilter = 0;
+   myPreVDBOffsetFilterAmount = 0.1;
+   myPreVDBReNormalizeFilter = 0;
+   myPreVDBWriteDebugFiles = 0;
+   myPreVDBMedianIterations = 4;
+   myPreVDBMeanIterations = 4;
+   myPreVDBMeanCurvatureIterations = 4;
+   myPreVDBLaplacianIterations = 4;
 
 
    // Post processing parms
@@ -329,7 +363,6 @@ const char * VRAY_clusterThis::getClassName()
 }
 
 
-
 /* ******************************************************************************
 *  Function Name : initialize
 *
@@ -350,6 +383,8 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    UT_BoundingBox tbox, tvbox;
    UT_Matrix4     xform;
    UT_String      str;
+
+   myInitTime = std::clock();
 
 
    // Get the OTL parameters
@@ -419,6 +454,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    // Check for required attributes
    VRAY_clusterThis::checkRequiredAttributes();
 
+   myNumSourcePoints = (long int) myGdp->points().entries();
 
    VRAY_Procedural::querySurfaceShader(handle, myMaterial);
    myMaterial.harden();
@@ -563,16 +599,30 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
 
 
-//   std::cout << "VRAY_clusterThis::initialize() 1 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+//   std::cout << "VRAY_clusterThis::initialize() *** \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
-   // NOTE: Enlarge the bbox another 10% because we won't be able to ive mantra the actual bbox size via render() method.
-   // (mantra calls getBoundingBox() only once, and it's *before* the render() method is called by mantra).
-   myBox.enlargeBounds(myBBoxFudgeFactor, 0.000001);
-   myVelBox.enlargeBounds(myBBoxFudgeFactor, 0.000001);
+   // NOTE: Enlarge the bbox another x% because we won't be able to give mantra the actual bbox size via render() method.
+   // (mantra calls getBoundingBox() only once, and it's before the render() method is called by mantra).
+   myBox.enlargeBounds(myBBoxFudgeFactor);
+   myVelBox.enlargeBounds(myBBoxFudgeFactor);
+
+//   myBox.enlargeFloats();
+//   myVelBox.enlargeFloats();
+
+   for(int i = 0; i < 3; i++)
+      for(int j = 0; j < 2; j++) {
+            if(myBox.vals[i][j] <= CLUSTER_BBOX_MIN) {
+//            if(SYSisNan(myBox.vals[i][j])) {
+//            if(myBox.vals[i][j] <= std::numeric_limits<float>::min()) {
+                  myBox.vals[i][j] = CLUSTER_BBOX_MIN;
+                  if(myVerbose == CLUSTER_MSG_DEBUG)
+                     std::cout << "VRAY_clusterThis::initialize() found NAN: " << myBox.vals[i][j] << std::endl;
+               }
+         }
 
 
    if(myVerbose == CLUSTER_MSG_DEBUG)
-   std::cout << "VRAY_clusterThis::initialize()\nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
+      std::cout << "VRAY_clusterThis::initialize()\nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
 
 
    if(box) {
@@ -594,6 +644,10 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
 //      }
 
+
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::initialize() took " << (((float)myInitTime) / CLOCKS_PER_SEC)
+                << " seconds to execute" << std::endl;
 
    return 1;
 }
@@ -712,6 +766,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

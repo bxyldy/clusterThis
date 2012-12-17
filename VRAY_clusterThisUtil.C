@@ -113,8 +113,8 @@ void VRAY_clusterThis::convert(
 
    openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
 
-//   std::cout << "VRAY_clusterThis::convert() " << std::endl;
-
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::convert() " << std::endl;
 
    raster.setRmin(settings.mRadiusMin);
 
@@ -168,6 +168,80 @@ void VRAY_clusterThis::convert(
 
 
 
+/* ******************************************************************************
+*  Function Name : convertVector()
+*
+*  Description : convert point cloud to VDB vector level set or fog volume
+*
+*  Input Arguments : None
+*
+*  Return Value :
+*
+* ***************************************************************************** */
+void VRAY_clusterThis::convertVector(
+   openvdb::VectorGrid::Ptr outputGrid,
+   ParticleList & paList,
+   const Settings & settings,
+   hvdb::Interrupter & boss)
+{
+
+   openvdb::tools::ParticlesToLevelSet<openvdb::VectorGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
+
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::convert() " << std::endl;
+
+//   raster.setRmin(settings.mRadiusMin);
+
+   if(myVerbose == CLUSTER_MSG_DEBUG) {
+         std::cout << "VRAY_clusterThis::convert(): raster.getVoxelSize(): " << raster.getVoxelSize() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getRmin(): " << raster.getRmin() << std::endl;
+         std::cout << "VRAY_clusterThis::convert(): raster.getHalfWidth(): " << raster.getHalfWidth() << std::endl;
+      }
+
+//   if(raster.getHalfWidth() < openvdb::Real(2)) {
+//         std::cout << "VRAY_clusterThis::convert(): Half width of narrow-band < 2 voxels which creates holes when meshed!" << std::endl;
+//      }
+//   else
+//      if(raster.getHalfWidth() > openvdb::Real(1000)) {
+//            throw std::runtime_error(
+//               "VRAY_clusterThis::convert(): Half width of narrow-band > 1000 voxels which exceeds memory limitations!");
+//         }
+
+   if(settings.mRasterizeTrails && paList.hasVelocity()) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing trails"  << std::endl;
+//         raster.rasterizeTrails(paList, settings.mDx);
+      }
+   else {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): rasterizing spheres"  << std::endl;
+//         raster.rasterizeSpheres(paList);
+      }
+
+   if(boss.wasInterrupted()) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): Process was interrupted"  << std::endl;
+         return;
+      }
+
+   // Convert the level-set into a fog volume.
+   if(settings.mFogVolume) {
+         if(myVerbose == CLUSTER_MSG_DEBUG)
+            std::cout << "VRAY_clusterThis::convert(): converting to fog volume"  << std::endl;
+         float cutOffDist = std::numeric_limits<float>::max();
+         if(settings.mGradientWidth > 1e-6)
+            cutOffDist = settings.mGradientWidth;
+//         openvdb::tools::levelSetToFogVolume(*outputGrid, cutOffDist, false);
+      }
+
+// print stats of the vdb grid
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      outputGrid->print();
+
+}
+
+
+
 
 int VRAY_clusterThis::convertVDBUnits()
 {
@@ -200,8 +274,8 @@ void VRAY_clusterThis::exitClusterThis(void * data)
 {
    VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
-   if(me->myVerbose > CLUSTER_MSG_INFO)
-      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+//   if(me->myVerbose > CLUSTER_MSG_INFO)
+//      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
 
 
 //   if(me->myVerbose > CLUSTER_MSG_INFO)
@@ -216,8 +290,8 @@ void VRAY_clusterThis::exitClusterThis(void * data)
 //      }
 
 
-   if(me->myVerbose > CLUSTER_MSG_INFO)
-      cout << "VRAY_clusterThis::exitClusterThis() - Running exit processing" << endl;
+//   if(me->myVerbose > CLUSTER_MSG_INFO)
+//      cout << "VRAY_clusterThis::exitClusterThis() - Running exit processing" << endl;
 
 //   cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
 //
@@ -307,7 +381,8 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
             }
          else
             if(myVerbose > CLUSTER_MSG_INFO)
-               cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << fname << endl << endl;
+               cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << endl << endl;
+//               cout << "VRAY_clusterThis::exitClusterThisReal() - Did not find temp file " << fname << endl << endl;
       }
 
 
@@ -412,7 +487,6 @@ static short int myPasses(int mode)
    else
       num_passes++;
    return 0;
-
 }
 
 
