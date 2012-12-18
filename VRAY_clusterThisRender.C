@@ -100,11 +100,7 @@ void VRAY_clusterThis::render()
                         }
                   }
 
-               if(myVerbose > CLUSTER_MSG_QUIET)
-                  cout << "VRAY_clusterThis::render() - Using \"instance all the geometry at once\" method" << std::endl;
-
                rendered = true;
-
 
                if(myPrimType == CLUSTER_FILE) {
                      file_gdp = VRAY_Procedural::allocateGeometry();

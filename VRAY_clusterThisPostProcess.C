@@ -141,6 +141,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
          if(myVerbose > CLUSTER_MSG_INFO)
             cout << "VRAY_clusterThis::postProcess() Processing Voxels" << std::endl;
+//            VRAYwarning("%s VRAY_clusterThis::postProcess() Processing Voxels", getClassName());
 
 
          ParticleList paList(gdp, myPostVDBRadiusMult, myPostVDBVelocityMult);
@@ -308,6 +309,11 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                      postProcessFilter.offset(myPostVDBOffsetFilterAmount);
                   }
 
+               outputGrid->pruneGrid();
+
+               if(myVerbose == CLUSTER_MSG_DEBUG)
+                  std::cout << "VRAY_clusterThis::postProcess() - Scalar grid memory usage: "
+                            << outputGrid->memUsage() << std::endl;
 
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::postProcess() - Creating the gradient grid ... " << std::endl;
@@ -323,9 +329,14 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                   std::cout << "VRAY_clusterThis::postProcess() - Calling myGradient.process() ... " << std::endl;
                gradientGrid = myGradient.process();
 
+//               gradientGrid->pruneGrid();
 
+               // Clear the scalar grid to free memory
                outputGrid->clear();
 
+                if(myVerbose == CLUSTER_MSG_DEBUG)
+                  std::cout << "VRAY_clusterThis::postProcess() - Gradient grid memory usage: "
+                            << gradientGrid->memUsage() << std::endl;
 
                // Get the reference to the gradient grid's tree to be used in sampling
                openvdb::VectorTree & myGradTree = gradientGrid->treeRW();
@@ -377,7 +388,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                         // and the distance from the sampled point, then scaled by the user's amount of influence.
                         UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
 
-                         sampleResult = gradVect.length();
+                        sampleResult = gradVect.length();
 
                         ppt->setPos(inst_pos + (myPostPosInfluence *(sampleResult * gradVect)));
 //                       ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
@@ -458,6 +469,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
 #endif
+
 
 
 

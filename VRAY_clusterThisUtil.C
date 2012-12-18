@@ -274,7 +274,7 @@ void VRAY_clusterThis::exitClusterThis(void * data)
 {
    VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
-//   if(me->myVerbose > CLUSTER_MSG_INFO)
+//   if(me->myVerbose == CLUSTER_MSG_DEBUG)
 //      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
 
 
@@ -351,7 +351,7 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
 //   VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
 
-   if(myVerbose > CLUSTER_MSG_INFO)
+   if(myVerbose == CLUSTER_MSG_DEBUG)
       cout << "VRAY_clusterThis::exitClusterThisReal() - Running exit processing" << endl;
 
 
