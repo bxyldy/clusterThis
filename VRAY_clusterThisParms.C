@@ -53,6 +53,8 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("filter_amp", "real", "0.0"),
    VRAY_ProceduralArg("temp_file_path", "string", "/tmp/geo/"),
    VRAY_ProceduralArg("temp_file", "integer", "0"),
+   VRAY_ProceduralArg("write_stats", "integer", "0"),
+   VRAY_ProceduralArg("stats_file_path", "string", "/tmp/render_stats.xml"),
    VRAY_ProceduralArg("save_temp_file", "integer", "0"),
    VRAY_ProceduralArg("bbox_fudge_factor", "real",  "0.001"),
    VRAY_ProceduralArg("otl_version", "string", "DCA_VERSION"),
@@ -254,8 +256,18 @@ int VRAY_clusterThis::getOTLParameters()
    if(int_ptr = VRAY_Procedural::getIParm("save_temp_file"))
       mySaveTempFile =  *int_ptr;
 
+   if(int_ptr = VRAY_Procedural::getIParm("write_stats"))
+      mySaveXMLFile = *int_ptr;
+
    if(int_ptr = VRAY_Procedural::getIParm("verbose"))
       myVerbose = *int_ptr;
+
+   if(char_handle = VRAY_Procedural::getSParm("stats_file_path")) {
+         myXMLFileName = (UT_String)(*char_handle);
+         myXMLFileName.harden();
+      }
+
+
 
 //   if(char_handle = VRAY_Procedural::getSParm("otl_version")) {
 //         myOTLVersion = (UT_String)(*char_handle);

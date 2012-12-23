@@ -22,18 +22,14 @@
 *  Return Value : None
 *
 ***************************************************************************** */
-
 void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
-
 {
-
    long int stat_interval = (long int)(myNumSourcePoints * 0.10) + 1;
 
    GEO_Point * src_ppt;
    GEO_PointPtrArray src_list;
    UT_Vector3 tmp_v, new_v;
    fpreal dist;
-
 
    // Perform Open VDB pre processing
 //   if(myVDBPreProcess || myVDBPostProcess) {
@@ -289,6 +285,9 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
    UT_Vector3 tmp_v, new_v;
    fpreal dist;
 
+   myPreProcTime = std::clock();
+   std::time(&myPreProcStartTime);
+
 
    // Perform Open VDB pre processing
    if(myVDBPreProcess) {
@@ -488,97 +487,6 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
                gradientGrid->insertMeta("VoxelSize", openvdb::FloatMetadata(myPostVoxelSize));
                gradientGrid->insertMeta("background", openvdb::FloatMetadata(background));
 
-               GEO_Point * ppt;
-
-               GA_FOR_ALL_GPOINTS(gdp, ppt) {
-//            int     myCurrPtOff = ppt->getMapOffset();
-//                              std::cout << "myCurrPtOff: " << myCurrPtOff << std::endl;
-//   for(uint32 i = inst_gdp->points().entries(); i-- > 0;) {
-//         GEO_Point * ppt = inst_gdp->points()(i);
-
-                  inst_pos = ppt->getPos();
-
-                  openvdb::Vec3R theIndex =
-                     myGeoGrid->worldToIndex(openvdb::Vec3R(inst_pos[0], inst_pos[1], inst_pos[2]));
-
-                  vdb_radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointVDBRadius, 0));
-//                                    std::cout << "vdb_radius: " << vdb_radius << std::endl;
-
-                  const openvdb::Vec3R  inst_sample_pos(theIndex[0], theIndex[1], theIndex[2]);
-
-                  bool success = mySampler.sample(myTree, inst_sample_pos, sampleResult);
-
-                  bool grad_success = gradSampler.sample(myGradTree, inst_sample_pos, gradResult);
-
-
-
-//
-//                              std::cout << "success: " << success << "\tinst_pos: " << inst_pos
-//                                        << "\tinst_sample_pos: " << inst_sample_pos
-//                                        << "\tsampleResult: " << sampleResult << std::endl;
-
-//ValueType    sampleWorld (const Vec3R &pt) const
-//ValueType    sampleWorld (Real x, Real y, Real z) const
-
-                  // if the instanced point is within the vdb volume
-//            if(success) {
-                  if(success && grad_success) {
-//                                    std::cout << "inst_pos: " << inst_pos << " inst_sample_pos: "
-//                                              << inst_sample_pos << " sampleResult: " << sampleResult
-//                                              << " gradResult: " << gradResult << std::endl;
-//                                    float weight;
-                        pointsFound++;
-
-                        vel_gah.setElement(ppt);
-                        currVel = inst_vel_gah.getV3();
-
-                        UT_Vector3 gradVect = UT_Vector3(gradResult[0], gradResult[1], gradResult[2]);
-
-                        ppt->setPos(pos + (myPostPosInfluence *(sampleResult * gradVect)));
-//                                    ppt->setPos(inst_pos + (sampleResult * myPosInfluence *(currVel / myFPS)));
-
-//                                    inst_vel_gah.setV3(currVel * ((1 / sampleResult) * radius));
-                        vel_gah.setV3(currVel + (myPostVelInfluence *(sampleResult * gradVect)));
-
-//                                    std::cout << "currVel: " << currVel << " sampleResult " << sampleResult
-//                                              << " new vel: " <<  currVel * sampleResult << std::endl;
-
-                        N_gah.setV3(inst_N_gah.getV3() + (myPostNormalInfluence *(sampleResult * gradVect)));
-
-//                        inst_Cd_gah.setElement(ppt);
-//                        inst_Cd_gah.setV3(inst_Cd_gah.getV3() * abs(sampleResult));
-//
-//
-//                        inst_Alpha_gah.setElement(ppt);
-//                        inst_Alpha_gah.setF(inst_Alpha_gah.getF() * abs(sampleResult));
-
-                     } // if the instanced point is within the vdb volume
-
-//            else {
-//                           int id = static_cast<int>(ppt->getValue<int>(myInstAttrRefs.pointId, 0));
-//
-//                  std::cout << "VRAY_clusterThis::preProcess() didn't hit sample. pt idx: " << myCurrPtOff << " id: " << id << std::endl;
-//
-//               }
-
-                  if(myVerbose > CLUSTER_MSG_INFO) {
-                        pt_counter++;
-                        if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
-                              std::cout << "VRAY_clusterThis::preProcess() Number of points post processed: " << pt_counter
-                                        << "\t - Number of points found in vdb grid: " << pointsFound << std::endl;
-                           }
-                     }
-
-               }
-
-
-               if(myVerbose > CLUSTER_MSG_INFO) {
-                     if(!pointsFound)
-                        cout << "VRAY_clusterThis::preProcess() NO POINTS POST PROCESSED!!! " << std::endl;
-                     else
-                        cout << "VRAY_clusterThis::preProcess() Average instanced points post processed: "
-                             << float((float(pointsFound) / float(pt_counter) * 100.0f)) << "%" << std::endl;
-                  }
 
 
                if(myPostVDBWriteDebugFiles) {
@@ -600,8 +508,11 @@ void VRAY_clusterThis::preProcess(GU_Detail * gdp)
 
             }   //  if(paList.size() != 0)
 
+         std::time(&myPreProcEndTime);
+         myPreProcExecTime = std::clock() - myPreProcTime;
 
       } // if(myVDBPreProcess)
+
 
 
 }

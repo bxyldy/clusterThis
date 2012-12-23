@@ -642,22 +642,24 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    cout << "VRAY_clusterThis::instanceFile() myPointAttributes.geo_fname: " << myPointAttributes.geo_fname << endl;
 #endif
 
-   GU_Detail temp_gdp(file_gdp);
+#define USE_POINT_FNAME 1
+
    GU_Detail null_gdp;
-//   GU_Detail * file_geo_gdp;
    UT_Matrix4 xform(1.0);
    UT_Matrix3 rot_xform(1.0);
 //   UT_XformOrder xformOrder(UT_XformOrder::SRT,  UT_XformOrder::XYZ);
 
-//   file_geo_gdp = VRAY_Procedural::allocateGeometry();
-//
-//   if(!file_geo_gdp->load((const char *)myPointAttributes.geo_fname).success())
-//      throw VRAY_clusterThis_Exception("VRAY_clusterThis::instanceFile() Failed to load geometry file ", 1);
-//
-//   GU_Detail temp_gdp(file_geo_gdp);
+#ifdef USE_POINT_FNAME
+   GU_Detail * file_geo_gdp;
+   file_geo_gdp = VRAY_Procedural::allocateGeometry();
+   if(!file_geo_gdp->load((const char *)myPointAttributes.geo_fname).success())
+      throw VRAY_clusterThis_Exception("VRAY_clusterThis::instanceFile() Failed to load geometry file ", 1);
+   GU_Detail temp_gdp(file_geo_gdp);
+#else
+   GU_Detail temp_gdp(file_gdp);
+#endif
 
    UT_Vector3 myDir = myPointAttributes.N;
-//   myDir.normalize();
    UT_Vector3 myUp = UT_Vector3(0, 1, 0);
 
 // Transform the geo to the new position
@@ -680,14 +682,18 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
    // Run CVEX function on this instance
    if(myCVEX_Exec)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
-
    if(myCVEX_Exec_prim)
       VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
    inst_gdp->merge(temp_gdp);
 
+
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
+#ifdef USE_POINT_FNAME
+         GU_Detail temp_gdp(file_geo_gdp);
+#else
          GU_Detail temp_gdp(file_gdp);
+#endif
 
          xform.identity();
          rot_xform.identity();
@@ -704,17 +710,17 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
          // Run CVEX function on this instance
          if(myCVEX_Exec)
             VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname, CLUSTER_CVEX_POINT);
-
          if(myCVEX_Exec_prim)
             VRAY_clusterThis::runCVEX(&temp_gdp, &null_gdp, myCVEXFname_prim, CLUSTER_CVEX_PRIM);
 
          temp_gdp.transform(xform);
          mb_gdp->merge(temp_gdp);
-
       }
 
 
-//   VRAY_Procedural::freeGeometry(file_geo_gdp);
+#ifdef USE_POINT_FNAME
+   VRAY_Procedural::freeGeometry(file_geo_gdp);
+#endif
 
    return 0;
 }

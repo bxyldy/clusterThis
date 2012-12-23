@@ -350,9 +350,408 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
    struct stat fileResults;
 //   VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
-
    if(myVerbose == CLUSTER_MSG_DEBUG)
       cout << "VRAY_clusterThis::exitClusterThisReal() - Running exit processing" << endl;
+
+
+
+   if(mySaveXMLFile) {
+
+         std::ostringstream oss(std::ostringstream::out);
+         UT_XMLWriter xml_writer;
+
+         xml_writer.beginWritingToFile(myXMLFileName);
+         xml_writer.setIndentation(3);
+
+         xml_writer.writeComment("*********** clusterThis parameters ***********");
+         xml_writer.startElement("parameters");
+
+         oss.str(std::string());
+         oss << myPrimType;
+         xml_writer.writeElement("myPrimType", oss.str().c_str());
+         oss.str(std::string());
+         oss << myUseGeoFile;
+         xml_writer.writeElement("myUseGeoFile", oss.str().c_str());
+         xml_writer.writeElement("mySrcGeoFname", mySrcGeoFname);
+         oss.str(std::string());
+         oss << myNumCopies;
+         xml_writer.writeElement("myNumCopies", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNoiseType;
+         xml_writer.writeElement("myNoiseType", oss.str().c_str());
+         oss.str(std::string());
+         oss << myFreqX << " " << myFreqY << " " << myFreqZ;
+         xml_writer.writeElement("myFreq", oss.str().c_str());
+         oss.str(std::string());
+         oss << myOffsetX << " " << myOffsetY << " " << myOffsetZ;
+         xml_writer.writeElement("myOffset", oss.str().c_str());
+         oss.str(std::string());
+         oss << myRadius;
+         xml_writer.writeElement("myRadius", oss.str().c_str());
+         oss.str(std::string());
+         oss << myRough;
+         xml_writer.writeElement("myRough", oss.str().c_str());
+         oss.str(std::string());
+         oss << myBirthProb;
+         xml_writer.writeElement("myBirthProb", oss.str().c_str());
+         oss.str(std::string());
+         oss << mySize[0] << " " <<  mySize[1] << " " <<  mySize[2];
+         xml_writer.writeElement("mySize", oss.str().c_str());
+         oss.str(std::string());
+         oss << myDoMotionBlur;
+         xml_writer.writeElement("myDoMotionBlur", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCurrentTime;
+         xml_writer.writeElement("myCurrentTime", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCurrentFrame;
+         xml_writer.writeElement("myCurrentFrame", oss.str().c_str());
+         oss.str(std::string());
+         oss << myShutter << " " << myShutter2;
+         xml_writer.writeElement("myShutter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNoiseAmp;
+         xml_writer.writeElement("myNoiseAmp", oss.str().c_str());
+         oss.str(std::string());
+         oss << myFilterType;
+         xml_writer.writeElement("myFilterType", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNoiseAtten;
+         xml_writer.writeElement("myNoiseAtten", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNoiseSeed;
+         xml_writer.writeElement("myNoiseSeed", oss.str().c_str());
+         oss.str(std::string());
+         oss << myFractalDepth;
+         xml_writer.writeElement("myFractalDepth", oss.str().c_str());
+         oss.str(std::string());
+         oss << myRecursion;
+         xml_writer.writeElement("myRecursion", oss.str().c_str());
+         oss.str(std::string());
+         oss << myBBoxFudgeFactor;
+         xml_writer.writeElement("myBBoxFudgeFactor", oss.str().c_str());
+         oss.str(std::string());
+         oss << myVerbose;
+         xml_writer.writeElement("myVerbose", oss.str().c_str());
+         oss.str(std::string());
+         oss << myUseTempFile;
+         xml_writer.writeElement("myUseTempFile", oss.str().c_str());
+         oss.str(std::string());
+         oss << mySaveTempFile;
+         xml_writer.writeElement("mySaveTempFile", oss.str().c_str());
+         oss.str(std::string());
+         oss << myUsePointRadius;
+         xml_writer.writeElement("myUsePointRadius", oss.str().c_str());
+         oss.str(std::string());
+         oss << myUseBacktrackMB;
+         xml_writer.writeElement("myUseBacktrackMB", oss.str().c_str());
+         oss.str(std::string());
+
+         oss << myCVEX_Exec;
+         xml_writer.writeElement("myCVEX_Exec", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEX_Exec_prim;
+         xml_writer.writeElement("myCVEX_Exec_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEX_Exec_pre;
+         xml_writer.writeElement("myCVEX_Exec_pre", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEX_Exec_post;
+         xml_writer.writeElement("myCVEX_Exec_post", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXFname;
+         xml_writer.writeElement("myCVEXFname", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXFname_prim;
+         xml_writer.writeElement("myCVEXFname_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXFname_pre;
+         xml_writer.writeElement("myCVEXFname_pre", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXFname_post;
+         xml_writer.writeElement("myCVEXFname_post", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPointVars.cvex_Cd_pt;
+         xml_writer.writeElement("myCVEXPointVars.cvex_Cd_pt", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPointVars.cvex_Alpha_pt;
+         xml_writer.writeElement("myCVEXPointVars.cvex_Alpha_pt", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPointVars.cvex_v_pt;
+         xml_writer.writeElement("myCVEXPointVars.cvex_v_pt", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPointVars.cvex_N_pt;
+         xml_writer.writeElement("myCVEXPointVars.cvex_N_pt", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPointVars.cvex_pscale_pt;
+         xml_writer.writeElement("myCVEXPointVars.cvex_pscale_pt", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_Cd_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_Cd_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_Alpha_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_Alpha_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_N_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_N_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_pscale_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_pscale_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_weight_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_weight_prim", oss.str().c_str());
+         oss.str(std::string());
+         oss << myCVEXPrimVars.cvex_width_prim;
+         xml_writer.writeElement("myCVEXPrimVars.cvex_width_prim", oss.str().c_str());
+
+         oss.str(std::string());
+         oss << myPostProcess;
+         xml_writer.writeElement("myPostProcess", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNNPostProcess;
+         xml_writer.writeElement("myNNPostProcess", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNNPostPosInfluence;
+         xml_writer.writeElement("myNNPostPosInfluence", oss.str().c_str());
+         oss.str(std::string());
+         oss << myNNPostVelInfluence;
+         xml_writer.writeElement("myNNPostVelInfluence", oss.str().c_str());
+         oss << myVDBPostProcess;
+         xml_writer.writeElement("myVDBPostProcess", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostRasterType;
+         xml_writer.writeElement("myPostRasterType", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostDx;
+         xml_writer.writeElement("myPostDx", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostFogVolume;
+         xml_writer.writeElement("myPostFogVolume", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostGradientWidth;
+         xml_writer.writeElement("myPostGradientWidth", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVoxelSize;
+         xml_writer.writeElement("myPostVoxelSize", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostRadiusMin;
+         xml_writer.writeElement("myPostRadiusMin", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostBandWidth;
+         xml_writer.writeElement("myPostBandWidth", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostWSUnits;
+         xml_writer.writeElement("myPostWSUnits", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBRadiusMult;
+         xml_writer.writeElement("myPostVDBRadiusMult", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBVelocityMult;
+         xml_writer.writeElement("myPostVDBVelocityMult", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostFalloff;
+         xml_writer.writeElement("myPostFalloff", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostPosInfluence;
+         xml_writer.writeElement("myPostPosInfluence", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostNormalInfluence;
+         xml_writer.writeElement("myPostNormalInfluence", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVelInfluence;
+         xml_writer.writeElement("myPostVelInfluence", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMedianFilter;
+         xml_writer.writeElement("myPostVDBMedianFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMeanFilter;
+         xml_writer.writeElement("myPostVDBMeanFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMeanCurvatureFilter;
+         xml_writer.writeElement("myPostVDBMeanCurvatureFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBLaplacianFilter;
+         xml_writer.writeElement("myPostVDBLaplacianFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBOffsetFilter;
+         xml_writer.writeElement("myPostVDBOffsetFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBOffsetFilterAmount;
+         xml_writer.writeElement("myPostVDBOffsetFilterAmount", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBReNormalizeFilter;
+         xml_writer.writeElement("myPostVDBReNormalizeFilter", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBWriteDebugFiles;
+         xml_writer.writeElement("myPostVDBWriteDebugFiles", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMedianIterations;
+         xml_writer.writeElement("myPostVDBMedianIterations", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMeanIterations;
+         xml_writer.writeElement("myPostVDBMeanIterations", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBMeanCurvatureIterations;
+         xml_writer.writeElement("myPostVDBMeanCurvatureIterations", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPostVDBLaplacianIterations;
+         xml_writer.writeElement("myPostVDBLaplacianIterations", oss.str().c_str());
+
+         xml_writer.endElement();  // parameters
+
+
+         xml_writer.writeComment("*********** clusterThis render stats ***********");
+         xml_writer.startElement("render_stats");
+
+         xml_writer.writeComment("*********** clusterThis timing stats ***********");
+         xml_writer.startElement("timing_stats");
+
+         std::string tmp_str = asctime(localtime(&myInitStartTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myInitStartTime", tmp_str.c_str());
+
+         oss.str(std::string());
+         oss << (((float)myInitTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myInitTime", oss.str().c_str());
+
+         oss.str(std::string());
+         oss << (((float)myInitExecTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myInitExecTime", oss.str().c_str());
+
+         tmp_str = asctime(localtime(&myInitEndTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myInitEndTime", tmp_str.c_str());
+
+//   xml_writer.writeAttribute("foo", "123");
+//   xml_writer.writeAttribute("bar", "456");
+
+         tmp_str = asctime(localtime(&myPreProcStartTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myPreProcStartTime", tmp_str.c_str());
+
+         oss.str(std::string());
+         oss << (((float)myPreProcTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myPreProcTime", oss.str().c_str());
+
+         oss.str(std::string());
+         oss << (((float)myPreProcExecTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myPreProcExecTime", oss.str().c_str());
+
+         tmp_str = asctime(localtime(&myPreProcEndTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myPreProcEndTime", tmp_str.c_str());
+
+         tmp_str = asctime(localtime(&myPostProcStartTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myPostProcStartTime", tmp_str.c_str());
+
+         oss.str(std::string());
+         oss << (((float)myPostProcTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myPostProcTime", oss.str().c_str());
+
+         oss.str(std::string());
+         oss << (((float)myPostProcExecTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myPostProcExecTime", oss.str().c_str());
+
+         tmp_str = asctime(localtime(&myPostProcEndTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myPostProcEndTime", tmp_str.c_str());
+
+         tmp_str = asctime(localtime(&myRenderStartTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myRenderStartTime", tmp_str.c_str());
+
+         oss.str(std::string());
+         oss << (((float)myRenderTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myRenderTime", oss.str().c_str());
+
+         oss.str(std::string());
+         oss << (((float)myRenderExecTime) / CLOCKS_PER_SEC);
+         xml_writer.writeElement("myRenderExecTime", oss.str().c_str());
+
+         tmp_str = asctime(localtime(&myRenderEndTime));
+         tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
+         xml_writer.writeElement("myRenderEndTime", tmp_str.c_str());
+
+         xml_writer.endElement();   // timing_stats
+
+         xml_writer.writeComment("***********  clusterThis geometry stats ***********");
+         xml_writer.startElement("geometry_stats");
+
+         oss.str(std::string());
+         oss << myNumSourcePoints;
+         xml_writer.writeElement("myNumSourcePoints", oss.str().c_str());
+         oss.str(std::string());
+         oss << myInstanceNum;
+         xml_writer.writeElement("myInstanceNum", oss.str().c_str());
+         oss.str(std::string());
+         oss << myBox;
+         xml_writer.writeElement("myBox", oss.str().c_str());
+         oss.str(std::string());
+         oss << myVelBox;
+         xml_writer.writeElement("myVelBox", oss.str().c_str());
+         oss.str(std::string());
+         oss << myLOD;
+         xml_writer.writeElement("myLOD", oss.str().c_str());
+         oss.str(std::string());
+         oss << mySourceGDPMemUsage;
+         xml_writer.writeElement("mySourceGDPMemUsage", oss.str().c_str());
+         oss.str(std::string());
+         oss << myInstGDPMemUsage;
+         xml_writer.writeElement("myInstGDPMemUsage", oss.str().c_str());
+         oss.str(std::string());
+         oss << myInstMbGDPMemUsage;
+         xml_writer.writeElement("myInstMbGDPMemUsage", oss.str().c_str());
+         oss.str(std::string());
+         oss << myPointTreeMemUsage;
+         xml_writer.writeElement("myPointTreeMemUsage", oss.str().c_str());
+         oss.str(std::string());
+         oss << mySourceGeoGridMemUsage;
+         xml_writer.writeElement("mySourceGeoGridMemUsage", oss.str().c_str());
+         oss.str(std::string());
+         oss << mySourceGradientGridMemUsage;
+         xml_writer.writeElement("mySourceGradientGridMemUsage", oss.str().c_str());
+
+         xml_writer.endElement();
+
+         xml_writer.writeComment("*********** misc *********** ");
+         xml_writer.startElement("misc");
+
+         oss.str(std::string());
+         oss << myMaterial;
+         xml_writer.writeElement("myMaterial", oss.str().c_str());
+         oss.str(std::string());
+         oss << tempFileDeleted;
+         xml_writer.writeElement("tempFileDeleted", oss.str().c_str());
+
+         xml_writer.endElement();
+
+         xml_writer.endElement();  // render_stats
+
+         xml_writer.endWriting();
+
+      }
+
+//bool   beginWritingToFile (const char *file)
+//    Initializes the writer to write either to memory or to the file.
+//bool   beginWritingToMemory (UT_String &memory)
+//bool   endWriting ()
+//bool   setIndentation (int spaces_count)
+//    Sets the indentation of the XML document elements.
+//bool   writeElement (const char *tag, const char *string)
+//bool   startElement (const char *tag)
+//    Begins an element that will contain some other elements or data.
+//bool   endElement ()
+//    Ends an element started earlier.
+//bool   writeAttribute (const char *name, const char *value)
+//bool   writeString (const char *string)
+//bool   writeComment (const char *string)
+//    Writes a comment.
+//bool   writeRawString (const char *string)
+//bool   writeCDataElement (const char *data)
+
+
+
 
 
 //   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
@@ -565,3 +964,5 @@ static inline int computeDivs(fpreal inc, fpreal min)
 
 
 #endif
+
+

@@ -28,6 +28,9 @@ void VRAY_clusterThis::render()
    GEO_Point * ppt;
    UT_BoundingBox tmpBox;
 
+   myRenderTime = std::clock();
+   std::time(&myRenderStartTime);
+
    long int point_num = 0;
 
    tempFileDeleted = false;
@@ -59,6 +62,8 @@ void VRAY_clusterThis::render()
                if(!myGdp) {
                      throw VRAY_clusterThis_Exception("VRAY_clusterThis::render() - object has no geometry ", 1);
                   }
+
+               mySourceGDPMemUsage = myGdp->getMemoryUsage();
 
 //// DEBUG
 //               myGdp->getBBox(&tmpBox);
@@ -219,13 +224,9 @@ void VRAY_clusterThis::render()
                } // for all points ...
 
 
-
-
                if(myPostProcess) {
                      VRAY_clusterThis::postProcess(myGdp, inst_gdp, mb_gdp);
                   }
-
-
 
 //// DEBUG
 //                     myGdp->getBBox(&tmpBox);
@@ -238,15 +239,17 @@ void VRAY_clusterThis::render()
 //                  }
 
 
+               myInstGDPMemUsage = inst_gdp->getMemoryUsage();
+               if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
+                  myInstMbGDPMemUsage = mb_gdp->getMemoryUsage();
 
                if(myVerbose > CLUSTER_MSG_QUIET)
                   if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                      cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                          (fpreal)(inst_gdp->getMemoryUsage() + mb_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << std::endl;
+                          (fpreal)(myInstGDPMemUsage + myInstMbGDPMemUsage / (1024.0 * 1024.0)) << std::endl;
                   else
                      cout << "VRAY_clusterThis::render() - Memory usage(MB): " <<
-                          (fpreal)(inst_gdp->getMemoryUsage() / (1024.0 * 1024.0)) << std::endl;
-
+                          (fpreal)(myInstGDPMemUsage / (1024.0 * 1024.0)) << std::endl;
 
                if(myCVEX_Exec_post) {
                      if(myVerbose > CLUSTER_MSG_INFO)
@@ -377,8 +380,11 @@ void VRAY_clusterThis::render()
    if(myVerbose > CLUSTER_MSG_QUIET)
       cout << "VRAY_clusterThis::render() - Leaving render() method" << std::endl;
 
-   return;
+   std::time(&myRenderEndTime);
+   myRenderExecTime = std::clock() - myRenderTime;
+//   cout << "VRAY_clusterThis::render() " << "myRenderExecTime: " << myRenderExecTime << endl;
 
+   return;
 }
 
 

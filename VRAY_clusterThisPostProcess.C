@@ -123,6 +123,8 @@ void VRAY_clusterThis::postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_D
 void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 
 {
+   myPostProcTime = std::clock();
+   std::time(&myPostProcStartTime);
 
    long int stat_interval = (long int)(myNumSourcePoints * 0.10) + 1;
 
@@ -145,7 +147,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
          ParticleList paList(gdp, myPostVDBRadiusMult, myPostVDBVelocityMult);
-         openvdb::tools::PointSampler mySampler, gradSampler;
+//         openvdb::tools::PointSampler mySampler;
+         openvdb::tools::PointSampler gradSampler;
 //                     openvdb::tools::GridSampling<openvdb::FloatTree>  myGridSampler;
 
          if(myVerbose == CLUSTER_MSG_DEBUG)
@@ -261,7 +264,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                openvdb::VectorGrid::ValueType gradResult;
 
                // Get the reference to the scalar grid's tree to be used in sampling
-               openvdb::FloatTree & myTree = outputGrid->treeRW();
+//               openvdb::FloatTree & myTree = outputGrid->treeRW();
                // Create a filter object for filtering the scalar grid
                openvdb::tools::Filter<openvdb::FloatGrid> postProcessFilter(*outputGrid);
 
@@ -311,9 +314,10 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
                outputGrid->pruneGrid();
 
+               mySourceGeoGridMemUsage = outputGrid->memUsage();
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::postProcess() - Scalar grid memory usage: "
-                            << outputGrid->memUsage() << std::endl;
+                            << mySourceGeoGridMemUsage << std::endl;
 
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::postProcess() - Creating the gradient grid ... " << std::endl;
@@ -334,9 +338,10 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                // Clear the scalar grid to free memory
                outputGrid->clear();
 
-                if(myVerbose == CLUSTER_MSG_DEBUG)
+               mySourceGradientGridMemUsage = gradientGrid->memUsage();
+               if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::postProcess() - Gradient grid memory usage: "
-                            << gradientGrid->memUsage() << std::endl;
+                            << mySourceGradientGridMemUsage << std::endl;
 
                // Get the reference to the gradient grid's tree to be used in sampling
                openvdb::VectorTree & myGradTree = gradientGrid->treeRW();
@@ -461,6 +466,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
             }   //  if(paList.size() != 0)
 
+         std::time(&myPostProcEndTime);
+         myPostProcExecTime = std::clock() - myPostProcTime;
 
       } // if(myVDBPostProcess)
 

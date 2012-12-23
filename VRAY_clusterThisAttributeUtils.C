@@ -150,7 +150,7 @@ int VRAY_clusterThis::getAttributeRefs(GU_Detail * inst_gdp)
 
          myPointAttrRefs.radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "radius", 1);
          if(myPointAttrRefs.radius.isValid())
-            myUsePointRadius = true;
+            myUsePointRadius = 1;
 
          myPointAttrRefs.vdb_radius = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "vdb_radius", 1);
          myPointAttrRefs.pscale = inst_gdp->findFloatTuple(GA_ATTRIB_POINT, "pscale", 1);

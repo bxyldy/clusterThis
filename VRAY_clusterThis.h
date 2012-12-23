@@ -402,9 +402,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       bool tempFileDeleted;
       UT_Noise myNoise;
       UT_MersenneTwister myMersenneTwister;
-      bool myUsePointRadius;
+      uint32 myUsePointRadius;
 //      bool myUsePointGeoFname;
-      bool myUseBacktrackMB;
       UT_String myObjectName;
 //      UT_String myOTLVersion;
       fpreal   myVelocityScale;
@@ -418,15 +417,37 @@ class VRAY_clusterThis : public VRAY_Procedural
       clock_t myPreProcTime;
       clock_t myPostProcTime;
       clock_t myRenderTime;
+      clock_t myInitExecTime;
+      clock_t myPreProcExecTime;
+      clock_t myPostProcExecTime;
+      clock_t myRenderExecTime;
+
+      time_t myInitStartTime;
+      time_t myPreProcStartTime;
+      time_t myPostProcStartTime;
+      time_t myRenderStartTime;
+      time_t myInitEndTime;
+      time_t myPreProcEndTime;
+      time_t myPostProcEndTime;
+      time_t myRenderEndTime;
+
+      fpreal myPointTreeMemUsage;
+      fpreal mySourceGDPMemUsage;
+      fpreal myInstGDPMemUsage;
+      fpreal myInstMbGDPMemUsage;
 
       GU_Detail * myFileGDP;
       openvdb::ScalarGrid::Ptr mySourceGeoGrid;
       openvdb::VectorGrid::Ptr mySourceGradientGrid;
 
+      openvdb::Index64 mySourceGeoGridMemUsage;
+      openvdb::Index64 mySourceGradientGridMemUsage;
+
 
       // Parameters
       uint32   myNumCopies;
       int     myUseGeoFile;
+      UT_String myGeoFile;
       UT_String mySrcGeoFname;
       uint32   myPrimType;
       uint32   myMethod;  // Instance now or deferred
@@ -438,6 +459,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myRadius;
       fpreal   myBirthProb;
       uint32   myDoMotionBlur;
+      uint32   myUseBacktrackMB;
       fpreal   myShutter;
       fpreal   myShutter2;
       int      myNoiseType;
@@ -445,6 +467,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myCurrentTime;
       fpreal   myCurrentFrame;
       fpreal   myBBoxFudgeFactor;
+      int      myVerbose;
 
       fpreal   myNoiseAmp;
       fpreal   myNoiseAtten;
@@ -452,10 +475,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myFractalDepth;
       uint32   myFilterType;
       fpreal   myFilterAmp;
-      UT_String myGeoFile;
-      UT_String myTempFname;
-      int      myUseTempFile;
-      int      mySaveTempFile;
+
       UT_String myCVEXFname;
       int     myCVEX_Exec;
       UT_String myCVEXFname_prim;
@@ -463,8 +483,13 @@ class VRAY_clusterThis : public VRAY_Procedural
       UT_String myCVEXFname_pre;
       int     myCVEX_Exec_pre;
       UT_String myCVEXFname_post;
-      int     myCVEX_Exec_post;
-      int      myVerbose;
+      int      myCVEX_Exec_post;
+
+      UT_String myTempFname;
+      int      myUseTempFile;
+      int      mySaveTempFile;
+      int      mySaveXMLFile;
+      UT_String myXMLFileName;
 
       // VDB pre processing parms
       int      myVDBPreProcess;
@@ -495,10 +520,10 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myPreVDBReNormalizeFilter;
       int      myPreVDBWriteDebugFiles;
 
-      int myPostProcess;
-      int myNNPostProcess;
-      fpreal myNNPostPosInfluence;
-      fpreal myNNPostVelInfluence;
+      int      myPostProcess;
+      int      myNNPostProcess;
+      fpreal   myNNPostPosInfluence;
+      fpreal   myNNPostVelInfluence;
 
       // VDB post processing parms
       int      myVDBPostProcess;

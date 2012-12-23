@@ -40,6 +40,7 @@
 #include <UT/UT_Options.h>
 #include <UT/UT_IStream.h>
 #include <UT/UT_Version.h>
+#include <UT/UT_XMLWriter.h>
 #include <GA/GA_AttributeRef.h>
 #include <GEO/GEO_AttributeHandle.h>
 #include <GU/GU_PrimVolume.h>
@@ -60,6 +61,12 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include <vector>
+#include <exception>
+#include <sstream>
+#include <cstdio>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/LevelSetSphere.h>
@@ -186,7 +193,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    myUseGeoFile = 0;
    mySrcGeoFname = "";
    myNumCopies = 0;
-   myNumSourcePoints = 0;
    myNoiseType = 0;
    myFreqX = 0.0;
    myFreqY = 0.0;
@@ -201,8 +207,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    mySize[1] = 0.0;
    mySize[2] = 0.0;
    myDoMotionBlur = CLUSTER_MB_NONE;
-   myCurrentTime = 0.0;
-   myCurrentFrame = 0.0;
    myShutter = 0.1;
    myNoiseAmp = 0.0;
    myFilterType = 0;
@@ -214,8 +218,11 @@ VRAY_clusterThis::VRAY_clusterThis()
    myBBoxFudgeFactor = 0.0;
 
    myVerbose = CLUSTER_MSG_QUIET;
+
    myUseTempFile = 0;
    mySaveTempFile = 0;
+   mySaveXMLFile = 0;
+   myXMLFileName = "";
 
    myUsePointRadius = 0;
    myUseBacktrackMB = 0;
@@ -273,7 +280,6 @@ VRAY_clusterThis::VRAY_clusterThis()
    myPreVDBMeanCurvatureIterations = 4;
    myPreVDBLaplacianIterations = 4;
 
-
    // Post processing parms
    myPostProcess = 0;
 
@@ -314,6 +320,9 @@ VRAY_clusterThis::VRAY_clusterThis()
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
 
+   myNumSourcePoints = 0;
+   myCurrentTime = 0.0;
+   myCurrentFrame = 0.0;
    myInstanceNum = 0;
    myTimeScale = 0.5F / myFPS;
 
@@ -378,13 +387,14 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myVerbose > CLUSTER_MSG_INFO)
       std::cout << "VRAY_clusterThis::initialize()" << std::endl;
 
-   void     *     handle;
+   void   *   handle;
    const char  *  name;
    UT_BoundingBox tbox, tvbox;
    UT_Matrix4     xform;
    UT_String      str;
 
    myInitTime = std::clock();
+   std::time(&myInitStartTime);
 
 
    // Get the OTL parameters
@@ -536,10 +546,10 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
          mySRCPointTree.appendPtRadius(myGdp, ppt, radius);
       }
 
+   myPointTreeMemUsage = mySRCPointTree.getMemoryUsage();
 
-#ifdef DEBUG
-   std::cout << "VRAY_clusterThis::initialize() mySRCPointTree.getMemoryUsage(): " << mySRCPointTree.getMemoryUsage() << std::endl;
-#endif
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::initialize() myPointTreeMemUsage: " << myPointTreeMemUsage << std::endl;
 
 
    // find how much noise is being generated to help with BBox calculations
@@ -638,16 +648,15 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
       }
 
 //   std::cout << "VRAY_clusterThis::initialize() 3 \nmyBox: " << myBox << "myVelBox: " << myVelBox << std::endl;
-//
 //   if(box) {
 //         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
 //         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
 //      }
 
+   std::time(&myInitEndTime);
+   myInitExecTime = std::clock() - myInitTime;
+   cout << "VRAY_clusterThis::initialize() " << "myInitExecTime: " << myInitExecTime << endl;
 
-   if(myVerbose == CLUSTER_MSG_DEBUG)
-      std::cout << "VRAY_clusterThis::initialize() took " << (((float)myInitTime) / CLOCKS_PER_SEC)
-                << " seconds to execute" << std::endl;
 
    return 1;
 }
@@ -766,6 +775,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 
