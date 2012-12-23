@@ -362,9 +362,13 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
 
          xml_writer.beginWritingToFile(myXMLFileName);
          xml_writer.setIndentation(3);
+         xml_writer.writeRawString("\n");
 
-         xml_writer.writeComment("*********** clusterThis parameters ***********");
+         xml_writer.startElement("render_stats");
+         xml_writer.writeComment("*********** clusterThis render stats ***********");
+
          xml_writer.startElement("parameters");
+         xml_writer.writeComment("*********** clusterThis parameters ***********");
 
          oss.str(std::string());
          oss << myPrimType;
@@ -599,12 +603,8 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
 
          xml_writer.endElement();  // parameters
 
-
-         xml_writer.writeComment("*********** clusterThis render stats ***********");
-         xml_writer.startElement("render_stats");
-
-         xml_writer.writeComment("*********** clusterThis timing stats ***********");
          xml_writer.startElement("timing_stats");
+         xml_writer.writeComment("*********** clusterThis timing stats ***********");
 
          std::string tmp_str = asctime(localtime(&myInitStartTime));
          tmp_str.replace(tmp_str.length() - 1, tmp_str.length(), "");
@@ -675,8 +675,8 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
 
          xml_writer.endElement();   // timing_stats
 
-         xml_writer.writeComment("***********  clusterThis geometry stats ***********");
          xml_writer.startElement("geometry_stats");
+         xml_writer.writeComment("***********  clusterThis geometry stats ***********");
 
          oss.str(std::string());
          oss << myNumSourcePoints;
@@ -684,12 +684,22 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
          oss.str(std::string());
          oss << myInstanceNum;
          xml_writer.writeElement("myInstanceNum", oss.str().c_str());
+
          oss.str(std::string());
-         oss << myBox;
+         oss  <<  myBox;
+//         oss  << "(" << myBox.vals[0][1] << " , "  << myBox.vals[0][1] << " , " << myBox.vals[0][2] << ") - ("
+//         << myBox.vals[1][0] << " , "  << myBox.vals[1][1] << " , "  << myBox.vals[1][2] << ")";
+//         oss.str().replace(oss.str().find("\n") - 1, oss.str().find("\n"), "");
+//         oss.str().erase(std::remove(oss.str().begin(), oss.str().end(), '\n'), oss.str().end());
          xml_writer.writeElement("myBox", oss.str().c_str());
+
          oss.str(std::string());
-         oss << myVelBox;
+         oss  <<  myVelBox;
+//         oss  << "(" << myVelBox.vals[0][1] << " , "  << myVelBox.vals[0][1] << " , " << myVelBox.vals[0][2] << ") - ("
+//         << myVelBox.vals[1][0] << " , "  << myVelBox.vals[1][1] << " , "  << myVelBox.vals[1][2] << ")";
+         oss.str().replace(oss.str().length() - 1, oss.str().length(), "");
          xml_writer.writeElement("myVelBox", oss.str().c_str());
+
          oss.str(std::string());
          oss << myLOD;
          xml_writer.writeElement("myLOD", oss.str().c_str());
@@ -712,10 +722,10 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
          oss << mySourceGradientGridMemUsage;
          xml_writer.writeElement("mySourceGradientGridMemUsage", oss.str().c_str());
 
-         xml_writer.endElement();
+         xml_writer.endElement(); //geometry_stats
 
-         xml_writer.writeComment("*********** misc *********** ");
          xml_writer.startElement("misc");
+         xml_writer.writeComment("*********** misc *********** ");
 
          oss.str(std::string());
          oss << myMaterial;
@@ -724,7 +734,7 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
          oss << tempFileDeleted;
          xml_writer.writeElement("tempFileDeleted", oss.str().c_str());
 
-         xml_writer.endElement();
+         xml_writer.endElement(); // misc.
 
          xml_writer.endElement();  // render_stats
 
@@ -733,42 +743,29 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
       }
 
 //bool   beginWritingToFile (const char *file)
-//    Initializes the writer to write either to memory or to the file.
 //bool   beginWritingToMemory (UT_String &memory)
 //bool   endWriting ()
 //bool   setIndentation (int spaces_count)
-//    Sets the indentation of the XML document elements.
 //bool   writeElement (const char *tag, const char *string)
 //bool   startElement (const char *tag)
-//    Begins an element that will contain some other elements or data.
 //bool   endElement ()
-//    Ends an element started earlier.
 //bool   writeAttribute (const char *name, const char *value)
 //bool   writeString (const char *string)
 //bool   writeComment (const char *string)
-//    Writes a comment.
 //bool   writeRawString (const char *string)
 //bool   writeCDataElement (const char *data)
 
 
-
-
-
 //   cout << "VRAY_clusterThis::exitClusterThisReal(): " << tempFileDeleted << endl;
-//
 //   cout << "VRAY_clusterThis::exitClusterThisReal() - temp filename " << myTempFname << endl;
-//
 //   const char * fname = me->myTempFname;
-
 //   ofstream myStream;
-
 //   myStream.open("exit_data.txt", ios_base::app);
 //   myStream << this->exitData.exitTime << std::endl;
 //   myStream << this->exitData.exitCode << std::endl;
 //   myStream.flush();
 //   myStream.close();
 //   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
-//
 
 
    if(this->myUseTempFile && !this->mySaveTempFile) {
