@@ -379,7 +379,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       void  convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
       void  convertVector(openvdb::VectorGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
       void  postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      void  preProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      void  buildVDBGrids(GU_Detail * gdp);
+      void  preProcess(GU_Detail * gdp);
 
       // Instancing methods
       int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);

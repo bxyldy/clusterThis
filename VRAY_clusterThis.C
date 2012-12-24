@@ -94,7 +94,7 @@ namespace hutil = houdini_utils;
 #include "VRAY_clusterThisAttributeUtils.C"
 #include "VRAY_clusterCVEXUtil.C"
 #include "VRAY_clusterThisRunCVEX.C"
-//#include "VRAY_clusterThisPreProcess.C"
+#include "VRAY_clusterThisPreProcess.C"
 #include "VRAY_clusterThisPostProcess.C"
 
 class VRAY_clusterThis_Exception;
@@ -531,6 +531,16 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
    myXformInverse = queryTransform(handle, 0);
    myXformInverse.invert();
+
+
+   if(myVDBPreProcess || myVDBPostProcess)
+      VRAY_clusterThis::buildVDBGrids(myGdp);
+
+
+
+
+
+
 
 
    // Build point tree for various lookups
