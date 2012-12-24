@@ -586,8 +586,11 @@ void VRAY_clusterThis::exitClusterThisReal(const char * fname)
          oss << myPostVDBReNormalizeFilter;
          xml_writer.writeElement("myPostVDBReNormalizeFilter", oss.str().c_str());
          oss.str(std::string());
-         oss << myPostVDBWriteDebugFiles;
-         xml_writer.writeElement("myPostVDBWriteDebugFiles", oss.str().c_str());
+         oss << myPostVDBWriteVDBFiles;
+         xml_writer.writeElement("myPostVDBWriteVDBFiles", oss.str().c_str());
+         oss.str(std::string());
+         oss << myVDBBaseFileName;
+         xml_writer.writeElement("myVDBBaseFileName", oss.str().c_str());
          oss.str(std::string());
          oss << myPostVDBMedianIterations;
          xml_writer.writeElement("myPostVDBMedianIterations", oss.str().c_str());

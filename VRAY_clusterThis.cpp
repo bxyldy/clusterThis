@@ -311,11 +311,11 @@ VRAY_clusterThis::VRAY_clusterThis()
    myPostVDBOffsetFilter = 0;
    myPostVDBOffsetFilterAmount = 0.1;
    myPostVDBReNormalizeFilter = 0;
-   myPostVDBWriteDebugFiles = 0;
    myPostVDBMedianIterations = 4;
    myPostVDBMeanIterations = 4;
    myPostVDBMeanCurvatureIterations = 4;
    myPostVDBLaplacianIterations = 4;
+   myPostVDBWriteVDBFiles = 0;
 
    VRAY_clusterThis::exitData.exitTime = 3.333;
    VRAY_clusterThis::exitData.exitCode = 3;
@@ -534,7 +534,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    myXformInverse.invert();
 
 
-   if(myVDBPreProcess || myVDBPostProcess)
+   if(myPostProcess && myVDBPostProcess)
       VRAY_clusterThis::buildVDBGrids(myGdp);
 
 

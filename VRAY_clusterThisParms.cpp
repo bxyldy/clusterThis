@@ -101,6 +101,8 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("nn_post_pos_influence", "real", "0.1"),
    VRAY_ProceduralArg("nn_post_vel_influence", "real", "0.1"),
    VRAY_ProceduralArg("vdb_post_process", "integer", "1"),
+   VRAY_ProceduralArg("post_use_vdb_file", "integer", "0"),
+   VRAY_ProceduralArg("vdb_input_filename", "string", "default.vdb"),
    VRAY_ProceduralArg("vdb_post_raster_type", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_ws_units", "integer", "1"),
    VRAY_ProceduralArg("vdb_post_fog_volume", "integer", "0"),
@@ -126,7 +128,8 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_post_offset_filter", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_offset_filter_amount", "real", "0.1"),
    VRAY_ProceduralArg("vdb_post_renormalize_filter", "integer", "0"),
-   VRAY_ProceduralArg("vdb_post_write_debug_file", "integer", "0"),
+   VRAY_ProceduralArg("vdb_post_write_vdb_files", "integer", "0"),
+   VRAY_ProceduralArg("vdb_file_base_name", "string", "default.vdb"),
 
    VRAY_ProceduralArg()
 };
@@ -369,6 +372,14 @@ int VRAY_clusterThis::getOTLParameters()
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_process"))
       myVDBPostProcess = *int_ptr;
 
+   if(int_ptr = VRAY_Procedural::getIParm("post_use_vdb_file"))
+      myUseVDBSourceFile = *int_ptr;
+
+   if(char_handle = VRAY_Procedural::getSParm("vdb_input_filename")) {
+         myVDBSourceFile = (UT_String)(*char_handle);
+         myVDBSourceFile.harden();
+      }
+
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_raster_type"))
       myPostRasterType = *int_ptr;
 
@@ -444,8 +455,14 @@ int VRAY_clusterThis::getOTLParameters()
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_renormalize_filter"))
       myPostVDBReNormalizeFilter = *int_ptr;
 
-   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_write_debug_file"))
-      myPostVDBWriteDebugFiles = *int_ptr;
+   if(int_ptr = VRAY_Procedural::getIParm("vdb_post_write_vdb_files"))
+      myPostVDBWriteVDBFiles = *int_ptr;
+
+   if(char_handle = VRAY_Procedural::getSParm("vdb_file_base_name")) {
+         myVDBBaseFileName = (UT_String)(*char_handle);
+         myVDBBaseFileName.harden();
+      }
+
 
 
    return 0;
@@ -533,6 +550,8 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myNNPostPosInfluence: " << myNNPostPosInfluence << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myNNPostVelInfluence: " << myNNPostVelInfluence << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myVDBPostProcess: " << myVDBPostProcess << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myUseVDBSourceFile: " << myUseVDBSourceFile << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myVDBSourceFile: " << myVDBSourceFile << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostRasterType: " << myPostRasterType << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostDx: " << myPostDx << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostFogVolume: " << myPostFogVolume << std::endl;
@@ -557,9 +576,9 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBLaplacianIterations: " << myPostVDBLaplacianIterations << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBOffsetFilter: " << myPostVDBOffsetFilter << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBOffsetFilterAmount: " << myPostVDBOffsetFilterAmount << std::endl;
-
 //   std::cout << "VRAY_clusterThis::dumpParameters() myVDBReNormalizeFilter: " << myVDBReNormalizeFilter << std::endl;
-   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBWriteDebugFiles: " << myPostVDBWriteDebugFiles << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myPostVDBWriteVDBFiles: " << myPostVDBWriteVDBFiles << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myVDBBaseFileName: " << myVDBBaseFileName << std::endl;
 
    std::cout << "VRAY_clusterThis::dumpParameters() **** MISC PARAMETERS ****" << std::endl;
 //   std::cout << "VRAY_clusterThis::dumpParameters() myOTLVersion: " << myOTLVersion << std::endl;

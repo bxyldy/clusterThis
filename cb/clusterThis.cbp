@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="clusterThis" />
+		<Option platforms="Unix;" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../../src" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option show_notes="0">
+			<notes>
+				<![CDATA[Houdini/mantra clusterThis procedural DSO.]]>
+			</notes>
+		</Option>
+		<Build>
+			<Script file="lib_finder.script" />
+			<Target title="Debug">
+				<Option platforms="Unix;" />
+				<Option output="VRAY_clusterThis.so" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../src" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option parameters="-V4 -f  /tmp/test.ifd" />
+				<Option host_application="/opt/hfs/bin/mantra-bin" />
+				<Option projectCompilerOptionsRelation="0" />
+				<Option projectLinkerOptionsRelation="0" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-ftree-vectorize -ftree-vectorizer-verbose=2 -m64 -fPIC" />
+					<Add option='-DVERSION=\&quot;${VERSION}\&quot; -DDLLEXPORT=  -D_GNU_SOURCE -DLINUX -DAMD64  \' />
+					<Add option="-DSIZEOF_VOID_P=8 -DSESI_LITTLE_ENDIAN -DENABLE_THREADS \" />
+					<Add option="-DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64  -DGCC4 -DGCC3" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option platforms="Unix;" />
+				<Option output="VRAY_clusterThis.so" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../src" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option parameters="-V4 -f /tmp/test.ifd" />
+				<Option host_application="/opt/hfs/bin/mantra-bin" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="clusterThis">
+				<Option platforms="Unix;" />
+				<Option output="VRAY_clusterThis.so" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../src" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option parameters="-V4 -f  /tmp/test.ifd" />
+				<Option host_application="/opt/hfs/bin/mantra-bin" />
+				<Option projectCompilerOptionsRelation="0" />
+				<Option projectLinkerOptionsRelation="0" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-ftree-vectorize -ftree-vectorizer-verbose=2 -m64 -fPIC" />
+					<Add option='-DVERSION=\&quot;${VERSION}\&quot; -DDLLEXPORT=  -D_GNU_SOURCE -DLINUX -DAMD64  \' />
+					<Add option="-DSIZEOF_VOID_P=8 -DSESI_LITTLE_ENDIAN -DENABLE_THREADS \" />
+					<Add option="-DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64  -DGCC4 -DGCC3" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<ExtraCommands>
+			<Add before="date" />
+			<Mode after="always" />
+		</ExtraCommands>
+		<Unit filename="../Doxyfile" />
+		<Unit filename="../Makefile" />
+		<Unit filename="../README.md" />
+		<Unit filename="../VRAY_clusterThis.cpp" />
+		<Unit filename="../VRAY_clusterThis.h" />
+		<Unit filename="../VRAY_clusterThisAttributeUtils.cpp" />
+		<Unit filename="../VRAY_clusterThisCVEXUtil.cpp" />
+		<Unit filename="../VRAY_clusterThisInstance.cpp" />
+		<Unit filename="../VRAY_clusterThisParms.cpp" />
+		<Unit filename="../VRAY_clusterThisPostProcess.cpp" />
+		<Unit filename="../VRAY_clusterThisPreProcess.cpp" />
+		<Unit filename="../VRAY_clusterThisRender.cpp" />
+		<Unit filename="../VRAY_clusterThisRunCVEX.cpp" />
+		<Unit filename="../VRAY_clusterThisUtil.cpp" />
+		<Unit filename="../changes.txt" />
+		<Unit filename="../doc.txt" />
+		<Unit filename="../example_scenes.txt" />
+		<Unit filename="../faq.txt" />
+		<Unit filename="../version.h" />
+		<Extensions>
+			<code_completion />
+			<envvars set="default" />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

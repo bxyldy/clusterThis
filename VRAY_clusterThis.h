@@ -528,6 +528,8 @@ class VRAY_clusterThis : public VRAY_Procedural
 
       // VDB post processing parms
       int      myVDBPostProcess;
+      int      myUseVDBSourceFile;
+      UT_String myVDBSourceFile;
       int      myPostRasterType;
       fpreal   myPostDx;
       int      myPostFogVolume;
@@ -553,7 +555,8 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myPostVDBOffsetFilter;
       fpreal   myPostVDBOffsetFilterAmount;
       int      myPostVDBReNormalizeFilter;
-      int      myPostVDBWriteDebugFiles;
+      int      myPostVDBWriteVDBFiles;
+      UT_String myVDBBaseFileName;
 
       // A struct to keep track os CVEX vars to pass to the CVEX code
       struct cvex_pt_vars_struct {

@@ -265,27 +265,23 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
             }
 
 
-         if(myPostVDBWriteDebugFiles) {
-
+         if(myPostVDBWriteVDBFiles) {
                if(myVerbose > CLUSTER_MSG_INFO)
                   std::cout << "VRAY_clusterThis::postProcess() - Writing grids to disk ... " << std::endl;
-
-               openvdb::GridPtrVec outgrids;
+//               openvdb::GridPtrVec outgrids;
                openvdb::GridPtrVec gradgrids;
 
-               openvdb::io::File outFile("/tmp/cluster_out_grid.vdb");
-               outgrids.push_back(mySourceGeoGrid);
-               outFile.write(outgrids);
-               outFile.close();
+//               openvdb::io::File outFile("/tmp/cluster_out_grid.vdb");
+//               outgrids.push_back(mySourceGeoGrid);
+//               outFile.write(outgrids);
+//               outFile.close();
 
-               openvdb::io::File gradientFile("/tmp/cluster_gradient_grid.vdb");
+               openvdb::io::File gradientFile(static_cast<char *>(myVDBBaseFileName));
                gradgrids.push_back(mySourceGradientGrid);
                gradientFile.write(gradgrids);
                gradientFile.close();
-
                if(myVerbose > CLUSTER_MSG_INFO)
                   std::cout << "VRAY_clusterThis::postProcess() - Finished writing grids to disk ... " << std::endl;
-
             }
 
 
