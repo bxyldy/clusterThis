@@ -8,8 +8,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisCVEXUtil_C__
-#define __VRAY_clusterThisCVEXUtil_C__
+#ifndef __VRAY_clusterThisCVEXUtil_cpp__
+#define __VRAY_clusterThisCVEXUtil_cpp__
 
 
 /*

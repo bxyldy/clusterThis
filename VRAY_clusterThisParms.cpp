@@ -8,8 +8,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisParms_C__
-#define __VRAY_clusterThisParms_C__
+#ifndef __VRAY_clusterThisParms_cpp__
+#define __VRAY_clusterThisParms_cpp__
 
 
 

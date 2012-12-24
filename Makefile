@@ -1,12 +1,12 @@
 SHELL=/bin/csh
 DBG=-g
-src = VRAY_clusterThis.C VRAY_clusterThis.h \
-   VRAY_clusterCVEXUtil.C VRAY_clusterThisInstance.C \
-   VRAY_clusterThisRunCVEX.C VRAY_clusterThisAttributeUtils.C \
-   VRAY_clusterThisPreProcess.C VRAY_clusterThisPostProcess.C VRAY_clusterThisParms.C \
-   VRAY_clusterThisUtil.C VRAY_clusterThisRender.C
+src = VRAY_clusterThis.cpp VRAY_clusterThis.h \
+   VRAY_clusterThisCVEXUtil.cpp VRAY_clusterThisInstance.cpp \
+   VRAY_clusterThisRunCVEX.cpp VRAY_clusterThisAttributeUtils.cpp \
+   VRAY_clusterThisPreProcess.cpp VRAY_clusterThisPostProcess.cpp VRAY_clusterThisParms.cpp \
+   VRAY_clusterThisUtil.cpp VRAY_clusterThisRender.cpp
 
-SOURCES = VRAY_clusterThis.C
+SOURCES = VRAY_clusterThis.cpp
 H_CFLAGS =  $(shell hcustom --cflags)
 # -DVERSION=\"12.1.33\" -D_GNU_SOURCE -DLINUX -DAMD64 -m64 -fPIC -DSIZEOF_VOID_P=8 -DSESI_LITTLE_ENDIAN
 # -DENABLE_THREADS -DUSE_PTHREADS -D_REENTRANT -D_FILE_OFFSET_BITS=64 -c -DGCC4 -DGCC3 -Wno-deprecated
@@ -32,7 +32,7 @@ Debug: clusterThis install
 Release: clusterThis install
 clusterThis: $(src)
 ifeq ($(OSTYPE),linux)
-	$(CXX) $(DBG) $(CFLAGS) -I/usr/local/include -I/usr/local/include/openvdb_houdini -o VRAY_clusterThis.o VRAY_clusterThis.C
+	$(CXX) $(DBG) $(CFLAGS) -I/usr/local/include -I/usr/local/include/openvdb_houdini -o VRAY_clusterThis.o VRAY_clusterThis.cpp
 	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/local/ -lopenvdb -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.so
 endif
 

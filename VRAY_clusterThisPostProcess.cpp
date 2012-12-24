@@ -8,8 +8,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisPostProcess_C__
-#define __VRAY_clusterThisPostProcess_C__
+#ifndef __VRAY_clusterThisPostProcess_cpp__
+#define __VRAY_clusterThisPostProcess_cpp__
 
 
 

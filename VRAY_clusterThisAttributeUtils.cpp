@@ -8,8 +8,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisAttributeUtils_C__
-#define __VRAY_clusterThisAttributeUtils_C__
+#ifndef __VRAY_clusterThisAttributeUtils_cpp__
+#define __VRAY_clusterThisAttributeUtils_cpp__
 
 
 /* ******************************************************************************

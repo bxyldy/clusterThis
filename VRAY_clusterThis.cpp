@@ -12,10 +12,10 @@
 *
 ***************************************************************************** */
 
-// Open VDB copyright information can be found here: openvdb.org
+// Open VDB copyright information can be found here: http://www.openvdb.org
 
-#ifndef __VRAY_clusterThis_C__
-#define __VRAY_clusterThis_C__
+#ifndef __VRAY_clusterThis_cpp__
+#define __VRAY_clusterThis_cpp__
 
 #include <GU/GU_Detail.h>
 #include <GEO/GEO_PointTree.h>
@@ -87,15 +87,15 @@ namespace hutil = houdini_utils;
 
 #include "version.h"
 #include "VRAY_clusterThis.h"
-#include "VRAY_clusterThisParms.C"
-#include "VRAY_clusterThisUtil.C"
-#include "VRAY_clusterThisRender.C"
-#include "VRAY_clusterThisInstance.C"
-#include "VRAY_clusterThisAttributeUtils.C"
-#include "VRAY_clusterCVEXUtil.C"
-#include "VRAY_clusterThisRunCVEX.C"
-#include "VRAY_clusterThisPreProcess.C"
-#include "VRAY_clusterThisPostProcess.C"
+#include "VRAY_clusterThisParms.cpp"
+#include "VRAY_clusterThisUtil.cpp"
+#include "VRAY_clusterThisRender.cpp"
+#include "VRAY_clusterThisInstance.cpp"
+#include "VRAY_clusterThisAttributeUtils.cpp"
+#include "VRAY_clusterThisCVEXUtil.cpp"
+#include "VRAY_clusterThisRunCVEX.cpp"
+#include "VRAY_clusterThisPreProcess.cpp"
+#include "VRAY_clusterThisPostProcess.cpp"
 
 class VRAY_clusterThis_Exception;
 
@@ -396,18 +396,14 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    myInitTime = std::clock();
    std::time(&myInitStartTime);
 
-
    // Get the OTL parameters
    VRAY_clusterThis::getOTLParameters();
 
-   // Dump the user parameters to the console
-   if(myVerbose == CLUSTER_MSG_DEBUG)
-      VRAY_clusterThis::dumpParameters();
-
    if(myVerbose > CLUSTER_MSG_QUIET) {
-         std::cout << "VRAY_clusterThis::initialize() - Version: " << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
-         std::cout << "VRAY_clusterThis::initialize() - Built for Houdini Version: " << UT_MAJOR_VERSION
-                   << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
+         std::cout << std::endl << "VRAY_clusterThis::initialize() - Version: "
+                   << MAJOR_VER << "." << MINOR_VER << "." << BUILD_VER << std::endl;
+         std::cout << "VRAY_clusterThis::initialize() - Built for Houdini Version: "
+                   << UT_MAJOR_VERSION << "." << UT_MINOR_VERSION << "." << UT_BUILD_VERSION_INT << std::endl;
          std::cout << "VRAY_clusterThis::initialize() - Initializing ..." <<  std::endl;
       }
 
@@ -416,6 +412,11 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //          cout << "VM_GEO_clusterThis OTL is wrong version: " <<  myOTLVersion << ", should be version: " << DCA_VERSION << ", please install correct version." << std::endl;
 //          throw VRAY_clusterThis_Exception ( "VRAY_clusterThis::initialize() VM_GEO_clusterThis OTL is wrong version!", 1 );
 //       }
+
+
+   // Dump the user parameters to the console
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      VRAY_clusterThis::dumpParameters();
 
 
    // Find the geometry object to render
@@ -785,6 +786,7 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
 
 
 

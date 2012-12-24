@@ -7,8 +7,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisRender_C__
-#define __VRAY_clusterThisRender_C__
+#ifndef __VRAY_clusterThisRender_cpp__
+#define __VRAY_clusterThisRender_cpp__
 
 
 /* ******************************************************************************

@@ -9,8 +9,8 @@
 ***************************************************************************** */
 
 
-#ifndef __VRAY_clusterThisUtil_C__
-#define __VRAY_clusterThisUtil_C__
+#ifndef __VRAY_clusterThisUtil_cpp__
+#define __VRAY_clusterThisUtil_cpp__
 
 
 

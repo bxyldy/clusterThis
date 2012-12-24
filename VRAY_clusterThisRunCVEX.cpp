@@ -6,8 +6,8 @@
 *
 ***************************************************************************** */
 
-#ifndef __VRAY_clusterThisRunCVEX_C__
-#define __VRAY_clusterThisRunCVEX_C__
+#ifndef __VRAY_clusterThisRunCVEX_cpp__
+#define __VRAY_clusterThisRunCVEX_cpp__
 
 
 
