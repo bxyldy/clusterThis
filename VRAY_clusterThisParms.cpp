@@ -103,6 +103,7 @@ static VRAY_ProceduralArg theArgs[] = {
    VRAY_ProceduralArg("vdb_post_process", "integer", "1"),
    VRAY_ProceduralArg("post_use_vdb_file", "integer", "0"),
    VRAY_ProceduralArg("vdb_input_filename", "string", "default.vdb"),
+   VRAY_ProceduralArg("vdb_source_grid_name", "string", "vdb_gradient"),
    VRAY_ProceduralArg("vdb_post_raster_type", "integer", "0"),
    VRAY_ProceduralArg("vdb_post_ws_units", "integer", "1"),
    VRAY_ProceduralArg("vdb_post_fog_volume", "integer", "0"),
@@ -380,6 +381,11 @@ int VRAY_clusterThis::getOTLParameters()
          myVDBSourceFile.harden();
       }
 
+   if(char_handle = VRAY_Procedural::getSParm("vdb_source_grid_name")) {
+         myVDBSourceGridName = (UT_String)(*char_handle);
+         myVDBSourceGridName.harden();
+      }
+
    if(int_ptr = VRAY_Procedural::getIParm("vdb_post_raster_type"))
       myPostRasterType = *int_ptr;
 
@@ -552,6 +558,7 @@ void VRAY_clusterThis::dumpParameters()
    std::cout << "VRAY_clusterThis::dumpParameters() myVDBPostProcess: " << myVDBPostProcess << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myUseVDBSourceFile: " << myUseVDBSourceFile << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myVDBSourceFile: " << myVDBSourceFile << std::endl;
+   std::cout << "VRAY_clusterThis::dumpParameters() myVDBSourceGridName: " << myVDBSourceGridName << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostRasterType: " << myPostRasterType << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostDx: " << myPostDx << std::endl;
    std::cout << "VRAY_clusterThis::dumpParameters() myPostFogVolume: " << myPostFogVolume << std::endl;

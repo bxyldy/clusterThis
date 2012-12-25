@@ -181,7 +181,6 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          // Get the reference to the gradient grid's tree to be used in sampling
          openvdb::VectorTree & myGradTree = mySourceGradientGrid->treeRW();
 
-
          GEO_Point * ppt;
 
          if(myVerbose > CLUSTER_MSG_INFO)
@@ -268,13 +267,8 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
          if(myPostVDBWriteVDBFiles) {
                if(myVerbose > CLUSTER_MSG_INFO)
                   std::cout << "VRAY_clusterThis::postProcess() - Writing grids to disk ... " << std::endl;
-//               openvdb::GridPtrVec outgrids;
+//               openvdb::GridPtrVec scalargrids;
                openvdb::GridPtrVec gradgrids;
-
-//               openvdb::io::File outFile("/tmp/cluster_out_grid.vdb");
-//               outgrids.push_back(mySourceGeoGrid);
-//               outFile.write(outgrids);
-//               outFile.close();
 
                openvdb::io::File gradientFile(static_cast<char *>(myVDBBaseFileName));
                gradgrids.push_back(mySourceGradientGrid);

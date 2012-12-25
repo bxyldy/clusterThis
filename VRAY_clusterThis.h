@@ -530,6 +530,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int      myVDBPostProcess;
       int      myUseVDBSourceFile;
       UT_String myVDBSourceFile;
+      UT_String myVDBSourceGridName;
       int      myPostRasterType;
       fpreal   myPostDx;
       int      myPostFogVolume;

@@ -290,6 +290,8 @@ VRAY_clusterThis::VRAY_clusterThis()
 
    // VDB post processing parms
    myVDBPostProcess = 0;
+   myVDBSourceFile = "";
+   myVDBSourceGridName = "";
    myPostRasterType = 0;
    myPostDx = 1.0;
    myPostFogVolume = 0;
