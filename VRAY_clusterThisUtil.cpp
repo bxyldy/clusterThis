@@ -274,56 +274,9 @@ void VRAY_clusterThis::exitClusterThis(void * data)
 {
    VRAY_clusterThis * me = (VRAY_clusterThis *)data;
 
-//   if(me->myVerbose == CLUSTER_MSG_DEBUG)
-//      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
+   if(me->myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << std::endl << std::endl << "VRAY_clusterThis::exitClusterThis() - Preparing to exit!" << std::endl;
 
-
-//   if(me->myVerbose > CLUSTER_MSG_INFO)
-//      cout << "VRAY_clusterThis::exitClusterThis() myTempFname: " << (const char *)me->myTempFname << endl;
-
-
-//   if(me->tempFileDeleted) {
-//         me->tempFileDeleted = true;
-//         cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
-////         me->exitClusterThisReal((const char *)me->myTempFname);
-//         me->exitClusterThisReal(data);
-//      }
-
-
-//   if(me->myVerbose > CLUSTER_MSG_INFO)
-//      cout << "VRAY_clusterThis::exitClusterThis() - Running exit processing" << endl;
-
-//   cout << "VRAY_clusterThis::exitClusterThis(): " << me->tempFileDeleted << endl;
-//
-//   cout << "VRAY_clusterThis::exitClusterThis() - temp filename " << me->myTempFname << endl;
-
-//   const char * fname = me->myTempFname;
-//
-////   ofstream myStream;
-//
-////   myStream.open("exit_data.txt", ios_base::app);
-////   myStream << this->exitData.exitTime << std::endl;
-////   myStream << this->exitData.exitCode << std::endl;
-////   myStream.flush();
-////   myStream.close();
-////   cout << "VRAY_clusterThis::exitClusterThisReal() : " << this->exitData.exitTime << endl;
-////
-//
-//   struct stat fileResults;
-//
-//   if(me->myUseTempFile && !me->mySaveTempFile) {
-//         if((UT_String(fname)).isstring() && stat(fname, &fileResults) == 0) {
-//               if(me->myVerbose > CLUSTER_MSG_INFO)
-//                  cout << "VRAY_clusterThis::exitClusterThis() - Found temp file " << fname << endl;
-//               if(!remove(fname) && (me->myVerbose > CLUSTER_MSG_INFO))
-//                  cout << "VRAY_clusterThis::exitClusterThis() - Removed geometry temp file: " << fname << endl;
-//            }
-//         else
-//            if(me->myVerbose > CLUSTER_MSG_INFO)
-//               cout << "VRAY_clusterThis::exitClusterThis() - Did not find temp file " << fname << endl << endl;
-//      }
-//
-//
 
    const char * fname = me->myTempFname;
 
