@@ -139,39 +139,6 @@ void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
                             << mySourceGeoGridMemUsage << std::endl;
 
 
-//{
-//
-//         if(myVerbose > CLUSTER_MSG_INFO)
-//            std::cout << "VRAY_clusterThis::buildVDBGrids() - Reading grids from disk ... " << std::endl;
-//
-//         openvdb::GridBase::Ptr baseGrid;
-//         openvdb::io::File VDBSourceFile(static_cast<char *>(myVDBSourceFile));
-//         VDBSourceFile.open();
-//         int foo = 0;
-//
-//         for(openvdb::io::File::NameIterator nameIter = VDBSourceFile.beginName();
-//               nameIter != VDBSourceFile.endName(); ++nameIter) {
-//               // Read in only the grid we are interested in.
-//               std::cout << "foo: " << foo++ << std::endl;
-//               if(nameIter.gridName() == "ls_venus_statue") {
-//                     std::cout << "gridName: " << nameIter.gridName() << std::endl;
-//                     baseGrid = VDBSourceFile.readGrid(nameIter.gridName());
-//                  }
-//               else {
-//                     std::cout << "skipping grid " << nameIter.gridName() << std::endl;
-//                  }
-//            }
-//
-//         VDBSourceFile.close();
-//         mySourceGeoGrid = openvdb::gridPtrCast<openvdb::ScalarGrid>(baseGrid);
-//
-//         if(myVerbose > CLUSTER_MSG_INFO)
-//            std::cout << "VRAY_clusterThis::buildVDBGrids() - Finished reading grids from disk ... " << std::endl;
-//
-//}
-
-
-
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::buildVDBGrids() - Creating the gradient grid ... " << std::endl;
 
