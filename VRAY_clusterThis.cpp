@@ -539,32 +539,6 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myPostProcess && myVDBPostProcess)
       VRAY_clusterThis::buildVDBGrids(myGdp);
 
-
-
-
-
-
-
-
-   // Build point tree for various lookups
-   for(uint32 i = myGdp->points().entries(); i-- > 0;) {
-         // Append to our list of points to be used for various tasks,
-         // like breaking up the point cloud into regular grids, etc.
-         mySRCPointList.append(i);
-
-         // Build the geo point tree to be used for nearest neighbor caculations
-         const GEO_Point * ppt;
-         ppt = myGdp->points()(i);
-         fpreal radius = static_cast<fpreal>(ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
-         mySRCPointTree.appendPtRadius(myGdp, ppt, radius);
-      }
-
-   myPointTreeMemUsage = mySRCPointTree.getMemoryUsage();
-
-   if(myVerbose == CLUSTER_MSG_DEBUG)
-      std::cout << "VRAY_clusterThis::initialize() myPointTreeMemUsage: " << myPointTreeMemUsage << std::endl;
-
-
    // find how much noise is being generated to help with BBox calculations
    fpreal noise_bias;
 
@@ -584,25 +558,35 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
    // Calculate our BBox for the incoming point cloud and add noise, radius, etc. to enlarge the BBox to
    // accomodate the instanced geometry
+   // Build the geo point tree to be used for nearest neighbor caculations
    fpreal scale;
-
+   fpreal radius;
+   fpreal pscale;
    int first = 1;
    xform = myXformInverse;
+
    for(uint32 i = myGdp->points().entries(); i-- > 0;) {
          GEO_Point * ppt = myGdp->points()(i);
 
-         myPointAttributes.pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.pscale, 0));
+//         // Append to our list of points to be used for various tasks,
+//         // like breaking up the point cloud into regular grids, etc.
+//         mySRCPointList.append(i);
 
-         if(myUsePointRadius) {
-               myPointAttributes.radius = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.radius, 0));
-               scale = (myPointAttributes.radius + noise_bias) * myPointAttributes.pscale;
-            }
-         else {
-               scale = (myRadius + noise_bias) * myPointAttributes.pscale;
-            }
+         if(myUsePointRadius)
+            radius = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.radius, 0));
+         else
+            radius = myRadius;
+
+         pscale = static_cast<fpreal>(ppt->getValue<fpreal>(myPointAttrRefs.pscale, 0));
+
+         if(myUsePointRadius)
+            scale = (radius + noise_bias) * pscale;
+         else
+            scale = (myRadius + noise_bias) * pscale;
+
+         mySRCPointTree.appendPtRadius(myGdp, ppt, radius);
 
          getRoughBBox(tbox, tvbox, ppt, scale, myPointAttrRefs.v, myTimeScale, xform);
-
          if(first) {
                myBox = tbox;
                myVelBox = tvbox;
@@ -617,7 +601,7 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 
    if(first) {
          std::cout << "VRAY_clusterThis::initialize() " << getClassName() << " found no points in: " << name << std::endl;
-         VRAYwarning("%s found no points in %s", getClassName(), name);
+         VRAYwarning("VRAY_clusterThis::initialize() %s found no points in %s", getClassName(), name);
          return 0;
       }
 
@@ -665,6 +649,13 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //         std::cout << "VRAY_clusterThis::initialize() box min: " << box->xmin() << " " << box->ymin() << " " << box->zmin() << std::endl;
 //         std::cout << "VRAY_clusterThis::initialize() box max: " << box->xmax() << " " << box->ymax() << " " << box->zmax() << std::endl;
 //      }
+
+
+   myPointTreeMemUsage = mySRCPointTree.getMemoryUsage();
+
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::initialize() myPointTreeMemUsage: " << myPointTreeMemUsage << std::endl;
+
 
    std::time(&myInitEndTime);
    myInitExecTime = std::clock() - myInitTime;
@@ -788,6 +779,9 @@ int VRAY_clusterThis::preLoadGeoFile(GU_Detail * file_gdp)
 
 
 #endif
+
+
+
 
 
 

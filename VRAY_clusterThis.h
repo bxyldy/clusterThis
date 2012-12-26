@@ -412,7 +412,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       fpreal   myLOD;
       static const fpreal myFPS = 24.0;
       fpreal myTimeScale;
-      UT_IntArray mySRCPointList;
+//      UT_IntArray mySRCPointList;
       GEO_PointTree mySRCPointTree;
       clock_t myInitTime;
       clock_t myPreProcTime;

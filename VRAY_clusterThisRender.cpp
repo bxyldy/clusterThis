@@ -75,7 +75,8 @@ void VRAY_clusterThis::render()
                // for velocity blur.
                if(!import("object:velocityscale", &myVelocityScale, 1)) {
                      myVelocityScale = 0.5F / myFPS;
-                     std::cout << "VRAY_clusterThis::render() did not find object:velocityscale, setting myVelocityScale to 0.0"  << std::endl;
+                     if(myVerbose > CLUSTER_MSG_INFO)
+                        std::cout << "VRAY_clusterThis::render() did not find object:velocityscale, setting myVelocityScale to 0.0"  << std::endl;
                   }
                else {
                      if(myVerbose == CLUSTER_MSG_DEBUG)
@@ -224,6 +225,11 @@ void VRAY_clusterThis::render()
                } // for all points ...
 
 
+               if(myVerbose > CLUSTER_MSG_QUIET && myPrimType != CLUSTER_PRIM_CURVE)
+                  cout << "VRAY_clusterThis::render() Total number of instances: " << myInstanceNum << std::endl;
+
+
+               // Run post processing on the instanced geometry
                if(myPostProcess) {
                      VRAY_clusterThis::postProcess(myGdp, inst_gdp, mb_gdp);
                   }
@@ -270,10 +276,6 @@ void VRAY_clusterThis::render()
                VRAY_Procedural::setComputeN(1);
                VRAY_Procedural::setSurface(myMaterial);
                VRAY_Procedural::closeObject();
-
-
-               if(myVerbose > CLUSTER_MSG_QUIET && myPrimType != CLUSTER_PRIM_CURVE)
-                  cout << "VRAY_clusterThis::render() Total number of instances: " << myInstanceNum << std::endl;
 
                // Save the geo to temp location so it doesn't have to be regenerated for a deep shadow pass, etc.
                if(myUseTempFile) {
