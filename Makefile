@@ -20,6 +20,8 @@ BUILD_VER = "$(today)"
 SRC_VER = $(MAJOR_VER).$(MINOR_VER).$(BUILD_VER)
 SRC_VER_FLAGS = -DMAJOR_VER=$(MAJOR_VER) -DMINOR_VER=$(MINOR_VER) -DBUILD_VER=$(BUILD_VER)
 
+BUILD_VER = `grep BUILD_VERSION version.h | cut -f 3 -d ' '`
+
 TAGINFO = $(shell (echo -n "Compiled on:" `date`"\n  by:" `whoami`@`hostname`"\n$(SESI_TAGINFO)") | /opt/hfs/bin/sesitag -m)
 CFLAGS := $(CFLAGS) $(H_CFLAGS) -I/usr/local/include/ $(SRC_VER_FLAGS) $(DBG) ${TAGINFO} -ftree-vectorize -ftree-vectorizer-verbose=2
 
