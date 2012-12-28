@@ -54,7 +54,7 @@ void VRAY_clusterThis::postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_D
          num_passes--;
 
          if(myVerbose == CLUSTER_MSG_DEBUG)
-            cout << "VRAY_clusterThis::postNNProcess() num_passes:" << num_passes << std::endl;
+            cout << "VRAY_clusterThis::postNNProcess() num_passes: " << num_passes << std::endl;
 
          pt_counter = 0;
 
@@ -194,7 +194,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
                num_passes--;
 
                if(myVerbose == CLUSTER_MSG_DEBUG)
-                  cout << "VRAY_clusterThis::postProcess() num_passes:" << num_passes << std::endl;
+                  cout << "VRAY_clusterThis::postProcess() num_passes: " << num_passes << std::endl;
 
                GEO_AttributeHandle inst_vel_gah = temp_gdp->getPointAttribute("v");
                GEO_AttributeHandle source_vel_gah = gdp->getPointAttribute("v");
