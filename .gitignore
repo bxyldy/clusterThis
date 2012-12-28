@@ -17,3 +17,9 @@
 docs/*
 src_archive/*
 .#*
+
+cb/*layout*
+cb/bin
+cb/main.cpp
+cb/*script*
+

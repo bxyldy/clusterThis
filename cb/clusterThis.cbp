@@ -10,7 +10,7 @@
 		<Option compiler="gcc" />
 		<Option show_notes="0">
 			<notes>
-				<![CDATA[Houdini/mantra clusterThis procedural DSO.]]>
+				<![CDATA[Houdini-mantra clusterThis procedural DSO.]]>
 			</notes>
 		</Option>
 		<Build>
