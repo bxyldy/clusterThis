@@ -13,7 +13,6 @@ H_CFLAGS =  $(shell hcustom --cflags)
 # -I/opt/hfs/toolkit/include -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized
 # -Wunused -Wno-unused-parameter -O2 -fno-strict-aliasing
 
-
 today = $(shell date +%j)
 MAJOR_VER = "2"
 MINOR_VER = "5"
