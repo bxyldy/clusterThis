@@ -31,7 +31,7 @@ PROJECT_NAME           = clusterThis
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 2.5.363
+PROJECT_NUMBER         = 2.5.365
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -581,17 +581,18 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = VRAY_clusterThis.h \
-                         VRAY_clusterThisInstance.C \
-                         VRAY_clusterThisUtil.C \
-                         VRAY_clusterThisParms.C \
-                         VRAY_clusterCVEXUtil.C \
+                         VRAY_clusterThis.cpp \
+                         VRAY_clusterThisInstance.cpp \
+                         VRAY_clusterThisUtil.cpp \
+                         VRAY_clusterThisParms.cpp \
+                         VRAY_clusterThisCVEXUtil.cpp \
                          VRAYprocedural \
                          Doxyfile \
-                         VRAY_clusterThisAttributeUtils.C \
-                         VRAY_clusterThisRender.C \
-                         VRAY_clusterThisPostProcess.C \
-                         VRAY_clusterThisPreProcess.C \
-                         VRAY_clusterThisRunCVEX.C \
+                         VRAY_clusterThisAttributeUtils.cpp \
+                         VRAY_clusterThisRender.cpp \
+                         VRAY_clusterThisPostProcess.cpp \
+                         VRAY_clusterThisPreProcess.cpp \
+                         VRAY_clusterThisRunCVEX.cpp \
                          faq.txt \
                          doc.txt \
                          changes.txt \
