@@ -49,7 +49,8 @@ void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
                settings.mRadiusMin = myPostRadiusMin;
                settings.mRasterizeTrails = myPostRasterType;
                settings.mDx = myPostDx;  // only used for rasterizeTrails()
-               settings.mFogVolume = myPostFogVolume;
+//               settings.mFogVolume = myPostFogVolume;
+               settings.mFogVolume = 1;
                settings.mGradientWidth = myPostGradientWidth;  // only used for fog volume
 
                float background;
@@ -144,14 +145,11 @@ void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
 
                mySourceGradientGrid = openvdb::VectorGrid::create();
                mySourceGradientGrid->setTransform(transform);
-//               mySourceGradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME );
-               mySourceGradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
+               mySourceGradientGrid->setGridClass(openvdb::GRID_FOG_VOLUME);
+//               mySourceGradientGrid->setGridClass(openvdb::GRID_LEVEL_SET);
 
                openvdb::tools::Gradient<openvdb::ScalarGrid> myGradient(*mySourceGeoGrid);
                mySourceGradientGrid = myGradient.process();
-
-               // Clear the scalar grid to free memory
-               mySourceGeoGrid->clear();
 
                mySourceGradientGridMemUsage = mySourceGradientGrid->memUsage();
                if(myVerbose == CLUSTER_MSG_DEBUG)
@@ -167,25 +165,38 @@ void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
                if(myVerbose == CLUSTER_MSG_DEBUG)
                   std::cout << "VRAY_clusterThis::buildVDBGrids() - Finished creating/processing the gradient grid ... " << std::endl;
 
+               // Write out the VDB files if the user wants them
                if(myPostVDBWriteVDBFiles) {
+
+                     UT_String gridFileName;
+
                      if(myVerbose > CLUSTER_MSG_INFO)
                         std::cout << "VRAY_clusterThis::postProcess() - Writing grids to disk ... " << std::endl;
-//               openvdb::GridPtrVec outgrids;
-                     openvdb::GridPtrVec gradgrids;
+                     openvdb::GridPtrVec scalarGrids;
+                     openvdb::GridPtrVec gradGrids;
 
-//               openvdb::io::File outFile("/tmp/cluster_out_grid.vdb");
-//               outgrids.push_back(mySourceGeoGrid);
-//               outFile.write(outgrids);
-//               outFile.close();
+                     gridFileName = myVDBBaseFileName;
+                     gridFileName.insert(myVDBBaseFileName.length(), "_scalar.vdb");
 
-                     openvdb::io::File gradientFile(static_cast<char *>(myVDBBaseFileName));
-                     gradgrids.push_back(mySourceGradientGrid);
-                     gradientFile.write(gradgrids);
+                     openvdb::io::File outFile(static_cast<char *>(gridFileName));
+                     scalarGrids.push_back(mySourceGeoGrid);
+                     outFile.write(scalarGrids);
+                     outFile.close();
+
+                     gridFileName = myVDBBaseFileName;
+                     gridFileName.insert(myVDBBaseFileName.length(), "_gradient.vdb");
+
+                     openvdb::io::File gradientFile(static_cast<char *>(gridFileName));
+                     gradGrids.push_back(mySourceGradientGrid);
+                     gradientFile.write(gradGrids);
                      gradientFile.close();
                      if(myVerbose > CLUSTER_MSG_INFO)
                         std::cout << "VRAY_clusterThis::postProcess() - Finished writing grids to disk ... " << std::endl;
                   }
 
+
+               // Clear the scalar grid to free memory
+               mySourceGeoGrid->clear();
 
             }   //  if(paList.size() != 0)
 
