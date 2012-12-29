@@ -3,11 +3,10 @@
 *  VRAY_clusterThisInstance
 *
 *
-* Description :
+* Description : Instance an object for the point(s) passed to the method
 *
 *
 ***************************************************************************** */
-
 
 #ifndef __VRAY_clusterThisInstance_cpp__
 #define __VRAY_clusterThisInstance_cpp__
@@ -16,7 +15,7 @@
 /* ******************************************************************************
 *  Function Name : instancePoint()
 *
-*  Description :
+*  Description : Instance a point
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -59,7 +58,7 @@ int VRAY_clusterThis::instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 /* ******************************************************************************
 *  Function Name : instanceSphere()
 *
-*  Description :
+*  Description : Instance a sphere
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -119,7 +118,7 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 /* ******************************************************************************
 *  Function Name : instanceCube()
 *
-*  Description :
+*  Description : Instance a cube
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -187,7 +186,7 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 /* ******************************************************************************
 *  Function Name : instanceGrid()
 *
-*  Description :
+*  Description : Instance a grid
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -256,7 +255,7 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 /* ******************************************************************************
 *  Function Name : instanceTube()
 *
-*  Description :
+*  Description : Instance a tube
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -435,7 +434,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 /* ******************************************************************************
 *  Function Name : instanceCurve()
 *
-*  Description :
+*  Description : Instance a curve
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
@@ -574,7 +573,7 @@ int VRAY_clusterThis::instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fp
 /* ******************************************************************************
 *  Function Name : instanceMetaball()
 *
-*  Description :
+*  Description : Instance a metaball
 *
 *  Input Arguments : GU_Detail *inst_gdp, GU_Detail *mb_gdp
 *
