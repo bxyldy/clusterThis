@@ -1,4 +1,3 @@
-
 The clusterThis mantra geometry instancing procedural DSO/OTL will instance geometry to
 incoming points and will process the point attributes in a number of ways for the instanced geometry.
 Delays geomtery instantiation until render time thus, reduces size of IFD file and network bandwidth,
@@ -12,7 +11,7 @@ allows access to render time data, add additional detail to scene.
  
  * Open VDB "voxelization" post processing of the instanced geometry.
  
- * Motion blur (velocity/backtrack/geometry)
+ * Motion blur (velocity/geometry)
  
  * CVEX processing of instanced geometry
  
