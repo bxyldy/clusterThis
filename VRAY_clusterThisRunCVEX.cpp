@@ -110,7 +110,7 @@ int VRAY_clusterThis::runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_Strin
                num_inst = myInstanceNum;
                num_prim = inst_gdp->primitives().entries();
                num_points = inst_gdp->points().entries();
-               num_inst = num_points;
+//               num_inst = num_points;
 //           std::cout << "VRAY_clusterThis::runCVEX() - num_inst: " << num_inst << " num_points: " << num_points << " num_prim: " << num_prim << std::endl;
             }
 

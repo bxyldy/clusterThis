@@ -88,7 +88,7 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    sphere_parms.gdp = inst_gdp;
    sphere_parms.xform = xform;
    sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
-   VRAY_clusterThis::setInstanceAttributes(sphere);
+   VRAY_clusterThis::setInstanceAttributes(sphere, CLUSTER_PRIM_SPHERE);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 //         xform.xform(xformOrder, myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2],
@@ -101,7 +101,7 @@ int VRAY_clusterThis::instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          sphere_parms.gdp = mb_gdp;
          sphere_parms.xform = xform;
          sphere = (GU_PrimSphere *) GU_PrimSphere::build(sphere_parms);
-         VRAY_clusterThis::setInstanceAttributes(sphere);
+         VRAY_clusterThis::setInstanceAttributes(sphere, CLUSTER_PRIM_SPHERE);
       }
 
    if(myCVEX_Exec)
@@ -132,9 +132,11 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
 #endif
 
    GEO_Primitive * myCube;
+   UT_Matrix3 mat3(1.0);
    UT_Matrix4 xform(1.0);
+   UT_Vector3 zaxis(0, 0, 1);
    UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
-   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+//   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
 
    myCube = (GEO_Primitive *) inst_gdp->cube(
                myPointAttributes.myNewPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
@@ -144,32 +146,39 @@ int VRAY_clusterThis::instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
                myPointAttributes.myNewPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
                myPointAttributes.myNewPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-   for(int i = 0; i < myCube->getVertexCount(); i++) {
-         GEO_Point * ppt = myCube->getVertexElement(i).getPt();
-         UT_Vector4  P = ppt->getPos();
-         P *= xform;
-         ppt->setPos(P);
-      }
+//   mat3.dihedral(zaxis, myPointAttributes.N);
+//   xform = mat3;
+//   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
 
-   VRAY_clusterThis::setInstanceAttributes(myCube);
+//   for(int i = 0; i < myCube->getVertexCount(); i++) {
+//         GEO_Point * ppt = myCube->getVertexElement(i).getPt();
+//         UT_Vector4  P = ppt->getPos();
+//         P *= xform;
+//         ppt->setPos(P);
+//      }
+
+   VRAY_clusterThis::setInstanceAttributes(myCube, CLUSTER_PRIM_CUBE);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
-         myCube = (GEO_Primitive *) mb_gdp->cube(myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
-                                                 myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
+         myCube = (GEO_Primitive *) mb_gdp->cube(
+                     myPointAttributes.myMBPos[0] - ((mySize[0] * myPointAttributes.pscale) / 2),
+                     myPointAttributes.myMBPos[0] + ((mySize[0] * myPointAttributes.pscale) / 2),
+                     myPointAttributes.myMBPos[1] - ((mySize[1] * myPointAttributes.pscale) / 2),
+                     myPointAttributes.myMBPos[1] + ((mySize[1] * myPointAttributes.pscale) / 2),
+                     myPointAttributes.myMBPos[2] - ((mySize[2] * myPointAttributes.pscale) / 2),
+                     myPointAttributes.myMBPos[2] + ((mySize[2] * myPointAttributes.pscale) / 2));
 
-         for(int i = 0; i < myCube->getVertexCount(); i++) {
-               GEO_Point * ppt = myCube->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
+//         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
 
-         VRAY_clusterThis::setInstanceAttributes(myCube);
+//         for(int i = 0; i < myCube->getVertexCount(); i++) {
+//               GEO_Point * ppt = myCube->getVertexElement(i).getPt();
+//               UT_Vector4  P = ppt->getPos();
+//               P *= xform;
+//               ppt->setPos(P);
+//            }
+
+         VRAY_clusterThis::setInstanceAttributes(myCube, CLUSTER_PRIM_CUBE);
       }
 
    if(myCVEX_Exec)
@@ -202,9 +211,10 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    GEO_Primitive * myGrid;
    GU_GridParms grid_parms;
    UT_XformOrder xformOrder(UT_XformOrder::TRS,  UT_XformOrder::XYZ);
+   UT_Matrix3 mat3(1.0);
    UT_Matrix4 xform(1.0);
-
-   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+   UT_Vector3 zaxis(0, 0, 1);
+   UT_Vector3 yaxis(0, 1, 0);
 
    grid_parms.rows = 2;
    grid_parms.cols = 2;
@@ -216,14 +226,29 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    grid_parms.plane = GU_PLANE_XY;
    myGrid = inst_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-   for(int i = 0; i < myGrid->getVertexCount(); i++) {
-         GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
-         UT_Vector4  P = ppt->getPos();
-         P *= xform;
-         ppt->setPos(P);
-      }
+//   xform.rotate(myPointAttributes.N[0], myPointAttributes.N[1], myPointAttributes.N[2], xformOrder);
+//   xform.translate(myPointAttributes.myPos.x(),
+//                   myPointAttributes.myPos.y(),
+//                   myPointAttributes.myPos.z());
 
-   VRAY_clusterThis::setInstanceAttributes(myGrid);
+//   mat3.orient(myPointAttributes.N, yaxis);
+//   xform = mat3;
+//   xform.prerotate(UT_Axis3::ZAXIS, UTdegToRad(23.7));
+//   xform.leftMult(myXformInverse);
+
+//   mat3.dihedral(zaxis, myPointAttributes.N);
+//   xform = mat3;
+//   xform.translate(myPointAttributes.myNewPos[0], myPointAttributes.myNewPos[1], myPointAttributes.myNewPos[2]);
+
+//   for(int i = 0; i < myGrid->getVertexCount(); i++) {
+//         GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
+//         ::transformPoint(ppt, grid_parms.xsize, grid_parms.ysize, xform);
+////         UT_Vector4  pos = ppt->getPos();
+////         pos *= xform;
+////         ppt->setPos(pos);
+//      }
+
+   VRAY_clusterThis::setInstanceAttributes(myGrid, CLUSTER_PRIM_GRID);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
 
@@ -232,14 +257,16 @@ int VRAY_clusterThis::instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          grid_parms.zcenter = myPointAttributes.myMBPos[2];
          myGrid = mb_gdp->buildGrid(grid_parms, GU_GRID_POLY);
 
-         for(int i = 0; i < myGrid->getVertexCount(); i++) {
-               GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
-               UT_Vector4  P = ppt->getPos();
-               P *= xform;
-               ppt->setPos(P);
-            }
+//         xform.translate(myPointAttributes.myMBPos[0], myPointAttributes.myMBPos[1], myPointAttributes.myMBPos[2]);
 
-         VRAY_clusterThis::setInstanceAttributes(myGrid);
+//         for(int i = 0; i < myGrid->getVertexCount(); i++) {
+//               GEO_Point * ppt = myGrid->getVertexElement(i).getPt();
+//               UT_Vector4  pos = ppt->getPos();
+//               pos *= xform;
+//               ppt->setPos(pos);
+//            }
+
+         VRAY_clusterThis::setInstanceAttributes(myGrid, CLUSTER_PRIM_GRID);
       }
 
    if(myCVEX_Exec)
@@ -340,7 +367,7 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    tube_parms.xform = xform;
    tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-   VRAY_clusterThis::setInstanceAttributes(tube);
+   VRAY_clusterThis::setInstanceAttributes(tube, CLUSTER_PRIM_TUBE);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          xform.identity();
@@ -358,7 +385,7 @@ int VRAY_clusterThis::instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          tube_parms.gdp = mb_gdp;
          tube = (GU_PrimTube *) GU_PrimTube::build(tube_parms, tube_cap_options);
 
-         VRAY_clusterThis::setInstanceAttributes(tube);
+         VRAY_clusterThis::setInstanceAttributes(tube, CLUSTER_PRIM_TUBE);
       }
 
    if(myCVEX_Exec)
@@ -404,7 +431,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    circle_parms.gdp = inst_gdp;
    circle_parms.xform = xform;
    circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
-   VRAY_clusterThis::setInstanceAttributes(circle);
+   VRAY_clusterThis::setInstanceAttributes(circle, CLUSTER_PRIM_CIRCLE);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          xform.identity();
@@ -417,7 +444,7 @@ int VRAY_clusterThis::instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          circle_parms.gdp = mb_gdp;
          circle_parms.xform = xform;
          circle = (GU_PrimCircle *) GU_PrimCircle::build(circle_parms);
-         VRAY_clusterThis::setInstanceAttributes(circle);
+         VRAY_clusterThis::setInstanceAttributes(circle, CLUSTER_PRIM_CIRCLE);
       }
 
    if(myCVEX_Exec)
@@ -600,7 +627,7 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
    metaball_parms.xform = xform;
    metaball_parms.weight = myPointAttributes.weight;
    metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
-   VRAY_clusterThis::setInstanceAttributes(metaball);
+   VRAY_clusterThis::setInstanceAttributes(metaball, CLUSTER_PRIM_METABALL);
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION) {
          metaball_parms.weight = myPointAttributes.weight;
@@ -611,7 +638,7 @@ int VRAY_clusterThis::instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp)
          metaball_parms.gdp = mb_gdp;
          metaball_parms.xform = xform;
          metaball = (GU_PrimMetaBall *) GU_PrimMetaBall::build(metaball_parms);
-         VRAY_clusterThis::setInstanceAttributes(metaball);
+         VRAY_clusterThis::setInstanceAttributes(metaball, CLUSTER_PRIM_METABALL);
       }
 
    if(myCVEX_Exec)
@@ -726,4 +753,8 @@ int VRAY_clusterThis::instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, G
 
 
 #endif
+
+
+
+
 

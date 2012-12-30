@@ -158,6 +158,37 @@ class VRAY_clusterThis : public VRAY_Procedural
          int exitCode;
       } exitData;
 
+      enum clusterPrimTypeEnum {
+         CLUSTER_POINT = 0,
+         CLUSTER_PRIM_SPHERE,
+         CLUSTER_PRIM_CUBE,
+         CLUSTER_PRIM_GRID,
+         CLUSTER_PRIM_TUBE,
+         CLUSTER_PRIM_CIRCLE,
+         CLUSTER_PRIM_CURVE,
+         CLUSTER_PRIM_METABALL,
+         CLUSTER_FILE
+      };
+
+      enum clusterMotionBlurTypeEnum {
+         CLUSTER_MB_NONE = 0,
+         CLUSTER_MB_VELOCITY,
+         CLUSTER_MB_DEFORMATION
+      };
+
+      enum clusterVerboseTypeEnum {
+         CLUSTER_MSG_QUIET = 0,
+         CLUSTER_MSG_INFO,
+         CLUSTER_MSG_VERBOSE,
+         CLUSTER_MSG_DEBUG
+      };
+
+      enum clusterCVEXMethod {
+         CLUSTER_CVEX_POINT = 0,
+         CLUSTER_CVEX_PRIM
+      };
+
+
    private:
 
       void  calculateNewPosition(fpreal theta, uint32 i, uint32 j);
@@ -168,7 +199,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       int   getAttributes(GEO_Point * ppt);
       void  checkRequiredAttributes();
       int   addFileAttributeRefs(GU_Detail * gdp);
-      void  setInstanceAttributes(GEO_Primitive * myGeoPrim);
+      void  setInstanceAttributes(GEO_Primitive * myGeoPrim, VRAY_clusterThis::clusterPrimTypeEnum myPrimType);
       void  setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
       int   setFileAttributes(GU_Detail * gdp);
       int   getOTLParameters();
@@ -197,15 +228,15 @@ class VRAY_clusterThis : public VRAY_Procedural
       int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
 
 
-      // data structures ...
+      // gdp data struct
       struct gdp_ref_struct {
          GU_Detail * gdp;
          GU_Detail * inst_gdp;
          GU_Detail * mb_gdp;
       } myGDPReferences;
 
-      struct pt_attr_ref_struct {
 
+      struct pt_attr_ref_struct {
          // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
@@ -239,7 +270,6 @@ class VRAY_clusterThis : public VRAY_Procedural
 
 
       struct file_attr_ref_struct {
-
          // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
@@ -280,7 +310,6 @@ class VRAY_clusterThis : public VRAY_Procedural
 
 
       struct inst_attr_ref_struct {
-
          // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
@@ -417,7 +446,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       UT_BoundingBox myVelBox;
       long int myNumSourcePoints;
       UT_String myMaterial;
-      UT_Matrix3 myXformInverse;
+      UT_Matrix4 myXformInverse;
       bool tempFileDeleted;
       UT_Noise myNoise;
       UT_MersenneTwister myMersenneTwister;
@@ -609,36 +638,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          1;
       } myCVEXPrimVars;
 
-
-      enum clusterPrimTypeEnum {
-         CLUSTER_POINT = 0,
-         CLUSTER_PRIM_SPHERE,
-         CLUSTER_PRIM_CUBE,
-         CLUSTER_PRIM_GRID,
-         CLUSTER_PRIM_TUBE,
-         CLUSTER_PRIM_CIRCLE,
-         CLUSTER_PRIM_CURVE,
-         CLUSTER_PRIM_METABALL,
-         CLUSTER_FILE
-      };
-
-      enum clusterMotionBlurTypeEnum {
-         CLUSTER_MB_NONE = 0,
-         CLUSTER_MB_VELOCITY,
-         CLUSTER_MB_DEFORMATION
-      };
-
-      enum clusterVerboseTypeEnum {
-         CLUSTER_MSG_QUIET = 0,
-         CLUSTER_MSG_INFO,
-         CLUSTER_MSG_VERBOSE,
-         CLUSTER_MSG_DEBUG
-      };
-
-      enum clusterCVEXMethod {
-         CLUSTER_CVEX_POINT = 0,
-         CLUSTER_CVEX_PRIM
-      };
 
 };
 

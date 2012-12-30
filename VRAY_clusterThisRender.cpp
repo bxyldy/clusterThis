@@ -273,8 +273,8 @@ void VRAY_clusterThis::render()
                if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
                   VRAY_Procedural::addGeometry(mb_gdp, myShutter);
 
-               VRAY_Procedural::setComputeN(1);
-               VRAY_Procedural::setSurface(myMaterial);
+//               VRAY_Procedural::setComputeN(1);
+//               VRAY_Procedural::setSurface(myMaterial);
                VRAY_Procedural::closeObject();
 
                // Save the geo to temp location so it doesn't have to be regenerated for a deep shadow pass, etc.
@@ -336,8 +336,8 @@ void VRAY_clusterThis::render()
                      addGeometry(mb_gdp, myShutter);
                   }
 
-               VRAY_Procedural::setComputeN(1);
-               VRAY_Procedural::setSurface(myMaterial);
+//               VRAY_Procedural::setComputeN(1);
+//               VRAY_Procedural::setSurface(myMaterial);
                VRAY_Procedural::closeObject();
             }
 

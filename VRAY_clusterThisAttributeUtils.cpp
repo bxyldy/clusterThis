@@ -307,9 +307,9 @@ inline int VRAY_clusterThis::addFileAttributeRefs(GU_Detail * inst_gdp)
    myFileAttrRefs.Alpha = inst_gdp->addAlphaAttribute(GEO_PRIMITIVE_DICT);
    myFileAttrRefs.v = inst_gdp->addVelocityAttribute(GEO_PRIMITIVE_DICT);
    myFileAttrRefs.N = inst_gdp->addNormalAttribute(GEO_PRIMITIVE_DICT);
-   myFileAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
-   myFileAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
-
+//   myFileAttrRefs.id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "id", 1);
+//   myFileAttrRefs.inst_id = inst_gdp->addIntTuple(GA_ATTRIB_PRIMITIVE, "inst_id", 1);
+//
    myFileAttrRefs.material = inst_gdp->addStringTuple(GA_ATTRIB_PRIMITIVE, "shop_materialpath", 1);
 
    // Point attributes
@@ -322,8 +322,8 @@ inline int VRAY_clusterThis::addFileAttributeRefs(GU_Detail * inst_gdp)
 //      myFileAttrRefs.pointN = inst_gdp->addNormalAttribute(GEO_POINT_DICT);
 
 //   myFileAttrRefs.pointPscale = inst_gdp->addFloatTuple(GA_ATTRIB_POINT, "pscale", 1);
-   myFileAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
-   myFileAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
+//   myFileAttrRefs.pointId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "id", 1);
+//   myFileAttrRefs.pointInstId = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "inst_id", 1);
 //   myFileAttrRefs.lod = inst_gdp->addIntTuple(GA_ATTRIB_POINT, "lod", 1);
 
    return 0;
@@ -361,8 +361,6 @@ inline void VRAY_clusterThis::setPointInstanceAttributes(GU_Detail * inst_gdp, G
    ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
    ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
 
-//   cout << "VRAY_clusterThis::setPointInstanceAttributes() " << "pscale: " << ppt->getValue<fpreal>(myInstAttrRefs.pointPscale) << endl;
-
 }
 
 
@@ -376,14 +374,26 @@ inline void VRAY_clusterThis::setPointInstanceAttributes(GU_Detail * inst_gdp, G
 *  Return Value : void
 *
 ***************************************************************************** */
-inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
+inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim, VRAY_clusterThis::clusterPrimTypeEnum myPrimType)
 {
-
-
 #ifdef DEBUG
    cout << "VRAY_clusterThis::setInstanceAttributes() " << endl;
 #endif
    GEO_Point * ppt;
+
+//   if(myPrimType == CLUSTER_PRIM_CUBE) {
+//         const UT_Vector3 red(1.0, 0.0, 0.0);
+////         cout << "VRAY_clusterThis::setInstanceAttributes() CUBE!" << endl;
+//         myGeoPrim->setValue<UT_Vector3>(myInstAttrRefs.Cd, red);
+//         myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
+//
+//         for(int i = 0; i < myGeoPrim->getVertexCount(); i++) {
+//               ppt = myGeoPrim->getVertexElement(i).getPt();
+//               ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, red);
+//               ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+//            }
+//         return;
+//      }
 
    myGeoPrim->setValue<UT_Vector3>(myInstAttrRefs.Cd, (const UT_Vector3)myPointAttributes.Cd);
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.Alpha, (const fpreal)myPointAttributes.Alpha);
@@ -394,12 +404,15 @@ inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
    myGeoPrim->setValue<fpreal>(myInstAttrRefs.pscale, (const fpreal)myPointAttributes.pscale);
    myGeoPrim->setValue<int>(myInstAttrRefs.id, (const int)myPointAttributes.id);
    myGeoPrim->setValue<int>(myInstAttrRefs.inst_id, (const int)myInstanceNum);
-   myGeoPrim->setValue<fpreal>(myInstAttrRefs.weight, (const fpreal)myPointAttributes.weight);
-   myGeoPrim->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
    myGeoPrim->setString(myInstAttrRefs.material, myPointAttributes.material);
 
+   if(myPrimType == CLUSTER_PRIM_METABALL)
+      myGeoPrim->setValue<fpreal>(myInstAttrRefs.weight, (const fpreal)myPointAttributes.weight);
+   if(myPrimType == CLUSTER_PRIM_CURVE)
+      myGeoPrim->setValue<fpreal>(myInstAttrRefs.width, (const fpreal)myPointAttributes.width);
 
-   // apply attribues to each vertex
+
+   // apply attributes to each vertex
    for(int i = 0; i < myGeoPrim->getVertexCount(); i++) {
          ppt = myGeoPrim->getVertexElement(i).getPt();
          ppt->setValue<UT_Vector3>(myInstAttrRefs.pointCd, (const UT_Vector3)myPointAttributes.Cd);
@@ -412,6 +425,11 @@ inline void VRAY_clusterThis::setInstanceAttributes(GEO_Primitive * myGeoPrim)
          ppt->setValue<int>(myInstAttrRefs.pointId, (const int)myPointAttributes.id);
          ppt->setValue<int>(myInstAttrRefs.pointInstId, (const int)myInstanceNum);
          ppt->setString(myInstAttrRefs.pointMaterial, myPointAttributes.material);
+
+         if(myPrimType == CLUSTER_PRIM_METABALL)
+            ppt->setValue<float>(myInstAttrRefs.pointWeight, myPointAttributes.weight);
+         if(myPrimType == CLUSTER_PRIM_CURVE)
+            ppt->setValue<float>(myInstAttrRefs.pointWidth, myPointAttributes.width);
 
       }
 
@@ -463,7 +481,6 @@ inline int VRAY_clusterThis::setFileAttributes(GU_Detail * file_gdp)
       prim->setValue<fpreal>(myFileAttrRefs.Alpha, (const fpreal)myPointAttributes.Alpha);
       prim->setValue<UT_Vector3>(myFileAttrRefs.v, (const UT_Vector3)myPointAttributes.v);
       prim->setValue<int>(myFileAttrRefs.id, (const int)myPointAttributes.id);
-
       prim->setString(myFileAttrRefs.material, myPointAttributes.material);
    }
 

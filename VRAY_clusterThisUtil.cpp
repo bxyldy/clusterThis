@@ -914,6 +914,14 @@ static inline int computeDivs(fpreal inc, fpreal min)
    return divs;
 }
 
+//static void transformPoint(GEO_Point * ppt, fpreal dx, fpreal dy, const UT_Matrix4 & xform)
+//{
+//   UT_Vector4 P = ppt->getPos();
+//   P.x() += dx;
+//   P.y() += dy;
+//   P *= xform;
+//   ppt->setPos(P);
+//}
 
 
 #endif
