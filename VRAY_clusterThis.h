@@ -139,6 +139,16 @@ class VRAY_clusterThis : public VRAY_Procedural
       }
       virtual void render();
 
+      THREADED_METHOD2(                   // Construct two parameter threaded method
+         VRAY_clusterThis,                // Name of class
+//         1,     // Evaluated to see if we should multithread.
+         myInstanceNum > myThreadDataLimitLength,     // Evaluated to see if we should multithread.
+         postNNProcess,        // Name of function
+         int, p1,            // An integer parameter named p1
+         float, p2)          // A float parameter named p2
+
+      void postNNProcessPartial(int p1, float p2, const UT_JobInfo & info);
+
       static void exitClusterThis(void * data);
       void exitClusterThisReal(const char * fname);
       void exitClusterThisReal(void * data);
@@ -149,6 +159,50 @@ class VRAY_clusterThis : public VRAY_Procedural
       } exitData;
 
    private:
+
+      void  calculateNewPosition(fpreal theta, uint32 i, uint32 j);
+      void  dumpParameters();
+      int   preLoadGeoFile(GU_Detail * file_gdp);
+      void  createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int   getAttributeRefs(GU_Detail * gdp);
+      int   getAttributes(GEO_Point * ppt);
+      void  checkRequiredAttributes();
+      int   addFileAttributeRefs(GU_Detail * gdp);
+      void  setInstanceAttributes(GEO_Primitive * myGeoPrim);
+      void  setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
+      int   setFileAttributes(GU_Detail * gdp);
+      int   getOTLParameters();
+      int   runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
+
+//      void postNNProcess();
+//      void postNNProcess(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+
+      // voxel processing
+      int   convertVDBUnits();
+      void  convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void  convertVector(openvdb::VectorGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
+      void  postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      void  buildVDBGrids(GU_Detail * gdp);
+      void  preProcess(GU_Detail * gdp);
+
+      // Instancing methods
+      int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num);
+      int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+      int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
+
+
+      // data structures ...
+      struct gdp_ref_struct {
+         GU_Detail * gdp;
+         GU_Detail * inst_gdp;
+         GU_Detail * mb_gdp;
+      } myGDPReferences;
 
       struct pt_attr_ref_struct {
 
@@ -357,42 +411,6 @@ class VRAY_clusterThis : public VRAY_Procedural
                  fpreal temperature;*/
       } myPointAttributes;
 
-
-      void  calculateNewPosition(fpreal theta, uint32 i, uint32 j);
-      void  dumpParameters();
-      int   preLoadGeoFile(GU_Detail * file_gdp);
-      void  createAttributeRefs(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int   getAttributeRefs(GU_Detail * gdp);
-      int   getAttributes(GEO_Point * ppt);
-      void  checkRequiredAttributes();
-      int   addFileAttributeRefs(GU_Detail * gdp);
-      void  setInstanceAttributes(GEO_Primitive * myGeoPrim);
-      void  setPointInstanceAttributes(GU_Detail * gdp, GEO_Point * ppt);
-      int   setFileAttributes(GU_Detail * gdp);
-      int   getOTLParameters();
-      int   runCVEX(GU_Detail * inst_gdp, GU_Detail * mb_gdp, UT_String theCVEXFname, uint method);
-
-      void postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-
-      // voxel processing
-      int   convertVDBUnits();
-      void  convert(openvdb::ScalarGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
-      void  convertVector(openvdb::VectorGrid::Ptr, ParticleList&, const Settings&, hvdb::Interrupter &);
-      void  postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      void  buildVDBGrids(GU_Detail * gdp);
-      void  preProcess(GU_Detail * gdp);
-
-      // Instancing methods
-      int instancePoint(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceSphere(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceGrid(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceTube(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCircle(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceCurve(GU_Detail * inst_gdp, GU_Detail * mb_gdp, fpreal theta, long int point_num);
-      int instanceMetaball(GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-      int instanceFile(GU_Detail * file_gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp);
-
       // member variables
       GU_Detail * myGdp;
       UT_BoundingBox myBox;
@@ -409,6 +427,7 @@ class VRAY_clusterThis : public VRAY_Procedural
 //      UT_String myOTLVersion;
       fpreal   myVelocityScale;
       long int myInstanceNum;
+      uint64_t myThreadDataLimitLength;
       fpreal   myLOD;
       static const fpreal myFPS = 24.0;
       fpreal myTimeScale;

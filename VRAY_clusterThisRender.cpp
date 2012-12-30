@@ -377,7 +377,8 @@ void VRAY_clusterThis::render()
 
 
 //   myPasses(0);
-   std::cout << "VRAY_clusterThis::render() - num_passes: " << myPasses(0) <<  std::endl;
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      std::cout << "VRAY_clusterThis::render() - num_passes: " << myPasses(0) <<  std::endl;
 
    if(myVerbose > CLUSTER_MSG_QUIET)
       cout << "VRAY_clusterThis::render() - Leaving render() method" << std::endl;

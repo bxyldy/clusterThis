@@ -12,36 +12,44 @@
 #define __VRAY_clusterThisPostProcess_cpp__
 
 
-
 /* ******************************************************************************
-*  Function Name : postNNProcess()
+*  Function Name : postNNProcessPartial()
 *
-*  Description :   nearest neighbor post process the geo
+*  Description :
 *
-*  Input Arguments : GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp
+*  Input Arguments :
 *
 *  Return Value : None
 *
 ***************************************************************************** */
-
-void VRAY_clusterThis::postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp)
-
+void VRAY_clusterThis::postNNProcessPartial(int p1, float p2, const UT_JobInfo & info)
 {
-   long int stat_interval = (long int)(myNumSourcePoints * 0.10) + 1;
-
    GEO_Point * src_ppt, * inst_ppt;
    GEO_PointPtrArray src_list;
    UT_Vector3 tmp_v, new_v;
    fpreal dist;
    fpreal inst_radius;
    uint32 num_passes;
+   int job = info.job();
    long int pt_counter = 0;
+   int range_start, range_end;
    UT_Vector3 v;
 
    if(myVerbose > CLUSTER_MSG_INFO)
-      cout << "VRAY_clusterThis::postNNProcess() Performing nearest neighbor processing " << std::endl;
+      cout << "VRAY_clusterThis::postNNProcessPartial() Performing threaded nearest neighbor processing - thread # "
+           << job << std::endl;
 
-   GU_Detail * temp_gdp = inst_gdp;
+   info.divideWork(myInstanceNum, range_start, range_end);
+   long int stat_interval = (long int)((range_end - range_start) * 0.10) + 1;
+
+   if(myVerbose == CLUSTER_MSG_DEBUG) {
+         cout << "VRAY_clusterThis::postNNProcessPartial() info.job() " << info.job()
+              << " info.numJobs() " << info.numJobs() << " info.nextTask (): " << info.nextTask() << std::endl;
+         cout << "VRAY_clusterThis::postNNProcessPartial() stat_interval: " << stat_interval
+              <<  " range_start: " << range_start << " range_end: " << range_end << std::endl;
+      }
+
+   GU_Detail * temp_gdp = myGDPReferences.inst_gdp;
 
    if(myDoMotionBlur == CLUSTER_MB_DEFORMATION)
       num_passes = 2;
@@ -50,94 +58,76 @@ void VRAY_clusterThis::postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_D
 
    while(num_passes) {
          if((myDoMotionBlur == CLUSTER_MB_DEFORMATION) && num_passes == 1)
-            temp_gdp = mb_gdp;
+            temp_gdp = myGDPReferences.mb_gdp;
          num_passes--;
 
          if(myVerbose == CLUSTER_MSG_DEBUG)
-            cout << "VRAY_clusterThis::postNNProcess() num_passes: " << num_passes << std::endl;
+            cout << "VRAY_clusterThis::postNNProcessPartial() num_passes: " << num_passes << std::endl;
 
          pt_counter = 0;
 
-         GA_FOR_ALL_GPOINTS(temp_gdp, inst_ppt) {
+         for(; range_start < range_end; range_start++) {
 
-            UT_Vector3 inst_pos = inst_ppt->getPos();
+//         if(myVerbose == CLUSTER_MSG_DEBUG) {
+//               cout << "VRAY_clusterThis::postNNProcessPartial() job # " << job << " - range_start: " << range_start
+//                    << " range_end: " << range_end << std::endl;
+//            }
 
-            if(myDoMotionBlur != CLUSTER_MB_DEFORMATION) {
-                  inst_radius = static_cast<fpreal>(inst_ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
-                  UT_Vector3 inst_v = static_cast<UT_Vector3>(inst_ppt->getValue<UT_Vector3>(myInstAttrRefs.pointV, 0));
-               }
-            else {
-                  inst_radius = static_cast<fpreal>(inst_ppt->getValue<fpreal>(myInstMBAttrRefs.pointRadius, 0));
-                  UT_Vector3 inst_v = static_cast<UT_Vector3>(inst_ppt->getValue<UT_Vector3>(myInstMBAttrRefs.pointV, 0));
-               }
-            int num_src_pts_found = mySRCPointTree.findAllClosePt(inst_pos, inst_radius, src_list);
-//      cout << "VRAY_clusterThis::postNNProcess() num_src_pts_found: " << num_src_pts_found << " inst_radius: " << inst_radius << std::endl;
+               inst_ppt = temp_gdp->points()(range_start);
 
-            new_v = 0.0;
-            if(num_src_pts_found > 0) {
+               UT_Vector3 inst_pos = inst_ppt->getPos();
 
-                  for(uint i = 0; i < src_list.entries(); i++) {
-                        src_ppt = src_list(i);
-                        tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
-                        dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
+               if(myDoMotionBlur != CLUSTER_MB_DEFORMATION) {
+                     inst_radius = static_cast<fpreal>(inst_ppt->getValue<fpreal>(myInstAttrRefs.pointRadius, 0));
+                     UT_Vector3 inst_v = static_cast<UT_Vector3>(inst_ppt->getValue<UT_Vector3>(myInstAttrRefs.pointV, 0));
+                  }
+               else {
+                     inst_radius = static_cast<fpreal>(inst_ppt->getValue<fpreal>(myInstMBAttrRefs.pointRadius, 0));
+                     UT_Vector3 inst_v = static_cast<UT_Vector3>(inst_ppt->getValue<UT_Vector3>(myInstMBAttrRefs.pointV, 0));
+                  }
+               int num_src_pts_found = mySRCPointTree.findAllClosePt(inst_pos, inst_radius, src_list);
+//      cout << "VRAY_clusterThis::postNNProcessPartial() num_src_pts_found: " << num_src_pts_found << " inst_radius: " << inst_radius << std::endl;
+
+               new_v = 0.0;
+               if(num_src_pts_found > 0) {
+
+                     for(uint i = 0; i < src_list.entries(); i++) {
+                           src_ppt = src_list(i);
+                           tmp_v = static_cast<UT_Vector3>(src_ppt->getValue<UT_Vector3>(myPointAttrRefs.v, 0));
+                           dist = distance2(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
 //                     dist = distance3d(inst_pos, static_cast<UT_Vector3>(src_ppt->getPos()));
 //                     new_v = new_v + (tmp_v * (1 + (inst_radius - dist)));
 //                     new_v = new_v + (tmp_v * (1 + SYSsqrt((inst_radius * inst_radius) - dist)));
-                        new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
+                           new_v = new_v + (tmp_v * (1 + (inst_radius * inst_radius) - dist));
 //                     new_v = new_v + (tmp_v * (1 + inst_radius - dist));
 //                     cout << "VRAY_clusterThis::postNNProcess() new_v: " << new_v << std::endl;
-                     }
+                        }
 
-                  v = static_cast<UT_Vector3>((new_v / static_cast<float>(num_src_pts_found)));
+                     v = static_cast<UT_Vector3>((new_v / static_cast<float>(num_src_pts_found)));
 //            v = static_cast<const UT_Vector3>(((new_v / myFPS) / static_cast<float>(num_src_pts_found)));
 
-                  inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV,
-                                                 static_cast<const UT_Vector3>(v * myNNPostVelInfluence));
+                     inst_ppt->setValue<UT_Vector3>(myInstAttrRefs.pointV,
+                                                    static_cast<const UT_Vector3>(v * myNNPostVelInfluence));
 
-                  inst_ppt->setPos((inst_pos + static_cast<const UT_Vector3>(v * myNNPostPosInfluence)));
-               }
+                     inst_ppt->setPos((inst_pos + static_cast<const UT_Vector3>(v * myNNPostPosInfluence)));
+                  }
 
-            if(myVerbose > CLUSTER_MSG_INFO) {
-                  pt_counter++;
-                  if((long int)(pt_counter % (stat_interval * myNumCopies * myRecursion)) == 0) {
-                        std::cout << "VRAY_clusterThis::postNNProcess() Number of points post processed: "
-                                  << pt_counter << std::endl;
-                     }
-               }
 
-         }
-      }
+               if(myVerbose > CLUSTER_MSG_INFO) {
+                     pt_counter++;
+                     if((long int)(pt_counter % stat_interval) == 0) {
+                           std::cout << "VRAY_clusterThis::postNNProcessPartial() thread # " << job
+                                     << " - Number of points post processed: "
+                                     << pt_counter << std::endl;
+                        }
+                  }
+
+            }
+
+      }  // while (num_passes)
+
 
 }
-
-//class FOO
-//{
-//public:
-//    THREADED_METHOD2(                   // Construct two parameter threaded method
-//                    FOO,                // Name of class
-//                    myLength > 100,     // Evaluated to see if we should multithread.
-//                    bar,                // Name of function
-//                    int, p1,            // An integer parameter named p1
-//                    float, p2)          // A float parameter named p2
-//    void barPartial(int p1, float p2, const UT_JobInfo &info);
-//
-//    int myLength;
-//    int *myData;
-//};
-//
-//void
-//FOO::barPartial(int p1, float p2, const UT_JobInfo &info)
-//{
-//    int         i, n;
-//    for (info.divideWork(myLength, i, n); i < n; i++)
-//    {
-//        myData[i] += p1 * p2;
-//    }
-//}
-//
-
-
-
 
 
 /* ******************************************************************************
@@ -150,9 +140,7 @@ void VRAY_clusterThis::postNNProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_D
 *  Return Value : None
 *
 ***************************************************************************** */
-
 void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Detail * mb_gdp)
-
 {
    myPostProcTime = std::clock();
    std::time(&myPostProcStartTime);
@@ -168,7 +156,10 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
    // Perform "nearest neighbor" post processing
    if(myNNPostProcess) {
-         postNNProcess(gdp, inst_gdp, mb_gdp);
+         myGDPReferences.gdp = gdp;
+         myGDPReferences.inst_gdp = inst_gdp;
+         myGDPReferences.mb_gdp = mb_gdp;
+         postNNProcess(1, 2);
       }
 
 
@@ -347,6 +338,10 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 
 
 #endif
+
+
+
+
 
 
 

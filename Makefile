@@ -5,7 +5,7 @@ src = VRAY_clusterThis.cpp VRAY_clusterThis.h \
    VRAY_clusterThisPreProcess.cpp VRAY_clusterThisPostProcess.cpp VRAY_clusterThisParms.cpp \
    VRAY_clusterThisUtil.cpp VRAY_clusterThisRender.cpp
 
-DBG=-g
+BUILD_DEV = 0
 SOURCES = VRAY_clusterThis.cpp
 H_CFLAGS =  $(shell hcustom --cflags)
 # -DVERSION=\"12.1.33\" -D_GNU_SOURCE -DLINUX -DAMD64 -m64 -fPIC -DSIZEOF_VOID_P=8 -DSESI_LITTLE_ENDIAN
@@ -13,20 +13,30 @@ H_CFLAGS =  $(shell hcustom --cflags)
 # -I/opt/hfs/toolkit/include -Wall -W -Wno-parentheses -Wno-sign-compare -Wno-reorder -Wno-uninitialized
 # -Wunused -Wno-unused-parameter -O2 -fno-strict-aliasing
 
-#today = $(shell date +%j)
+today = $(shell date +%j)
+
+ifeq ($(BUILD_DEV),1)
+DBG=-g
+MAJOR_VER = $(shell grep MAJOR_VERSION_DEV version.h | cut -f 3 -d ' ')
+MINOR_VER = $(shell grep MINOR_VERSION_DEV version.h | cut -f 3 -d ' ')
+BUILD_TMP = $(shell grep BUILD_VERSION_DEV version.h | cut -f 3 -d ' ')
 #MAJOR_VER = "2"
 #MINOR_VER = "5"
-#BUILD_VER = "$(today)"
+#BUILD_VER = $(shell expr $(BUILD_TMP) + 365 - $(today))
+BUILD_VER = $(shell expr $(BUILD_TMP) + $(today))
 
-MAJOR_VER = $(shell grep MAJOR_VERSION version.h | cut -f 3 -d ' ')
-MINOR_VER = $(shell grep MINOR_VERSION version.h | cut -f 3 -d ' ')
-BUILD_VER = $(shell grep BUILD_VERSION version.h | cut -f 3 -d ' ')
+else
+DBG=
+MAJOR_VER = $(shell grep MAJOR_VERSION_PUB version.h | cut -f 3 -d ' ')
+MINOR_VER = $(shell grep MINOR_VERSION_PUB version.h | cut -f 3 -d ' ')
+BUILD_VER = $(shell grep BUILD_VERSION_PUB version.h | cut -f 3 -d ' ')
+endif
 
 SRC_VER = $(MAJOR_VER).$(MINOR_VER).$(BUILD_VER)
 SRC_VER_FLAGS = -DMAJOR_VER=$(MAJOR_VER) -DMINOR_VER=$(MINOR_VER) -DBUILD_VER=$(BUILD_VER)
 
 TAGINFO = $(shell (echo -n "Compiled on:" `date`"\n  by:" `whoami`@`hostname`"\n$(SESI_TAGINFO)") | /opt/hfs/bin/sesitag -m)
-CFLAGS := $(CFLAGS) $(H_CFLAGS) -I/usr/local/include/ $(SRC_VER_FLAGS) $(DBG) $(TAGINFO) -ftree-vectorize -ftree-vectorizer-verbose=2
+CFLAGS := $(CFLAGS) $(H_CFLAGS) -I/usr/local/include/ $(SRC_VER_FLAGS) $(TAGINFO) -ftree-vectorize -ftree-vectorizer-verbose=0
 
 INSTDIR = $(DCA_COMMON)/lib/houdini/dso_x86_64/mantra/
 DSONAME = VRAY_clusterThis.so
@@ -39,6 +49,10 @@ clusterThis: $(src)
 ifeq ($(OSTYPE),linux)
 	$(CXX) $(DBG) $(CFLAGS) -I/usr/local/include -I/usr/local/include/openvdb_houdini -o VRAY_clusterThis.o VRAY_clusterThis.cpp
 	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/local/ -lopenvdb -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.so
+endif
+ifeq ($(OSTYPE),darwin)
+	$(CXX) $(DBG) $(CFLAGS) -I/usr/local/include -I/usr/local/include/openvdb_houdini -o VRAY_clusterThis.o VRAY_clusterThis.cpp
+	$(CXX) -shared VRAY_clusterThis.o -L/usr/X11R6/lib64 -L/usr/local/ -lopenvdb -L/usr/X11R6/lib -lGLU -lGL -lX11 -lXext -lXi -ldl -o ./VRAY_clusterThis.dylib
 endif
 
 strip_dso:

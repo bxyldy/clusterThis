@@ -85,7 +85,6 @@
 namespace hvdb = openvdb_houdini;
 namespace hutil = houdini_utils;
 
-#include "version.h"
 #include "VRAY_clusterThis.h"
 #include "VRAY_clusterThisParms.cpp"
 #include "VRAY_clusterThisUtil.cpp"
@@ -441,7 +440,8 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
 //         return 0;
 //      }
 
-
+   // Set the threading threshold
+   myThreadDataLimitLength = 1000;
 
    handle = VRAY_Procedural::queryObject(0);
    myGdp = VRAY_Procedural::allocateGeometry();
@@ -656,10 +656,10 @@ int VRAY_clusterThis::initialize(const UT_BoundingBox * box)
    if(myVerbose == CLUSTER_MSG_DEBUG)
       std::cout << "VRAY_clusterThis::initialize() myPointTreeMemUsage: " << myPointTreeMemUsage << std::endl;
 
-
    std::time(&myInitEndTime);
    myInitExecTime = std::clock() - myInitTime;
-   cout << "VRAY_clusterThis::initialize() " << "myInitExecTime: " << myInitExecTime << endl;
+   if(myVerbose == CLUSTER_MSG_DEBUG)
+      cout << "VRAY_clusterThis::initialize() " << "myInitExecTime: " << myInitExecTime << endl;
 
 
    return 1;
