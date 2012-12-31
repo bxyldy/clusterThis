@@ -23,3 +23,6 @@ cb/bin
 cb/main.cpp
 cb/*script*
 
+*.gz
+
+
