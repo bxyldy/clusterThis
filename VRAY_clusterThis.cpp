@@ -176,13 +176,9 @@ VRAY_clusterThis_Exception::VRAY_clusterThis_Exception(std::string msg, int code
 ***************************************************************************** */
 VRAY_clusterThis::VRAY_clusterThis()
 {
-
 #ifdef DEBUG
    std::cout << "VRAY_clusterThis::VRAY_clusterThis() - Constructor" << std::endl;
 #endif
-
-   if(myVerbose > CLUSTER_MSG_INFO)
-      std::cout << "VRAY_clusterThis - Constructor" << std::endl;
 
    // Init member variables
    myBox.initBounds(0, 0, 0);
@@ -351,7 +347,7 @@ VRAY_clusterThis::VRAY_clusterThis()
 ***************************************************************************** */
 VRAY_clusterThis::~VRAY_clusterThis()
 {
-//   std::cout << "VRAY_clusterThis::~VRAY_clusterThis() - Destructor" << std::endl;
+   std::cout << "VRAY_clusterThis::~VRAY_clusterThis() - Destructor" << std::endl;
 }
 
 
@@ -368,7 +364,7 @@ VRAY_clusterThis::~VRAY_clusterThis()
 ***************************************************************************** */
 const char * VRAY_clusterThis::getClassName()
 {
-//   std::cout << "VRAY_clusterThis::getClassName()" << std::endl;
+   std::cout << "VRAY_clusterThis::getClassName()" << std::endl;
    return "VRAY_clusterThis";
 }
 

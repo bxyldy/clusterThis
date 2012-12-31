@@ -7,18 +7,15 @@ Delays geomtery instantiation until render time thus, reduces size of IFD file a
 allows access to render time data, add additional detail to scene.
 
 @b Features:
-@li Instance primitives at render time (sphere, cube, grid, tube, circle, curve, metaball)
-@li Instance disk file (and apply CVEX deformation and attribute processing)
-@li Open VDB post processing of instanced geometry and it's attributes
-@li Motion blur
+@li Instance points or primitives (sphere, cube, grid, tube, circle, curve, metaball) at render time
 @li CVEX processing of instanced geometry
+@li Open VDB post processing of instanced geometry and it's attributes
+@li Motion blur (velocity or geometry) can use the "backtrack" or the "v" attribute
+@li Instance disk file (and apply CVEX deformation and attribute processing)
 @li Cache file stores data when generating deep shadow maps to optimize instancing.
 
-@b clusterThis is maintained by
+@b clusterThis is developed and maintained by
 <A TARGET=_blank HREF="http://www.digitalcinemaarts.com/software/">Digital Cinema Arts</A>
-and was developed primarily by
-- Mark Story
-- Debra Peri
 
 See the @subpage overview "Overview" for an introduction to clusterThis.
 
@@ -187,6 +184,9 @@ http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_overall.pdf
 
 @b render() method algorithm:
 http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_flowchart.pdf
+
+@b runCVEX() method algorithm:
+http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_runCVEX.pdf
 
 @b postProcess() algorithm:
 http://www.digitalcinemaarts.com/dev/clusterThis/design/clusterThis_postProcess.pdf
