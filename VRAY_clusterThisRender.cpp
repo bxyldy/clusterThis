@@ -147,10 +147,6 @@ void VRAY_clusterThis::render()
                   // get the point's attributes
                   VRAY_clusterThis::getAttributes(ppt);
 
-#ifdef DEBUG
-                  cout << "VRAY_clusterThis::render() " << "theta: " << theta << std::endl;
-#endif
-
                   uint seed = 37;
                   fpreal dice;
                   bool skip = false;
