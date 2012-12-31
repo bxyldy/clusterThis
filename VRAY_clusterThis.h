@@ -147,6 +147,7 @@ class VRAY_clusterThis : public VRAY_Procedural
       static void exitClusterThis(void * data);
       void exitClusterThisReal(const char * fname);
       void exitClusterThisReal(void * data);
+      void exitWriteXMLFile();
 
       struct exitData_struct {
          float exitTime;
