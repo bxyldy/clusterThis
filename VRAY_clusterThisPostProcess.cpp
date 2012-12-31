@@ -22,7 +22,7 @@
 *  Return Value : None
 *
 ***************************************************************************** */
-void VRAY_clusterThis::postNNProcessPartial(int p1, float p2, const UT_JobInfo & info)
+void VRAY_clusterThis::postNNProcessPartial(int p1, int p2, const UT_JobInfo & info)
 {
    GEO_Point * src_ppt, * inst_ppt;
    GEO_PointPtrArray src_list;

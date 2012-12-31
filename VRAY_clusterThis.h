@@ -18,7 +18,6 @@ static const fpreal CLUSTER_BBOX_MIN = 0.00001;
 
 namespace
 {
-
 // This class is required by openvdb::tools::ParticlesToLeveSet
    class ParticleList
    {
@@ -92,7 +91,6 @@ namespace
 *
 *  Description :  Exception class for VRAY_clusterThis mantra DSO
 *
-*
 *  Input Arguments : None
 *
 *  Return Value : None
@@ -110,7 +108,6 @@ class VRAY_clusterThis_Exception
       void what() {
          std::cout << "VRAY_clusterThis_Exception::what() - VRAY_clusterThis exception:  " << e_msg << endl;
       }
-
 };
 
 
@@ -118,7 +115,6 @@ class VRAY_clusterThis_Exception
 *  Class Name : VRAY_clusterThis()
 *
 *  Description :  Class for VRAY_clusterThis mantra DSO
-*
 *
 *  Input Arguments : None
 *
@@ -139,15 +135,14 @@ class VRAY_clusterThis : public VRAY_Procedural
       }
       virtual void render();
 
-      THREADED_METHOD2(                   // Construct two parameter threaded method
-         VRAY_clusterThis,                // Name of class
-//         1,     // Evaluated to see if we should multithread.
+      THREADED_METHOD2(                               // Construct two parameter threaded method
+         VRAY_clusterThis,                            // Name of class
          myInstanceNum > myThreadDataLimitLength,     // Evaluated to see if we should multithread.
-         postNNProcess,        // Name of function
-         int, p1,            // An integer parameter named p1
-         float, p2)          // A float parameter named p2
+         postNNProcess,                               // Name of function
+         int, p1,                                     // not used
+         int, p2)                                     // not used
 
-      void postNNProcessPartial(int p1, float p2, const UT_JobInfo & info);
+      void postNNProcessPartial(int p1, int p2, const UT_JobInfo & info);
 
       static void exitClusterThis(void * data);
       void exitClusterThisReal(const char * fname);
@@ -237,7 +232,6 @@ class VRAY_clusterThis : public VRAY_Procedural
 
 
       struct pt_attr_ref_struct {
-         // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
@@ -253,24 +247,10 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef width;
          GA_RWAttributeRef vdb_radius;
          GA_RWAttributeRef geo_fname;
-
-         // Optional attributes
-         /*        GA_RWAttributeRef num_neighbors;
-                 GA_RWAttributeRef force;
-                 GA_RWAttributeRef vorticity;
-                 GA_RWAttributeRef uv;
-                 GA_RWAttributeRef age;
-                 GA_RWAttributeRef viscosity;
-                 GA_RWAttributeRef density;
-                 GA_RWAttributeRef pressure;
-                 GA_RWAttributeRef mass;
-                 GA_RWAttributeRef temperature;*/
-
       } myPointAttrRefs;
 
 
       struct file_attr_ref_struct {
-         // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
@@ -281,16 +261,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef inst_id;
 //      GA_RWAttributeRef lod;
          GA_RWAttributeRef pscale;
-//      GA_RWAttributeRef up;
-//      GA_RWAttributeRef angle;
-//      GA_RWAttributeRef offset;
-//      GA_RWAttributeRef amp;
-
-//      GA_RWAttributeRef low_bound;
-//      GA_RWAttributeRef high_bound;
-//      GA_RWAttributeRef deformspace;
-//      GA_RWAttributeRef xformobj;
-
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
          GA_RWAttributeRef pointV;
@@ -302,15 +272,10 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointInstId;
 //      GA_RWAttributeRef pointLOD;
 //      GA_RWAttributeRef pointUp;
-//      GA_RWAttributeRef pointAngle;
-//      GA_RWAttributeRef pointOffset;
-//      GA_RWAttributeRef pointAmp;
-
       } myFileAttrRefs;
 
 
       struct inst_attr_ref_struct {
-         // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
@@ -339,26 +304,10 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointPscale;
          GA_RWAttributeRef pointRadius;
          GA_RWAttributeRef pointVDBRadius;
-
-         // Optional attributes
-         //GA_RWAttributeRef num_neighbors;
-         //GA_RWAttributeRef force;
-         //GA_RWAttributeRef vorticity;
-         //GA_RWAttributeRef uv;
-         //GA_RWAttributeRef age;
-         //GA_RWAttributeRef viscosity;
-         //GA_RWAttributeRef density;
-         //GA_RWAttributeRef pressure;
-         //GA_RWAttributeRef mass;
-         //GA_RWAttributeRef temperature;
-
       } myInstAttrRefs;
 
 
-
       struct inst_mb_attr_ref_struct {
-
-         // Required attributes
          GA_RWAttributeRef Cd;
          GA_RWAttributeRef Alpha;
          GA_RWAttributeRef v;
@@ -371,7 +320,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef radius;
          GA_RWAttributeRef weight;
          GA_RWAttributeRef width;
-
          GA_RWAttributeRef pointCd;
          GA_RWAttributeRef pointAlpha;
          GA_RWAttributeRef pointV;
@@ -387,28 +335,13 @@ class VRAY_clusterThis : public VRAY_Procedural
          GA_RWAttributeRef pointPscale;
          GA_RWAttributeRef pointRadius;
          GA_RWAttributeRef pointVDBRadius;
-
-         // Optional attributes
-         //GA_RWAttributeRef num_neighbors;
-         //GA_RWAttributeRef force;
-         //GA_RWAttributeRef vorticity;
-         //GA_RWAttributeRef uv;
-         //GA_RWAttributeRef age;
-         //GA_RWAttributeRef viscosity;
-         //GA_RWAttributeRef density;
-         //GA_RWAttributeRef pressure;
-         //GA_RWAttributeRef mass;
-         //GA_RWAttributeRef temperature;
-
       } myInstMBAttrRefs;
 
 
       struct pt_attr_struct {
-         // Required attributes
          UT_Vector4 myPos;
          UT_Vector4 myNewPos;
          UT_Vector4 myMBPos;
-
          UT_Vector3 Cd;
          fpreal Alpha;
          UT_Vector3 v;
@@ -424,20 +357,6 @@ class VRAY_clusterThis : public VRAY_Procedural
          fpreal width;
          UT_String material;
          UT_String geo_fname;
-
-//         fpreal theta;
-
-         // Optional attributes
-         /*        uint32 num_neighbors;
-                 UT_Vector3 force;
-                 UT_Vector3 vorticity;
-                 UT_Vector3 uv;
-                 fpreal age;
-                 fpreal viscosity;
-                 fpreal density;
-                 fpreal pressure;
-                 fpreal mass;
-                 fpreal temperature;*/
       } myPointAttributes;
 
       // member variables
