@@ -43,28 +43,31 @@ See the @subpage changes "Release Notes" for what's new in this version of @b cl
 The current set of parameters are:
 
 @b Setup @b Tab:
-@li  Min/Max Bounds: The bounding box of the objects/volume being instanced
-@li Use Geo File: The filename of th egeometry file to use instead point cloud from the IFD file.
-@li Type: The type of geometry to instance
-@li Num. Copies:	Number of copies of the geometry to instance per point of input geometry
-@li Recursion: Number of copies of the geometry per copy per point of input geometry
-@li Radius: The distance from the center of the point to the instanced geometry
-@li Size: The size (X, Y, Z) of the instanced geometry primitive
-@li Frequency:	Frequency X,Y,Z
-@li Offset: Offset X,Y,Z
+@li Use Geo File: Use geometry file instead point cloud from the IFD file.
+@li Source Geo File: The file to be used as the source of input points (as opposed to the points from the current scene (or IFD file).
+@li Type: The type of geometry that will be instanced.
+@li Num. Copies: Number of copies of the geometry to instance per point of input geometry.
+@li Recursion: Number of loops through the instancing process per copy of each point.
+@li Radius: The distance from the center of the point to the instanced geometry (if the "radius" point attribute is present in the point cloud it will override this parameter).
+@li Scale: The scale (X, Y, Z) of the instanced geometry primitive (this parameter is modulated by the "pscale" point attribute).
+@li Frequency:	Frequency of the instanced geometry.
+@li Offset: Offset to the instanced geometry.
 @li Instance Probability: Controls the amount of "randomness" in choosing to instance an object or not.
-@li Instance Geometry File: Geometry disk file to be instanced (is there's no geo_fname point attribute)
-@li Deferred Instancing: This will generate additional VRAY_Procedural objects, which then instance the geometry as needed by mantra. If unchecked, all the
-geometry will be instanced at one time
+@li Instance Geometry File: Geometry disk file to be instanced (is there's no geo_fname point attribute).
 @li Motion Blur: Motion blur type: None, Velocity or Deformation
-@li Shutter: The open and close shutter value for motion blur
+@li Backtrack Motion Blur: Use the "backtrack" point attribute for motion blur
+@li Shutter Open: The shutter open value for motion blur
+@li Shutter Close: The shutter close value for motion blur
 @li Messages: The verbosity of the messages sent to the console during rendering
+@li Bounding Box Fudge Factor: The amount of expansion to apply to the bounding box.
+@li Time: Current time
+@li Frame: Current frame
 
 @b Noise @b Tab:
-@li Type: Simple noise generator noise types Perlin, Sparse, Alligator
-@li Amplitude: Amplitude of noise applied to the position of the instanced geometry Noise Roughness: The "roughness" of the noise function
+@li Type: Simple noise generator noise types - Fast Perlin, Sparse, Perlin, Alligator, Merseene Twister
+@li Amplitude: Amplitude of the noise applied to the posistion of the instanced geometry
 @li Roughness: Roughness of the generated noise
-@li Fractal Depth: Depth of recursion for the noise generator
+@li Fractal Depth: Fractal depth (recursion) of the noise function
 @li Attenuation: Amount of attenuation applied to the noise generator
 @li Seed: Seed for the noise generator
 
@@ -72,41 +75,53 @@ geometry will be instanced at one time
 
 @li Instance: Will run CVEX on each instance
 @li Pre-Process: Will run CVEX on incoming point cloud
-@li Instance: Will run CVEX on the entire set of instanced geometry
+@li Posr-Process: Will run CVEX on the entire set of instanced geometry
 
 @li CVEX Point Shader: The file name of the .vex shader to be used on points
-@li Execute Point VEX Code: Execute the VEX code on the instanced points
-@li CVEX Primitive Shader: The file name of the .vex shader to be used on prinitves
-@li Execute Primitive VEX Code: Execute the VEX code on the instanced primitives
+@li Execute Point VEX Code: Execute the VEX code on the instanced object (points)
+@li CVEX Primitive Shader: The file name of the .vex shader to be used on primitives
+@li Execute Primitive VEX Code: Execute the VEX code on the instanced object (primitives)
 
 @li CVEX Vars (point) 	The point attributes sent to the CVEX code for processing
 @li CVEX Vars (primitive) 	The primitive attributes sent to the CVEX code for processing
 
-@b Defaults @b Tab:
-@li TODO
+@b Post @b Process @b Tab:
+@li Enable: Enable post processing of the instanced geometry.
 
-@b Post Process @b Tab:
-@li Enable
-@li Particle Footprint
-@li WS Units
-@li Instance Offset
-@li Voxel Size
-@li Radius Min
-@li Half Bandwidth
-@li Fog Volume
-@li Gradient Width
-@li Falloff
-@li Filter: Median Mean, Mean Curvature, Laplacian. Offset (with offset amount)
-@li Position Influence
-@li Velocity Influence
-@li Normal Influence
-@li Write Debug Files
+@li Enable NN: Enable nearest neighbor post processing
+@li Position Influence: Amount of influence to the point's position
+@li Velocity Influence: Amount of influence to the point's velocity
+
+@li Enable VDB: Enable VDB post processing
+@li Use VDB File: Use this VDB grid file for post processing.
+@li VDB File: The file to be used as the source of input VDB grid
+@li Grid Name: Name of the grid in the VDB file to use
+@li Particle Footprint: Use this parameter to select the type of particle footprints (spherical or conical).
+@li WS Units: Specify the narrow-band width in world-space units
+@li Instance Offset: Scale of distance between sphere instances. Use this parameter to control the aliasing and the number of instances.
+@li Voxel Size: Size of the VDB grid voxels
+@li Radius Min: Smallest allowed radius in voxels. Use this parameter to ignore small particles.
+(Note: the default value of 1.5 voxels correspond to the Nyquist grid sampling frequency, the smallest size the grid can safely represent. Thus, values smaller than 1.5 will likely result in aliasing!)
+@li Half Bandwidth: Half-band width
+@li Radius Mult: Scaling multiplier for the radius. Use this parameter to control the size of the particle footprints.
+(Note: particles smaller than \"Min voxel radius\" (e.g. 1.5 which is the Nyquist limit) are NOT rasterized!)
+@li Velocity Mult: Scaling multiplier for the velocity. Use this parameter to control the length of velocity trails.
+@li Gradient Width:
+@li Falloff:
+@li Filter: Median, Mean, Mean Curvature, Laplacian. Offset (with offset amount)
+@li Position Influence: Amount of influence to the point's position
+@li Velocity Influence: Amount of influence to the point's velocity
+@li Color Influence: Amount of influence to the point's color
+@li Normal Influence: Amount of influence to the point's normal
+@li Write VDB Files: Write the VDB grids to disk
+@li VDB File Base Name: The base name for the VDB grids to be written to disk.
 
 @b Misc @b Tab:
 @li Temp File Path: Temporary file for the instanced geometry
-@li Save the geometry in a temp cache file (for optimization)
+@li Use temp cache file: Save the geometry in a temporary cache file
 @li Save temp cache file: 	Do not delete cache file (to save the temp geometry cache file for later use)
-
+@li Write Statistics: Write statistics to an XML file
+@li Statistics File Path: Statistics XML filename
 
 @section secInstall Installation
 
@@ -154,15 +169,16 @@ $JOB/houdiniX.XX/otls/
 @b Step @b 4:
 <pre>
 The Open VDB Libraries:
-Copy the openvdb lib files (libopenvdb.so& libopenvdb_houdini.so) to a location on your system if you do not already have them installed.  Be sure to set the LD_LIBRARY_PATH if needed to find the libaries.
+Copy the openvdb lib files (libopenvdb.so& libopenvdb_houdini.so) to a location on your system if you do not already have them installed.
+Be sure to set the LD_LIBRARY_PATH if needed to find the libaries.
 </pre>
 
 @section secNotes Notes
 
-NOTES:
+To be done.
 
 
-@section secDesignNotes
+@section secDesignNotes Design Notes
 
 Flowcharts:
 

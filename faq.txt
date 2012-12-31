@@ -21,7 +21,8 @@ TO BE DONE.
 
 
 @section sContribute How can I contribute to clusterThis?
-If you have bug reports or ideas for improvements or new features,
-please contact us!
+If you have bug reports or ideas for improvements or new features, please contact us! <br>
+If you would like ot help with development, please email info-at-digitalcinemaarts.com
+
 
 */

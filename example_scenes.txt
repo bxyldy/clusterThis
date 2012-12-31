@@ -11,13 +11,25 @@
 
 <A TARGET=_blank HREF="https://vimeo.com/55141948">Simple Point Instancing w/Open VDB</A>
 
+@li 01_point_instancing.hip - Perform simple point instancing onto a point cloud
+@li 01_point_instancing_CVEX.hip - Perform simple point instancing onto a point cloud and run CVEX code
+@li 01_point_instancing_VDB.hip - Perform simple point instancing onto a point cloud and apply Open VDB post processing
+
 
 @section sPrimitiveInstancing Primitive Instancing
 
+@li 02_prim_circle.hip - Instance circle primitives onto a point cloud
+@li 02_prim_grid.hip - Instance grid primitives onto a point cloud
+@li 02_prim_tube.hip - Instance tube primitives onto a point cloud
+@li 02_prim_cube.hip - Instance cube primitives onto a point cloud
+@li 02_prim_metaball.hip - Instance metaball primitives onto a point cloud
+@li 02_prim_curve.hip - Instance curve primitives onto a point cloud
+@li 02_prim_sphere.hip - Instance sphere primitives onto a point cloud
 
 
 @section sFileInstancing  File Instancing
 
+@li 03_file_instancing.hip - Instance a geometry file onto a point cloud
 
 
 */
