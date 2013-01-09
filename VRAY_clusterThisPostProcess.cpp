@@ -219,7 +219,7 @@ void VRAY_clusterThis::postProcess(GU_Detail * gdp, GU_Detail * inst_gdp, GU_Det
 //         openvdb::tools::PointSampler mySampler;
                openvdb::tools::PointSampler gradSampler;
                // Get the reference to the gradient grid's tree to be used in sampling
-               openvdb::VectorTree & myGradTree = mySourceGradientGrid->treeRW();
+               openvdb::VectorTree & myGradTree = mySourceGradientGrid->tree();
 
                GEO_Point * ppt;
 

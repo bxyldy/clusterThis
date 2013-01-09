@@ -157,7 +157,7 @@ void VRAY_clusterThis::convert(
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
-         openvdb::tools::levelSetToFogVolume(*outputGrid, cutOffDist, false);
+         openvdb::tools::sdfToFogVolume(*outputGrid, cutOffDist);
       }
 
 // print stats of the vdb grid
