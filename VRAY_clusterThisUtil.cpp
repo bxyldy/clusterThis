@@ -185,7 +185,6 @@ void VRAY_clusterThis::convertVector(
    const Settings & settings,
    hvdb::Interrupter & boss)
 {
-
    openvdb::tools::ParticlesToLevelSet<openvdb::VectorGrid, ParticleList, hvdb::Interrupter> raster(*outputGridPtr);
 
    if(myVerbose == CLUSTER_MSG_DEBUG)
