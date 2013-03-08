@@ -105,13 +105,14 @@ void VRAY_clusterThis::checkRequiredAttributes()
 *
 * ***************************************************************************** */
 void VRAY_clusterThis::convert(
-   openvdb::ScalarGrid::Ptr outputGrid,
+   openvdb::ScalarGrid::Ptr outputGridPtr,
    ParticleList & paList,
    const Settings & settings,
    hvdb::Interrupter & boss)
 {
 
-   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
+//   openvdb::tools::ParticlesToLevelSet<openvdb::ScalarGrid, ParticleList, hvdb::Interrupter> raster(*outputGridPtr, boss);
+   openvdb::tools::ParticlesToLevelSet < openvdb::ScalarGrid, ParticleList, hvdb::Interrupter, openvdb::ScalarGrid::ValueType > raster(*outputGridPtr);
 
    if(myVerbose == CLUSTER_MSG_DEBUG)
       std::cout << "VRAY_clusterThis::convert() " << std::endl;
@@ -157,12 +158,12 @@ void VRAY_clusterThis::convert(
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
-         openvdb::tools::sdfToFogVolume(*outputGrid, cutOffDist);
+         openvdb::tools::sdfToFogVolume(*outputGridPtr, cutOffDist);
       }
 
 // print stats of the vdb grid
    if(myVerbose == CLUSTER_MSG_DEBUG)
-      outputGrid->print();
+      outputGridPtr->print();
 
 }
 
@@ -179,13 +180,13 @@ void VRAY_clusterThis::convert(
 *
 * ***************************************************************************** */
 void VRAY_clusterThis::convertVector(
-   openvdb::VectorGrid::Ptr outputGrid,
+   openvdb::VectorGrid::Ptr outputGridPtr,
    ParticleList & paList,
    const Settings & settings,
    hvdb::Interrupter & boss)
 {
 
-   openvdb::tools::ParticlesToLevelSet<openvdb::VectorGrid, ParticleList, hvdb::Interrupter> raster(*outputGrid, boss);
+   openvdb::tools::ParticlesToLevelSet<openvdb::VectorGrid, ParticleList, hvdb::Interrupter> raster(*outputGridPtr);
 
    if(myVerbose == CLUSTER_MSG_DEBUG)
       std::cout << "VRAY_clusterThis::convert() " << std::endl;
@@ -231,12 +232,12 @@ void VRAY_clusterThis::convertVector(
          float cutOffDist = std::numeric_limits<float>::max();
          if(settings.mGradientWidth > 1e-6)
             cutOffDist = settings.mGradientWidth;
-//         openvdb::tools::levelSetToFogVolume(*outputGrid, cutOffDist, false);
+//         openvdb::tools::levelSetToFogVolume(*outputGridPtr, cutOffDist, false);
       }
 
 // print stats of the vdb grid
    if(myVerbose == CLUSTER_MSG_DEBUG)
-      outputGrid->print();
+      outputGridPtr->print();
 
 }
 

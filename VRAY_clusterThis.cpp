@@ -73,8 +73,8 @@
 #include <openvdb/tools/LevelSetUtil.h>
 #include <openvdb/tools/ParticlesToLevelSet.h>
 #include <openvdb/tools/GridTransformer.h>
-#include <openvdb/tools/GridSampling.h>
-#include <openvdb/tools/Gradient.h>
+#include <openvdb/tools/GridOperators.h>
+#include <openvdb/tools/Interpolation.h>
 #include <openvdb/tools/Filter.h>
 
 #include <houdini_utils/ParmFactory.h>

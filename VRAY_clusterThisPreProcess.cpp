@@ -109,17 +109,17 @@ void VRAY_clusterThis::buildVDBGrids(GU_Detail * gdp)
                         preFilter.mean();
                   }
 
-               if(myPostVDBMeanCurvatureFilter) {
-                     std::cout << "VRAY_clusterThis::buildVDBGrids() - Filtering with mean curvature filter ... " << std::endl;
-                     for(int n = 0; n < myPostVDBMeanCurvatureIterations && !boss.wasInterrupted(); ++n)
-                        preFilter.meanCurvature();
-                  }
-
-               if(myPostVDBLaplacianFilter) {
-                     std::cout << "VRAY_clusterThis::buildVDBGrids() - Filtering with laplacian filter ... " << std::endl;
-                     for(int n = 0; n < myPostVDBLaplacianIterations && !boss.wasInterrupted(); ++n)
-                        preFilter.laplacian();
-                  }
+//               if(myPostVDBMeanCurvatureFilter) {
+//                     std::cout << "VRAY_clusterThis::buildVDBGrids() - Filtering with mean curvature filter ... " << std::endl;
+//                     for(int n = 0; n < myPostVDBMeanCurvatureIterations && !boss.wasInterrupted(); ++n)
+//                        preFilter.meanCurvature();
+//                  }
+//
+//               if(myPostVDBLaplacianFilter) {
+//                     std::cout << "VRAY_clusterThis::buildVDBGrids() - Filtering with laplacian filter ... " << std::endl;
+//                     for(int n = 0; n < myPostVDBLaplacianIterations && !boss.wasInterrupted(); ++n)
+//                        preFilter.laplacian();
+//                  }
 
 //                           if(myVDBReNormalizeFilter)
 //                              float r = preFilter.renormalize(3, 0.1);
